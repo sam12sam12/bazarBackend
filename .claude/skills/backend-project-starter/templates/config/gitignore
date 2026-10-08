@@ -1,0 +1,12 @@
+node_modules/
+
+# env files — .env holds real secrets (DB url, auth secret, R2 keys), never
+# commit it. .env.example is the tracked template.
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# macOS
+.DS_Store

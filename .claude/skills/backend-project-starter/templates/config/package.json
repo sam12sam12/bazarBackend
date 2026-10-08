@@ -1,0 +1,28 @@
+{
+  "name": "new-backend",
+  "scripts": {
+    "dev": "bun run --hot src/server.ts",
+    "test": "bun test",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@better-auth/expo": "^1.7.7",
+    "aws4fetch": "^1.0.20",
+    "better-auth": "^1.7.7",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "drizzle-zod": "^0.8.3",
+    "hono": "^4.13.1",
+    "pg": "^8.23.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.21.0",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "tsx": "^4.23.12"
+  }
+}

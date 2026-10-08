@@ -1,0 +1,28 @@
+{
+  "_comment": "Merge whichever of these this project doesn't already have into package.json. Version numbers are what the reference project pins — check for newer compatible versions if this is a fresh install.",
+  "dependencies": {
+    "better-auth": "^1.7.7",
+    "@better-auth/expo": "^1.7.7",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "drizzle-zod": "^0.8.3",
+    "hono": "^4.13.1",
+    "ioredis": "^6.0.0",
+    "pg": "^8.23.0",
+    "zod": "^4.4.3",
+    "aws4fetch": "^1.0.20",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.21.0",
+    "drizzle-kit": "^1.0.0-rc.4"
+  },
+  "scripts_to_add": {
+    "test": "bun test"
+  },
+  "notes": [
+    "Drop @better-auth/expo if the client isn't Expo/React Native — also remove the expo() plugin and trustedOrigins' exp:// entries from lib/auth.ts.",
+    "Drop aws4fetch if the storage/image-upload package isn't being installed.",
+    "bun test is Bun's built-in test runner — no extra dependency needed."
+  ]
+}
