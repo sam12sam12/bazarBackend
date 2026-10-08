@@ -3,6 +3,7 @@ import { db } from '../db/db'
 import {
 	conversation_participants,
 	conversations,
+	type MessageKind,
 	messages,
 } from '../db/schema'
 import type { SendMessage } from '../db/validation'
@@ -28,6 +29,59 @@ function buildPreview(data: SendMessage): string {
 	if (data.kind === 'text') return data.content.slice(0, 200)
 	if (data.kind === 'image') return '📷 Photo'
 	return '🎤 Voice message'
+}
+
+// Sibling of buildPreview for recomputing a conversation's list preview
+// from an already-stored row (editMessage/deleteMessage), rather than from
+// the pre-insert data sendMessage has. "Deleted" overrides every kind — the
+// conversation list should read "This message was deleted," not whatever
+// the original content/photo preview was.
+function previewForMessage(message: {
+	kind: MessageKind
+	content: string | null
+	images: string[] | null
+	deleted_at: Date | null
+}): string {
+	if (message.deleted_at) return 'This message was deleted'
+	if (message.kind === 'text') return (message.content ?? '').slice(0, 200)
+	if (message.kind === 'image') return '📷 Photo'
+	return '🎤 Voice message'
+}
+
+// Editing/deleting a message only needs to touch the conversation's
+// denormalized `last_message_preview` when that message is still the
+// *latest* one — editing/deleting something further back in history has no
+// effect on the conversation list. Returns the new preview if it changed
+// (so the caller knows to broadcast `conversation:updated`), `null`
+// otherwise.
+async function refreshPreviewIfLatest(
+	conversationId: number,
+	message: {
+		id: number
+		sender_id: UserId
+		kind: MessageKind
+		content: string | null
+		images: string[] | null
+		deleted_at: Date | null
+	},
+): Promise<string | null> {
+	const [latest] = await db
+		.select({ id: messages.id })
+		.from(messages)
+		.where(eq(messages.conversation_id, conversationId))
+		.orderBy(desc(messages.created_at), desc(messages.id))
+		.limit(1)
+	if (!latest || latest.id !== message.id) return null
+
+	const preview = previewForMessage(message)
+	await db
+		.update(conversations)
+		.set({
+			last_message_preview: preview,
+			last_message_sender_id: message.sender_id,
+		})
+		.where(eq(conversations.id, conversationId))
+	return preview
 }
 
 // A user can only attach an upload keyed under their own id — this is the
@@ -79,6 +133,34 @@ export const chatService = {
 			.from(conversation_participants)
 			.where(eq(conversation_participants.conversation_id, conversationId))
 		return rows.map((r) => r.user_id)
+	},
+
+	// Batched sibling of getParticipantIds — wsRouter.ts's onOpen/onClose
+	// need every contact across *all* of a user's conversations, which was
+	// previously one query per conversation (Promise.all over
+	// getParticipantIds). One query, grouped client-side, instead.
+	async getParticipantIdsForConversations(
+		conversationIds: number[],
+	): Promise<Map<number, UserId[]>> {
+		const result = new Map<number, UserId[]>()
+		if (conversationIds.length === 0) return result
+
+		const rows = await db
+			.select({
+				conversation_id: conversation_participants.conversation_id,
+				user_id: conversation_participants.user_id,
+			})
+			.from(conversation_participants)
+			.where(
+				inArray(conversation_participants.conversation_id, conversationIds),
+			)
+
+		for (const row of rows) {
+			const existing = result.get(row.conversation_id)
+			if (existing) existing.push(row.user_id)
+			else result.set(row.conversation_id, [row.user_id])
+		}
+		return result
 	},
 
 	async findConversationBetween(userA: UserId, userB: UserId) {
@@ -400,5 +482,102 @@ export const chatService = {
 				),
 			)
 		return readAt
+	},
+
+	// Only the sender may edit their own message, only while it isn't
+	// deleted, and only text — WhatsApp-style, editing a photo/voice note
+	// isn't a thing since there's no separate caption field to amend. There's
+	// no edit-history table, so the previous content isn't recoverable once
+	// edited.
+	async editMessage(
+		messageId: number,
+		conversationId: number,
+		userId: UserId,
+		content: string,
+	) {
+		const [current] = await db
+			.select()
+			.from(messages)
+			.where(eq(messages.id, messageId))
+			.limit(1)
+		if (!current || current.conversation_id !== conversationId) {
+			throw ApiError.notFound('Message not found')
+		}
+		if (current.sender_id !== userId) {
+			throw ApiError.forbidden('You can only edit your own messages')
+		}
+		if (current.deleted_at) {
+			throw ApiError.forbidden('Cannot edit a deleted message')
+		}
+		if (current.kind !== 'text') {
+			throw ApiError.badRequest('Only text messages can be edited')
+		}
+
+		const [updated] = await db
+			.update(messages)
+			.set({ content, edited_at: new Date() })
+			.where(eq(messages.id, messageId))
+			.returning()
+		if (!updated) throw ApiError.internal('Failed to edit message')
+
+		const preview = await refreshPreviewIfLatest(conversationId, updated)
+		const participantIds = await chatService.getParticipantIds(conversationId)
+		return { message: updated, participantIds, preview }
+	},
+
+	// Soft delete — WhatsApp-style "delete for everyone," not a hide-for-me.
+	// Clears the payload columns (regardless of `kind`) and stamps
+	// `deleted_at`; the row itself stays so pagination/ordering/preview
+	// logic never has to special-case a hole in the sequence. Idempotent:
+	// deleting an already-deleted message re-returns its current state
+	// instead of erroring, since a client retry/double-tap shouldn't be
+	// treated as a failure.
+	async deleteMessage(
+		messageId: number,
+		conversationId: number,
+		userId: UserId,
+	) {
+		const [current] = await db
+			.select()
+			.from(messages)
+			.where(eq(messages.id, messageId))
+			.limit(1)
+		if (!current || current.conversation_id !== conversationId) {
+			throw ApiError.notFound('Message not found')
+		}
+		if (current.sender_id !== userId) {
+			throw ApiError.forbidden('You can only delete your own messages')
+		}
+
+		const [updated] = current.deleted_at
+			? [current]
+			: await db
+					.update(messages)
+					.set({
+						content: null,
+						images: null,
+						audio_url: null,
+						audio_duration_seconds: null,
+						deleted_at: new Date(),
+					})
+					.where(eq(messages.id, messageId))
+					.returning()
+		if (!updated) throw ApiError.internal('Failed to delete message')
+
+		// Clearing the row's columns above doesn't touch R2 on its own — once
+		// nothing references an uploaded image/voice object, it's this app's
+		// job to delete it. Only on the actual delete, not the idempotent
+		// re-delete branch above — the first delete already cleaned these up.
+		if (!current.deleted_at) {
+			if (current.kind === 'image' && current.images?.length) {
+				await storage.reconcileImages(current.images, [])
+			} else if (current.kind === 'voice' && current.audio_url) {
+				await storage.reconcileImage(current.audio_url, null)
+			}
+		}
+
+		const preview = await refreshPreviewIfLatest(conversationId, updated)
+		const participantIds = await chatService.getParticipantIds(conversationId)
+		return { message: updated, participantIds, preview }
 	},
 }

@@ -4,9 +4,10 @@ import { Hono } from 'hono'
 import { websocket } from 'hono/bun'
 import { cors } from 'hono/cors'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import { checkDatabaseConnection } from './db/db.ts'
+import { checkDatabaseConnection, pool } from './db/db.ts'
 import { auth } from './lib/auth.ts'
 import { setLocalServer } from './lib/fanout.ts'
+import { publisher, subscriber } from './lib/redis.ts'
 import { mutationAuth } from './middlewares/mutationAuth.ts'
 import { authRateLimiter } from './middlewares/rateLimitMiddleware.ts'
 import { trimMiddleware } from './middlewares/trimMiddleware.ts'
@@ -167,8 +168,31 @@ app.route('/ws', wsRouter)
 // falling through to a normal 426 response. `setLocalServer` hands the
 // resulting server to `lib/fanout.ts`, which needs a standing reference to
 // call `.publish()` from outside any request (e.g. a presence change fired
-// from `onClose`).
-const server = Bun.serve({ port: Number(PORT), fetch: app.fetch, websocket })
+// from `onClose`). `idleTimeout` bounds how stale presence can get if a
+// connection dies without a clean close (e.g. the device loses signal).
+const server = Bun.serve({
+	port: Number(PORT),
+	fetch: app.fetch,
+	websocket: { ...websocket, idleTimeout: 120 },
+})
 setLocalServer(server)
+
+let shuttingDown = false
+async function shutdown(signal: string) {
+	if (shuttingDown) return
+	shuttingDown = true
+	console.log(`\n${signal} received, shutting down gracefully...`)
+
+	await server.stop()
+	await pool.end()
+	publisher.disconnect()
+	subscriber.disconnect()
+
+	console.log('✅ Shutdown complete')
+	process.exit(0)
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
 
 export default server

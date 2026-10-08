@@ -106,13 +106,24 @@ export const messages = pgTable(
 		// constraints below already enforce at the DB level; a `text` column
 		// keeps that enforcement in one place instead of splitting it between
 		// an enum type and these CHECKs.
-		kind: text('kind').notNull().default('text'),
+		kind: text('kind').$type<MessageKind>().notNull().default('text'),
 		content: text('content'),
 		images: text('images').array(),
 		audio_url: text('audio_url'),
 		audio_duration_seconds: bigint('audio_duration_seconds', {
 			mode: 'number',
 		}),
+
+		// Edited text messages only (see chatService.editMessage) — `content`
+		// is overwritten in place and this is set, so there's no separate
+		// edit-history table. `null` means never edited.
+		edited_at: timestamp('edited_at', { withTimezone: true }),
+		// Soft delete, WhatsApp-style: the row stays (so pagination/ordering/
+		// last-message-preview logic never has to special-case a hole), but
+		// content/images/audio_url/audio_duration_seconds are cleared the
+		// moment this is set — the CHECKs below are relaxed specifically to
+		// allow that null-everything state regardless of `kind`.
+		deleted_at: timestamp('deleted_at', { withTimezone: true }),
 
 		...timestamps,
 	},
@@ -140,17 +151,21 @@ export const messages = pgTable(
 			'messages_kind_valid',
 			sql`${table.kind} in ('text', 'image', 'voice')`,
 		),
+		// `deleted_at is not null or` escapes every kind-specific rule below —
+		// a deleted message's content is deliberately nulled out regardless
+		// of `kind` (see the column comment above), which would otherwise
+		// violate each of these.
 		check(
 			'messages_text_content_valid',
-			sql`${table.kind} <> 'text' or (${table.content} is not null and char_length(${table.content}) > 0)`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'text' or (${table.content} is not null and char_length(${table.content}) > 0)`,
 		),
 		check(
 			'messages_image_content_valid',
-			sql`${table.kind} <> 'image' or (${table.images} is not null and array_length(${table.images}, 1) > 0)`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'image' or (${table.images} is not null and array_length(${table.images}, 1) > 0)`,
 		),
 		check(
 			'messages_voice_content_valid',
-			sql`${table.kind} <> 'voice' or ${table.audio_url} is not null`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'voice' or ${table.audio_url} is not null`,
 		),
 	],
 )

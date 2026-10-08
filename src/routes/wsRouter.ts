@@ -17,6 +17,7 @@ import {
 	unregisterConnection,
 } from '../lib/presence.ts'
 import { authMiddleware } from '../middlewares/authMiddleware.ts'
+import { createRateLimiter } from '../middlewares/rateLimitMiddleware.ts'
 import { chatService } from '../services/chatService.ts'
 import { notificationDispatchService } from '../services/notificationDispatchService.ts'
 
@@ -72,10 +73,32 @@ const clientMessageSchema = z.union([
 		type: z.literal('read'),
 		conversation_id: z.number().int().positive(),
 	}),
+	// WhatsApp-style edit/delete — see chatService.editMessage/deleteMessage
+	// for the ownership/kind/already-deleted rules each enforces server-side.
+	z.object({
+		type: z.literal('message:edit'),
+		conversation_id: z.number().int().positive(),
+		message_id: z.number().int().positive(),
+		content: z.string().trim().min(1).max(2000),
+	}),
+	z.object({
+		type: z.literal('message:delete'),
+		conversation_id: z.number().int().positive(),
+		message_id: z.number().int().positive(),
+	}),
 ])
 
 const conversationTopic = (id: number) => `conversation:${id}`
 const userTopic = (userId: string) => `user:${userId}`
+
+// Every DB-writing frame (send/edit) shares one process-wide bucket per
+// user — same in-memory, single-instance posture as
+// middlewares/rateLimitMiddleware.ts's REST limiter, just consumed
+// directly instead of as Hono middleware since a WebSocket's `onMessage`
+// has no `next()` to wrap. 20 writes per 10s is generous for a real
+// conversation (bursts of a few messages in a row) while still stopping a
+// scripted client from hammering Postgres for free.
+const messageWriteLimiter = createRateLimiter({ windowMs: 10_000, max: 20 })
 
 async function getConversationIds(userId: string): Promise<number[]> {
 	const rows = await db
@@ -89,12 +112,10 @@ async function contactsFor(
 	conversationIds: number[],
 	excludingUserId: string,
 ): Promise<string[]> {
-	const allParticipants = await Promise.all(
-		conversationIds.map((id) => chatService.getParticipantIds(id)),
-	)
-	return [
-		...new Set(allParticipants.flat().filter((id) => id !== excludingUserId)),
-	]
+	const byConversation =
+		await chatService.getParticipantIdsForConversations(conversationIds)
+	const allParticipants = [...byConversation.values()].flat()
+	return [...new Set(allParticipants.filter((id) => id !== excludingUserId))]
 }
 
 const router = new Hono()
@@ -114,6 +135,16 @@ router.get(
 		// with, without a second DB round-trip at disconnect time.
 		let conversationIds: number[] = []
 
+		// Which conversations this connection last announced itself as
+		// typing/recording in, so onClose can announce a stop for each —
+		// without this, a client that disconnects mid-typing (crash, lost
+		// signal, app killed) leaves the other participant's "typing…"
+		// indicator stuck on forever, since the only thing that would
+		// otherwise clear it is a typing:stop frame this connection will now
+		// never send.
+		const typingIn = new Set<number>()
+		const recordingIn = new Set<number>()
+
 		return {
 			async onOpen(_evt, ws) {
 				const raw = ws.raw as ServerWebSocket<unknown>
@@ -130,11 +161,11 @@ router.get(
 				ws.send(
 					JSON.stringify({
 						type: 'ready',
-						online_user_ids: getOnlineUserIds(contacts),
+						online_user_ids: await getOnlineUserIds(contacts),
 					}),
 				)
 
-				const justCameOnline = registerConnection(user.id)
+				const justCameOnline = await registerConnection(user.id)
 				if (justCameOnline) {
 					const payload = JSON.stringify({
 						type: 'presence',
@@ -178,6 +209,17 @@ router.get(
 						}
 
 						case 'message:send': {
+							if (!messageWriteLimiter.consume(user.id)) {
+								ws.send(
+									JSON.stringify({
+										type: 'error',
+										error: 'Too many messages — slow down',
+										client_id: parsed.client_id,
+									}),
+								)
+								return
+							}
+
 							const { client_id, type, ...data } = parsed
 							const {
 								message,
@@ -226,7 +268,7 @@ router.get(
 
 							// Push only to recipients with no live connection at all —
 							// anyone online will see the WS events above instead.
-							const onlineIds = getOnlineUserIds(participantIds)
+							const onlineIds = await getOnlineUserIds(participantIds)
 							const offlineRecipients = participantIds.filter(
 								(id) => id !== user.id && !onlineIds.includes(id),
 							)
@@ -249,6 +291,93 @@ router.get(
 							return
 						}
 
+						case 'message:edit': {
+							if (!messageWriteLimiter.consume(user.id)) {
+								ws.send(
+									JSON.stringify({
+										type: 'error',
+										error: 'Too many messages — slow down',
+									}),
+								)
+								return
+							}
+
+							const { message, participantIds, preview } =
+								await chatService.editMessage(
+									parsed.message_id,
+									parsed.conversation_id,
+									user.id,
+									parsed.content,
+								)
+
+							const updatedPayload = JSON.stringify({
+								type: 'message:updated',
+								message,
+							})
+							fanoutFromConnection(
+								raw,
+								conversationTopic(parsed.conversation_id),
+								updatedPayload,
+							)
+							ws.send(updatedPayload)
+
+							// Only the conversation list needs a separate broadcast, and
+							// only if this message was still the latest one.
+							if (preview != null) {
+								const previewPayload = JSON.stringify({
+									type: 'conversation:updated',
+									conversation_id: parsed.conversation_id,
+									last_message_preview: preview,
+									created_at: message.created_at,
+								})
+								for (const participantId of participantIds) {
+									fanoutFromConnection(
+										raw,
+										userTopic(participantId),
+										previewPayload,
+									)
+								}
+							}
+							return
+						}
+
+						case 'message:delete': {
+							const { message, participantIds, preview } =
+								await chatService.deleteMessage(
+									parsed.message_id,
+									parsed.conversation_id,
+									user.id,
+								)
+
+							const updatedPayload = JSON.stringify({
+								type: 'message:updated',
+								message,
+							})
+							fanoutFromConnection(
+								raw,
+								conversationTopic(parsed.conversation_id),
+								updatedPayload,
+							)
+							ws.send(updatedPayload)
+
+							if (preview != null) {
+								const previewPayload = JSON.stringify({
+									type: 'conversation:updated',
+									conversation_id: parsed.conversation_id,
+									last_message_preview: preview,
+									created_at: message.created_at,
+								})
+								for (const participantId of participantIds) {
+									fanoutFromConnection(
+										raw,
+										userTopic(participantId),
+										previewPayload,
+									)
+								}
+							}
+							return
+						}
+
 						case 'typing:start':
 						case 'typing:stop': {
 							const member = await chatService.isParticipant(
@@ -256,6 +385,13 @@ router.get(
 								user.id,
 							)
 							if (!member) return
+
+							if (parsed.type === 'typing:start') {
+								typingIn.add(parsed.conversation_id)
+							} else {
+								typingIn.delete(parsed.conversation_id)
+							}
+
 							fanoutFromConnection(
 								raw,
 								conversationTopic(parsed.conversation_id),
@@ -276,6 +412,13 @@ router.get(
 								user.id,
 							)
 							if (!member) return
+
+							if (parsed.type === 'recording:start') {
+								recordingIn.add(parsed.conversation_id)
+							} else {
+								recordingIn.delete(parsed.conversation_id)
+							}
+
 							fanoutFromConnection(
 								raw,
 								conversationTopic(parsed.conversation_id),
@@ -331,7 +474,33 @@ router.get(
 			},
 
 			async onClose() {
-				const justWentOffline = unregisterConnection(user.id)
+				// No `raw`/`ws` available anymore by the time onClose fires —
+				// these go through fanoutBroadcast (server-wide publish), same as
+				// the presence announcement below, not fanoutFromConnection.
+				for (const conversationId of typingIn) {
+					fanoutBroadcast(
+						conversationTopic(conversationId),
+						JSON.stringify({
+							type: 'typing',
+							conversation_id: conversationId,
+							user_id: user.id,
+							is_typing: false,
+						}),
+					)
+				}
+				for (const conversationId of recordingIn) {
+					fanoutBroadcast(
+						conversationTopic(conversationId),
+						JSON.stringify({
+							type: 'recording',
+							conversation_id: conversationId,
+							user_id: user.id,
+							is_recording: false,
+						}),
+					)
+				}
+
+				const justWentOffline = await unregisterConnection(user.id)
 				if (!justWentOffline) return
 
 				const contacts = await contactsFor(conversationIds, user.id)

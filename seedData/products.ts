@@ -15,8 +15,28 @@ export function createRandomProduct(params: {
 	const province_id = faker.helpers.arrayElement(params.provinceIds)
 	const title = faker.commerce.productName()
 	const description = faker.commerce.productDescription()
-	const price = faker.number.int({ min: 1, max: 10000 }).toString()
-	const compare_at_price = faker.number.int({ min: 0, max: 10000 }).toString()
+
+	// ~40% of products are on sale. For those, `compare_at_price` is the
+	// original price and `price` is the discounted price derived from it —
+	// matching how the create-product form computes discountedPrice from
+	// price + discountPercentage (see ProductBasicInfoStep.tsx).
+	const hasDiscount = faker.datatype.boolean({ probability: 0.4 })
+	let price: string
+	let compare_at_price: string | null = null
+	let off_percentage: number | null = null
+
+	if (hasDiscount) {
+		const originalPrice = faker.number.int({ min: 1, max: 10000 })
+		off_percentage = faker.number.int({ min: 5, max: 70 })
+		const discountedPrice = Math.round(
+			originalPrice - (originalPrice * off_percentage) / 100,
+		)
+		price = discountedPrice.toString()
+		compare_at_price = originalPrice.toString()
+	} else {
+		price = faker.number.int({ min: 1, max: 10000 }).toString()
+	}
+
 	const currency = faker.helpers.arrayElement(['AFN', 'USD'] as const)
 	const quantity = faker.number.int({ min: 0, max: 100 })
 	const condition = faker.helpers.arrayElement(['new', 'used'] as const)
@@ -48,6 +68,7 @@ export function createRandomProduct(params: {
 		description,
 		price,
 		compare_at_price,
+		off_percentage,
 		currency,
 		quantity,
 		condition,
