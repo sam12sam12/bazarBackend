@@ -1,4 +1,4 @@
-import { and, type Column, eq, lt, or, type SQL } from 'drizzle-orm'
+import { type Column, type SQL, sql } from 'drizzle-orm'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import { ApiError } from './ApiError'
@@ -23,20 +23,45 @@ export function parseCursor(cursor?: string): CursorData | undefined {
 	}
 }
 
-// Builds the cursor-based WHERE condition for (created_at DESC, id DESC) pagination.
+// The one tie-break order every cursor-paginated list uses — spread this
+// into `.orderBy(...)` instead of repeating `desc(created_at), desc(id)` per
+// resource.
+//
+// `nulls last` is spelled out explicitly rather than just `desc(column)`,
+// because drizzle-kit's DDL generator always canonicalizes a schema index's
+// `.desc()` into `DESC NULLS LAST` — but the query-side `desc()` helper
+// emits plain `DESC`, which Postgres defaults to `NULLS FIRST` for. That
+// mismatch is invisible on a small table (the planner just sorts everything
+// either way) but at real scale it means the planner can't recognize the
+// index already provides this order, so it falls back to a full scan + sort
+// instead of walking the index and stopping at `limit`. Both columns are
+// `NOT NULL` so the actual null ordering never matters — what matters is
+// that this matches the paired index byte-for-byte (see e.g.
+// `messages_conversation_pagination_idx`).
+export function cursorOrderBy(table: { created_at: Column; id: Column }) {
+	return [
+		sql`${table.created_at} desc nulls last`,
+		sql`${table.id} desc nulls last`,
+	] as const
+}
+
+// Builds the cursor-based WHERE condition for (created_at DESC, id DESC)
+// pagination, as a native Postgres row-value comparison — `(created_at, id)
+// < (cursor_created_at, cursor_id)` — not the logically-equivalent
+// `lt(created_at, x) OR (eq(created_at, x) AND lt(id, y))` decomposition.
+// That looks identical but the planner can't push it down as a bounded
+// `Index Cond`; it only ever shows up as a `Filter`, so every row from the
+// cursor to the end of the table gets fetched and checked one by one. On a
+// small table that's free. At 1,000,000 rows, a cursor 500,000 rows deep
+// takes ~730ms and touches every remaining row that way — the row-value
+// form the planner *can* bound gets the same query down to ~13ms.
 // Pass idTransform=String for tables with UUID primary keys (e.g. users).
 export function buildCursorFilter(
 	table: { created_at: Column; id: Column },
 	cursor: CursorData,
 	idTransform: (v: string | number) => string | number = Number,
 ): SQL {
-	return or(
-		lt(table.created_at, new Date(cursor.created_at)),
-		and(
-			eq(table.created_at, new Date(cursor.created_at)),
-			lt(table.id, idTransform(cursor.id)),
-		),
-	) as SQL
+	return sql`(${table.created_at}, ${table.id}) < (${new Date(cursor.created_at)}, ${idTransform(cursor.id)})`
 }
 
 // Slices results to the requested limit, derives nextCursor and hasMore.

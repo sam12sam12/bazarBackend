@@ -21,6 +21,18 @@ import { publisher } from './redis'
 
 const presenceKey = (userId: string) => `presence:${userId}`
 
+// Every presence key carries this TTL, refreshed on every register and
+// every heartbeat (see `refreshConnection` and wsRouter.ts's
+// `presence:heartbeat` frame). This is the self-healing half of presence:
+// a clean disconnect still deletes the key immediately via
+// `unregisterConnection`, but a connection that dies *without* one (app
+// killed, battery died, network dropped) stops sending heartbeats and the
+// key simply expires on its own within this window instead of leaking
+// "online" forever. 45s is 2-3 missed ~20s client heartbeats' worth of
+// slack — long enough that a single dropped heartbeat frame doesn't flap
+// someone offline, short enough that a real crash self-corrects quickly.
+const PRESENCE_TTL_SECONDS = 45
+
 // Presence is a nice-to-have overlay on top of chat (online dot, delivered-
 // vs-sent ticks), not something a message send/receive should ever depend
 // on — so every function here fails soft, not loud, when Redis is
@@ -45,11 +57,27 @@ function logRedisFailureOnce(context: string, error: unknown) {
 export async function registerConnection(userId: string): Promise<boolean> {
 	try {
 		const count = await publisher.incr(presenceKey(userId))
+		await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
 		loggedRedisFailure = false
 		return count === 1
 	} catch (error) {
 		logRedisFailureOnce('registerConnection', error)
 		return false
+	}
+}
+
+// Called on every `presence:heartbeat` frame (wsRouter.ts) from any of a
+// user's open connections — keeps the counter's TTL from expiring while at
+// least one connection is genuinely still alive and checking in. Fails
+// soft like everything else here: a missed refresh under a Redis blip just
+// means the key expires a little early, which only ever self-corrects
+// *toward* "offline," never produces a false "online."
+export async function refreshConnection(userId: string): Promise<void> {
+	try {
+		await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
+		loggedRedisFailure = false
+	} catch (error) {
+		logRedisFailureOnce('refreshConnection', error)
 	}
 }
 
@@ -70,6 +98,11 @@ export async function unregisterConnection(userId: string): Promise<boolean> {
 			await publisher.del(presenceKey(userId))
 			return true
 		}
+		// Other connections for this user are still open — their own
+		// heartbeats keep the TTL fresh regardless, but re-arming it here
+		// too costs nothing and avoids relying on the timing of whichever
+		// heartbeat happens to land next.
+		await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
 		return false
 	} catch (error) {
 		logRedisFailureOnce('unregisterConnection', error)

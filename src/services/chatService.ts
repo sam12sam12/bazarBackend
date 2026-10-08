@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, inArray, lt, or, sql } from 'drizzle-orm'
+import { and, eq, gt, inArray, sql } from 'drizzle-orm'
 import { db } from '../db/db'
 import {
 	conversation_participants,
@@ -11,6 +11,7 @@ import { ApiError } from '../utils/ApiError'
 import {
 	buildCursorFilter,
 	type CursorData,
+	cursorOrderBy,
 	paginateResults,
 } from '../utils/pagination'
 import { keyFromPublicUrl } from '../utils/storage/client'
@@ -27,7 +28,10 @@ function directKey(userA: UserId, userB: UserId): string {
 
 function buildPreview(data: SendMessage): string {
 	if (data.kind === 'text') return data.content.slice(0, 200)
-	if (data.kind === 'image') return '📷 Photo'
+	if (data.kind === 'image')
+		return data.images.length > 1
+			? `📷 ${data.images.length} photos`
+			: '📷 Photo'
 	return '🎤 Voice message'
 }
 
@@ -44,7 +48,10 @@ function previewForMessage(message: {
 }): string {
 	if (message.deleted_at) return 'This message was deleted'
 	if (message.kind === 'text') return (message.content ?? '').slice(0, 200)
-	if (message.kind === 'image') return '📷 Photo'
+	if (message.kind === 'image') {
+		const count = message.images?.length ?? 0
+		return count > 1 ? `📷 ${count} photos` : '📷 Photo'
+	}
 	return '🎤 Voice message'
 }
 
@@ -69,7 +76,7 @@ async function refreshPreviewIfLatest(
 		.select({ id: messages.id })
 		.from(messages)
 		.where(eq(messages.conversation_id, conversationId))
-		.orderBy(desc(messages.created_at), desc(messages.id))
+		.orderBy(...cursorOrderBy(messages))
 		.limit(1)
 	if (!latest || latest.id !== message.id) return null
 
@@ -301,25 +308,23 @@ export const chatService = {
 
 		const baseFilter = inArray(conversations.id, myConversationIds)
 		// Ordered by `last_message_at`, not `created_at` (a conversation row's
-		// `created_at` never changes after creation) — so the cursor condition
-		// is built against that column directly rather than reusing
-		// `buildCursorFilter`, which assumes `created_at` is the order column.
+		// `created_at` never changes after creation) — same row-value cursor
+		// comparison as `buildCursorFilter`, just built against that column
+		// directly since `buildCursorFilter` itself assumes `created_at` is
+		// the order column.
 		const whereCondition = cursor
 			? and(
 					baseFilter,
-					or(
-						lt(conversations.last_message_at, new Date(cursor.created_at)),
-						and(
-							eq(conversations.last_message_at, new Date(cursor.created_at)),
-							lt(conversations.id, Number(cursor.id)),
-						),
-					),
+					sql`(${conversations.last_message_at}, ${conversations.id}) < (${new Date(cursor.created_at)}, ${Number(cursor.id)})`,
 				)
 			: baseFilter
 
 		const rows = await db.query.conversations.findMany({
 			where: whereCondition,
-			orderBy: [desc(conversations.last_message_at), desc(conversations.id)],
+			orderBy: [
+				sql`${conversations.last_message_at} desc nulls last`,
+				sql`${conversations.id} desc nulls last`,
+			],
 			limit: limit + 1,
 			with: {
 				participants: {
@@ -419,7 +424,7 @@ export const chatService = {
 
 		const results = await db.query.messages.findMany({
 			where: whereCondition,
-			orderBy: [desc(messages.created_at), desc(messages.id)],
+			orderBy: [...cursorOrderBy(messages)],
 			limit: limit + 1,
 		})
 

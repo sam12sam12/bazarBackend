@@ -19,6 +19,10 @@ export interface StorageKindConfig {
 	// committed to — cheaper to require callers state it than to ship a
 	// plausible-looking wrong default.
 	buildKey: (userId: string) => string
+	// Some upload pipelines genuinely can't trust the stored object's
+	// content-type (see `instance.ts`'s voice-note config for why) — set
+	// this to skip that half of validation and rely on `maxBytes` alone.
+	skipContentTypeCheck?: boolean
 }
 
 export interface StorageModuleConfig {
@@ -41,7 +45,9 @@ function toExpectation(
 	label: string,
 ): UploadExpectation {
 	return {
-		isAcceptableContentType: (ct) => ct === kind.contentType,
+		isAcceptableContentType: kind.skipContentTypeCheck
+			? undefined
+			: (ct) => ct === kind.contentType,
 		maxBytes: kind.maxBytes,
 		notFoundMessage: `Uploaded ${label} could not be found — please pick it again.`,
 		invalidMessage: `Uploaded ${label} is invalid or too large.`,

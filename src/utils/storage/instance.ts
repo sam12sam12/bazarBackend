@@ -88,18 +88,30 @@ export const storage = createStorage({
 		buildKey: (userId) => `images/${userId}/${crypto.randomUUID()}.jpg`,
 	},
 	voice: {
-		// Must match exactly what the client's recorder PUTs — see
-		// `frontend`'s voice-upload hook for the current pinned value. Pinned
-		// to `audio/m4a` to match the recorder's explicit `.m4a` extension (see
-		// useVoiceRecorder.ts) — without that explicit extension on both
-		// platforms, the recorded file actually came out MIME-typed as
-		// `video/mp4` by the OS, which the previous `audio/mp4` value here was
-		// (incorrectly) matching against.
+		// Presigned purely for the PUT's signature — the client's recorder
+		// (useVoiceRecorder.ts) targets `.m4a` — but never actually checked
+		// against the stored object (see `skipContentTypeCheck` below).
 		contentType: 'audio/m4a',
 		// ~10 min at 128kbps mono, comfortably above the 10 min cap already
 		// enforced by `sendVoiceMessageSchema`'s duration limit.
 		maxBytes: 10 * 1024 * 1024,
 		buildKey: (userId) => `voices/${userId}/${crypto.randomUUID()}.m4a`,
+		// The *stored* content-type isn't pinned by the presigned URL's
+		// signature in the first place (only `host` is a signed header for a
+		// signQuery-style PUT — a PUT with a different Content-Type than the
+		// one presigned for still succeeds, and R2 stores whatever was
+		// actually sent), and what a device's networking layer reports for a
+		// local `.m4a` recording is genuinely unpredictable across devices:
+		// "audio/m4a", "audio/mp4", "application/octet-stream", or even
+		// "video/mp4" for the exact same audio-only file — some Android
+		// content resolvers classify the generic MPEG-4 container as video by
+		// default, since `.m4a` has no distinct container format of its own.
+		// An allow-list chasing that is chasing a moving target with no end.
+		// What's actually worth enforcing is already covered elsewhere: the
+		// key is entirely server-generated, and `chatService.ts`'s
+		// `assertOwnsAttachment` already confirms the key belongs to the
+		// sender — `maxBytes` alone is enough of a backstop here.
+		skipContentTypeCheck: true,
 	},
 	sweep: {
 		getReferencedKeys,

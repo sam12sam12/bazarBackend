@@ -13,6 +13,7 @@ import {
 import { fanoutBroadcast, fanoutFromConnection } from '../lib/fanout.ts'
 import {
 	getOnlineUserIds,
+	refreshConnection,
 	registerConnection,
 	unregisterConnection,
 } from '../lib/presence.ts'
@@ -100,6 +101,14 @@ const clientMessageSchema = z.union([
 	z.object({
 		type: z.literal('presence:unwatch'),
 		user_id: z.string(),
+	}),
+	// Keeps this connection's presence TTL alive — see presence.ts's
+	// `PRESENCE_TTL_SECONDS` comment for why this exists (a connection that
+	// dies without a clean close, e.g. the app getting killed, stops
+	// sending these and the presence key simply expires instead of leaking
+	// "online" forever).
+	z.object({
+		type: z.literal('presence:heartbeat'),
 	}),
 ])
 
@@ -470,6 +479,11 @@ router.get(
 
 						case 'presence:unwatch': {
 							raw.unsubscribe(presenceTopic(parsed.user_id))
+							return
+						}
+
+						case 'presence:heartbeat': {
+							await refreshConnection(user.id)
 							return
 						}
 

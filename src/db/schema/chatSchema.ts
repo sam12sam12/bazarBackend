@@ -154,18 +154,23 @@ export const messages = pgTable(
 		// `deleted_at is not null or` escapes every kind-specific rule below —
 		// a deleted message's content is deliberately nulled out regardless
 		// of `kind` (see the column comment above), which would otherwise
-		// violate each of these.
+		// violate each of these. Upper bounds mirror `db/validation.ts`'s
+		// `sendTextMessageSchema`/`sendImageMessageSchema`/
+		// `sendVoiceMessageSchema` exactly — Zod is the first line of defense,
+		// this is the backstop for anything that writes to this table outside
+		// a normal request (a future admin tool, a migration script, a bug in
+		// a different code path).
 		check(
 			'messages_text_content_valid',
-			sql`${table.deleted_at} is not null or ${table.kind} <> 'text' or (${table.content} is not null and char_length(${table.content}) > 0)`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'text' or (${table.content} is not null and char_length(${table.content}) between 1 and 4000)`,
 		),
 		check(
 			'messages_image_content_valid',
-			sql`${table.deleted_at} is not null or ${table.kind} <> 'image' or (${table.images} is not null and array_length(${table.images}, 1) > 0)`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'image' or ((${table.images} is not null and array_length(${table.images}, 1) between 1 and 10) and (${table.content} is null or char_length(${table.content}) <= 4000))`,
 		),
 		check(
 			'messages_voice_content_valid',
-			sql`${table.deleted_at} is not null or ${table.kind} <> 'voice' or ${table.audio_url} is not null`,
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'voice' or (${table.audio_url} is not null and ${table.audio_duration_seconds} between 1 and 600)`,
 		),
 	],
 )
