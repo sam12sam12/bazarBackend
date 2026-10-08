@@ -86,10 +86,30 @@ const clientMessageSchema = z.union([
 		conversation_id: z.number().int().positive(),
 		message_id: z.number().int().positive(),
 	}),
+	// Lets a client learn (and keep learning) a specific user's online status
+	// even with no conversation between them yet — e.g. a store's profile
+	// screen, or a "message this user" entry point before the first message
+	// is sent. `contactsFor`/`getConversationIds` below only cover people
+	// already sharing a conversation, so without this a brand-new contact's
+	// online dot would never appear until some conversation existed and
+	// either side reconnected.
+	z.object({
+		type: z.literal('presence:watch'),
+		user_id: z.string(),
+	}),
+	z.object({
+		type: z.literal('presence:unwatch'),
+		user_id: z.string(),
+	}),
 ])
 
 const conversationTopic = (id: number) => `conversation:${id}`
 const userTopic = (userId: string) => `user:${userId}`
+// Every presence change for a user is also published here regardless of
+// conversation membership, so an explicit `presence:watch` (for a contact
+// with no shared conversation yet) still gets live updates — `userTopic`
+// alone only reaches people `contactsFor` already knows about.
+const presenceTopic = (userId: string) => `presence:${userId}`
 
 // Every DB-writing frame (send/edit) shares one process-wide bucket per
 // user — same in-memory, single-instance posture as
@@ -174,6 +194,7 @@ router.get(
 					})
 					for (const contactId of contacts)
 						fanoutBroadcast(userTopic(contactId), payload)
+					fanoutBroadcast(presenceTopic(user.id), payload)
 				}
 			},
 
@@ -432,6 +453,26 @@ router.get(
 							return
 						}
 
+						case 'presence:watch': {
+							raw.subscribe(presenceTopic(parsed.user_id))
+							const online = (
+								await getOnlineUserIds([parsed.user_id])
+							).includes(parsed.user_id)
+							ws.send(
+								JSON.stringify({
+									type: 'presence',
+									user_id: parsed.user_id,
+									online,
+								}),
+							)
+							return
+						}
+
+						case 'presence:unwatch': {
+							raw.unsubscribe(presenceTopic(parsed.user_id))
+							return
+						}
+
 						case 'read': {
 							const readAt = await chatService.markRead(
 								parsed.conversation_id,
@@ -511,6 +552,7 @@ router.get(
 				})
 				for (const contactId of contacts)
 					fanoutBroadcast(userTopic(contactId), payload)
+				fanoutBroadcast(presenceTopic(user.id), payload)
 			},
 		}
 	}),
