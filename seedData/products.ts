@@ -1,0 +1,84 @@
+import { faker } from '@faker-js/faker'
+import { db } from '../src/db/db'
+import { products } from '../src/db/schema'
+import type { InsertProduct } from '../src/db/validation'
+import { getCategoryIds, getProvinceIds, getStoreIds } from './index'
+
+export function createRandomProduct(params: {
+	storeIds: number[]
+	categoryIds: number[]
+	provinceIds: number[]
+	created_at?: Date
+}): InsertProduct {
+	const store_id = faker.helpers.arrayElement(params.storeIds)
+	const category_id = faker.helpers.arrayElement(params.categoryIds)
+	const province_id = faker.helpers.arrayElement(params.provinceIds)
+	const title = faker.commerce.productName()
+	const description = faker.commerce.productDescription()
+	const price = faker.number.int({ min: 1, max: 10000 }).toString()
+	const compare_at_price = faker.number.int({ min: 0, max: 10000 }).toString()
+	const currency = faker.helpers.arrayElement(['AFN', 'USD'] as const)
+	const quantity = faker.number.int({ min: 0, max: 100 })
+	const condition = faker.helpers.arrayElement(['new', 'used'] as const)
+	const is_active = true
+	const featured = faker.datatype.boolean()
+	const is_negotiable = faker.datatype.boolean()
+	const delivery_available = faker.datatype.boolean()
+	const view_count = faker.number.int({ min: 0, max: 1000 })
+	const favorite_count = faker.number.int({ min: 0, max: 100 })
+
+	const imageCount = faker.number.int({ min: 1, max: 5 })
+	const images = Array.from({ length: imageCount }, (_, i) => ({
+		url: faker.image.urlPicsumPhotos(),
+		sort_order: i,
+		is_primary: i === 0,
+	}))
+
+	const specifications: Record<string, string | number | boolean | null> = {
+		brand: faker.company.name(),
+		color: faker.color.human(),
+		weight: `${faker.number.int({ min: 100, max: 5000 })}g`,
+	}
+
+	return {
+		store_id,
+		category_id,
+		province_id,
+		title,
+		description,
+		price,
+		compare_at_price,
+		currency,
+		quantity,
+		condition,
+		is_active,
+		featured,
+		is_negotiable,
+		delivery_available,
+		view_count,
+		favorite_count,
+		images,
+		specifications,
+		created_at: params.created_at ?? faker.date.past({ years: 1 }),
+	}
+}
+
+export async function generateProductsFakerData(count = 10) {
+	const storeIds = await getStoreIds()
+	const categoryIds = await getCategoryIds()
+	const provinceIds = await getProvinceIds()
+
+	const productsFakerData: InsertProduct[] = faker.helpers.multiple(
+		() =>
+			createRandomProduct({
+				storeIds,
+				categoryIds,
+				provinceIds,
+			}),
+		{
+			count,
+		},
+	)
+
+	await db.insert(products).values(productsFakerData)
+}

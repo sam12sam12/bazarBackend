@@ -1,0 +1,29 @@
+{
+	"id": 4,
+	"name": "Mobile Galaxy",
+	"slug": "mobile-galaxy",
+	"owner_id": "5bcd2f13-75b7-47e7-ba0a-2df2dc668b57",
+	"category_id": 4,
+	"path": "electronics.mobiles",
+	"description": "All top brands of mobiles at unbeatable prices.",
+	"is_active": true,
+	"address": "Mazar-e-Sharif, Afghanistan",
+	"province_id": 4,
+	"latitude": "36.7069000",
+	"longitude": "67.1122000",
+	"logo_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=200&q=80",
+	"banner_url": "https://images.unsplash.com/photo-1556656793-062ff98782ee?auto=format&fit=crop&w=800&q=80",
+	"contact_phone": "0720555555",
+	"contact_email": "sales@mobilegalaxy.af",
+	"approval_status": "approved",
+	"approved_at": "2026-05-10T11:02:53.096Z",
+	"product_count": 75,
+	"average_rating": "4.90",
+	"review_count": 30,
+	"featured": true,
+	"created_at": "2026-05-03T11:04:02.120Z",
+	"updated_at": "2026-05-03T11:04:02.120Z",
+	"province": {
+		"name": "Balkh"
+	}
+}

@@ -1,0 +1,23 @@
+/---------------------/
+|     working on      |
+/---------------------/
+
+creating seed data for saved products, requests, stores
+
+
+
+/---------------------/
+|         TODO        |
+/---------------------/
+   
+  
+
+
+
+/---------------------/
+|     suggestions     |
+/---------------------/
+   1. messenger / blocking system
+   2. images should be deleted in the backend when deleted in the frontend
+   3. sending notifications when store add product or order or message
+   hi

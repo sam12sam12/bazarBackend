@@ -1,0 +1,224 @@
+import { and, asc, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
+import { db } from '../db/db'
+import { productRequests } from '../db/schema'
+import type {
+	InsertProductRequest,
+	UpdateProductRequest,
+} from '../db/validation'
+import { ApiError } from '../utils/ApiError'
+import {
+	buildCursorFilter,
+	type CursorData,
+	paginateResults,
+} from '../utils/pagination'
+import type { PublicRequestFilters } from '../utils/types'
+
+type RequestStatus = 'resolved' | 'closed'
+
+// Relations returned to clients when listing/reading a request.
+export const requestWith = {
+	user: { columns: { id: true, name: true, avatar_url: true } },
+	category: { columns: { id: true, name: true } },
+	province: { columns: { id: true, name: true } },
+} as const
+
+// Whether `currentUserId` has favorited this row — `false` with no SQL cost
+// when there's no signed-in caller. Mirrors `isOwner`'s controller-level
+// pattern but as a SQL column, for use with a relational query's `extras`.
+//
+// The outer row id is deliberately written as literal SQL (not interpolated
+// via the column object) — drizzle renders an interpolated column as a
+// bare, unqualified identifier here, and since `favorite_requests` has its
+// own `id` column too, an unqualified `id` inside this subquery would
+// resolve to *that* one instead of correlating to the outer row, silently
+// matching nothing. It's quoted as `"productRequests".id` (not
+// `product_requests.id`) because a relational `findMany` query aliases its
+// FROM table to the camelCase schema key, not the snake_case table name —
+// and unquoted in SQL, `productRequests` would itself lowercase to
+// `productrequests` and fail to resolve.
+function isSaveColumn(currentUserId?: string) {
+	return currentUserId
+		? sql<boolean>`EXISTS (SELECT 1 FROM favorite_requests WHERE favorite_requests.user_id = ${currentUserId} AND favorite_requests.request_id = "productRequests".id)`
+		: sql<boolean>`false`
+}
+
+export const productRequestService = {
+	async create(userId: string, data: InsertProductRequest) {
+		const [request] = await db
+			.insert(productRequests)
+			.values({ ...data, user_id: userId })
+			.returning()
+		return request
+	},
+
+	// Public browse — only open requests, optionally filtered/sorted.
+	async getPublic(
+		limit: number,
+		cursor?: CursorData,
+		filters?: PublicRequestFilters,
+		currentUserId?: string,
+	) {
+		const statusFilter = eq(productRequests.status, 'open')
+		const categoryFilter = filters?.categoryIds?.length
+			? inArray(productRequests.category_id, filters.categoryIds)
+			: undefined
+		const provinceFilter = filters?.provinceIds?.length
+			? inArray(productRequests.province_id, filters.provinceIds)
+			: undefined
+		// Both bounds compare against the request's own ceiling (budget_max) —
+		// the amount the buyer is actually willing to pay, and the figure a
+		// seller browsing requests cares about. Comparing minBudget against
+		// budget_min instead would compare it against the buyer's floor, which
+		// sits far lower for nearly every request and made the min filter
+		// return almost nothing.
+		const minBudgetFilter = filters?.minBudget
+			? gte(productRequests.budget_max, filters.minBudget)
+			: undefined
+		const maxBudgetFilter = filters?.maxBudget
+			? lte(productRequests.budget_max, filters.maxBudget)
+			: undefined
+		const searchFilter =
+			filters?.search && filters.search.length >= 2
+				? sql`to_tsvector('simple', coalesce(${productRequests.title}, '') || ' ' || coalesce(${productRequests.description}, '')) @@ plainto_tsquery('simple', ${filters.search})`
+				: undefined
+
+		const sortBy = filters?.sortBy ?? 'newest'
+
+		// Budget sort can't reuse the shared (created_at, id) cursor — its
+		// order has nothing to do with those columns — so it pages by plain
+		// offset instead, carried in cursor.id; cursor.created_at just rides
+		// along unused to satisfy the shared CursorData shape.
+		if (sortBy !== 'newest') {
+			const offset = cursor ? Number(cursor.id) : 0
+			const whereCondition = and(
+				statusFilter,
+				categoryFilter,
+				provinceFilter,
+				minBudgetFilter,
+				maxBudgetFilter,
+				searchFilter,
+			)
+			const orderBy =
+				sortBy === 'budget_asc'
+					? [asc(productRequests.budget_max), desc(productRequests.id)]
+					: [desc(productRequests.budget_max), desc(productRequests.id)]
+
+			const results = await db.query.productRequests.findMany({
+				where: whereCondition,
+				with: requestWith,
+				extras: { isSave: isSaveColumn(currentUserId).as('isSave') },
+				orderBy,
+				limit: limit + 1,
+				offset,
+			})
+
+			const hasMore = results.length > limit
+			const list = hasMore ? results.slice(0, limit) : results
+			const nextCursor = hasMore
+				? { created_at: new Date().toISOString(), id: offset + limit }
+				: null
+			return { requests: list, nextCursor }
+		}
+
+		const cursorFilter = cursor
+			? buildCursorFilter(productRequests, cursor)
+			: undefined
+		const whereCondition = and(
+			statusFilter,
+			categoryFilter,
+			provinceFilter,
+			minBudgetFilter,
+			maxBudgetFilter,
+			searchFilter,
+			cursorFilter,
+		)
+
+		const results = await db.query.productRequests.findMany({
+			where: whereCondition,
+			with: requestWith,
+			extras: { isSave: isSaveColumn(currentUserId).as('isSave') },
+			orderBy: [desc(productRequests.created_at), desc(productRequests.id)],
+			limit: limit + 1,
+		})
+
+		const { list, nextCursor } = paginateResults(results, limit)
+		return { requests: list, nextCursor }
+	},
+
+	async getUserRequests(userId: string, limit: number, cursor?: CursorData) {
+		const baseFilter = eq(productRequests.user_id, userId)
+		const whereCondition = cursor
+			? and(baseFilter, buildCursorFilter(productRequests, cursor))
+			: baseFilter
+
+		const results = await db.query.productRequests.findMany({
+			where: whereCondition,
+			with: requestWith,
+			orderBy: [desc(productRequests.created_at), desc(productRequests.id)],
+			limit: limit + 1,
+		})
+
+		const { list, nextCursor } = paginateResults(results, limit)
+		return { requests: list, nextCursor }
+	},
+
+	async getById(id: number) {
+		const request = await db.query.productRequests.findFirst({
+			where: eq(productRequests.id, id),
+			with: requestWith,
+		})
+		if (!request) throw ApiError.notFound('Product request not found')
+		return request
+	},
+
+	async update(
+		id: number,
+		userId: string,
+		isAdmin: boolean,
+		data: UpdateProductRequest,
+	) {
+		await assertOwnerOrAdmin(id, userId, isAdmin)
+		const [updated] = await db
+			.update(productRequests)
+			.set(data)
+			.where(eq(productRequests.id, id))
+			.returning()
+		return updated
+	},
+
+	async setStatus(
+		id: number,
+		userId: string,
+		isAdmin: boolean,
+		status: RequestStatus,
+	) {
+		await assertOwnerOrAdmin(id, userId, isAdmin)
+		const [updated] = await db
+			.update(productRequests)
+			.set({ status })
+			.where(eq(productRequests.id, id))
+			.returning()
+		return updated
+	},
+
+	async remove(id: number, userId: string, isAdmin: boolean) {
+		await assertOwnerOrAdmin(id, userId, isAdmin)
+		await db.delete(productRequests).where(eq(productRequests.id, id))
+		return 'Product request deleted'
+	},
+}
+
+// Fetches the request and ensures the caller owns it (or is an admin).
+async function assertOwnerOrAdmin(
+	id: number,
+	userId: string,
+	isAdmin: boolean,
+) {
+	const request = await db.query.productRequests.findFirst({
+		where: eq(productRequests.id, id),
+		columns: { id: true, user_id: true },
+	})
+	if (!request) throw ApiError.notFound('Product request not found')
+	if (!isAdmin && request.user_id !== userId) throw ApiError.forbidden()
+	return request
+}
