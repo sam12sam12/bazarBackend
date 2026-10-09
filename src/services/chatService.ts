@@ -514,8 +514,15 @@ export const chatService = {
 		if (current.deleted_at) {
 			throw ApiError.forbidden('Cannot edit a deleted message')
 		}
-		if (current.kind !== 'text') {
-			throw ApiError.badRequest('Only text messages can be edited')
+		// Text: always editable. Image: only if it already carries a caption —
+		// WhatsApp-style, this amends the existing caption, it doesn't add one
+		// to a photo that never had text (that's a different feature). Voice
+		// has no text field of its own to amend at all.
+		if (current.kind === 'voice') {
+			throw ApiError.badRequest('Voice messages cannot be edited')
+		}
+		if (current.kind === 'image' && !current.content) {
+			throw ApiError.badRequest('This message has no caption to edit')
 		}
 
 		const [updated] = await db
