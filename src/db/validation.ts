@@ -199,7 +199,7 @@ export const insertStoreSchema = createInsertSchema(stores, {
 		.nullable()
 		.optional(),
 	logo_url: (schema) => schema.url('Invalid image URL').optional(),
-	banner_url: (schema) => schema.url('Invalid image URL').optional(),
+	banner_url: (schema) => schema.url('Invalid image URL').nullable().optional(),
 }).strict()
 
 export const updateStoreSchema = insertStoreSchema.partial().strict()
