@@ -49,6 +49,16 @@ function isSaveColumn(currentUserId?: string) {
 		: sql<boolean>`false`
 }
 
+// Whether `currentUserId` posted this row — same SQL-extras pattern as
+// `isSaveColumn` above, so list endpoints never make a caller compare
+// `request.user.id` to the current user client-side (getById's controller
+// already does this comparison server-side too, for the single-row case).
+function isOwnerColumn(currentUserId?: string) {
+	return currentUserId
+		? sql<boolean>`${productRequests.user_id} = ${currentUserId}`
+		: sql<boolean>`false`
+}
+
 export const productRequestService = {
 	async create(userId: string, data: InsertProductRequest) {
 		await storage.validateNewImages(
@@ -117,7 +127,10 @@ export const productRequestService = {
 			const results = await db.query.productRequests.findMany({
 				where: whereCondition,
 				with: requestWith,
-				extras: { isSave: isSaveColumn(currentUserId).as('isSave') },
+				extras: {
+					isSave: isSaveColumn(currentUserId).as('isSave'),
+					isOwner: isOwnerColumn(currentUserId).as('isOwner'),
+				},
 				orderBy,
 				limit: limit + 1,
 				offset,
@@ -170,7 +183,12 @@ export const productRequestService = {
 		})
 
 		const { list, nextCursor } = paginateResults(results, limit)
-		return { requests: list, nextCursor }
+		// Every row here is already filtered to `userId`'s own requests — no
+		// per-row SQL needed, `isOwner` is trivially true for all of them.
+		return {
+			requests: list.map((request) => ({ ...request, isOwner: true })),
+			nextCursor,
+		}
 	},
 
 	async getById(id: number) {
