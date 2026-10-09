@@ -385,6 +385,10 @@ export const chatService = {
 				id: c.id,
 				last_message_preview: c.last_message_preview,
 				last_message_sender_id: c.last_message_sender_id,
+				// Computed server-side against the requesting session — callers
+				// (ChatUserCard) should never re-derive this by comparing
+				// `last_message_sender_id` to their own id client-side.
+				is_mine: c.last_message_sender_id === userId,
 				created_at: c.last_message_at,
 				other_user: other ?? { id: '', name: 'Unknown', avatar_url: null },
 				unread_count: unreadCounts[i] ?? 0,
@@ -433,8 +437,15 @@ export const chatService = {
 			conversationId,
 			userId,
 		)
+		// Computed server-side against the requesting session — callers
+		// (ChatMessagesScreen) should never re-derive this by comparing
+		// `sender_id` to their own id client-side.
+		const messagesWithIsMine = list.map((m) => ({
+			...m,
+			is_mine: m.sender_id === userId,
+		}))
 		return {
-			messages: list,
+			messages: messagesWithIsMine,
 			nextCursor,
 			hasMore,
 			other_last_read_at: otherLastReadAt,

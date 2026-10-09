@@ -35,6 +35,28 @@ function isSaveColumn(currentUserId?: string) {
 		: sql<boolean>`false`
 }
 
+// Whether `currentUserId` owns this row — no subquery needed (unlike
+// `isSaveColumn`/products' `isOwnerColumn`) since `owner_id` already lives
+// directly on `stores`, not a joined table.
+function isOwnerColumn(currentUserId?: string) {
+	return currentUserId
+		? sql<boolean>`${stores.owner_id} = ${currentUserId}`
+		: sql<boolean>`false`
+}
+
+// Live review count + average rating for a listing row — same correlated
+// subquery shape `getAll`'s own `min_rating` filter and `rating_desc` sort
+// already use inline, just exposed as actual output columns here instead of
+// only ever feeding a WHERE/ORDER BY. `getById` computes the same two
+// numbers via a separate join+aggregate query instead (see below) since
+// that one only ever runs for a single row.
+function reviewStatsColumns() {
+	return {
+		review_count: sql<number>`(SELECT COUNT(*)::int FROM store_reviews WHERE store_id = ${stores.id})`,
+		average_rating: sql<number>`COALESCE(ROUND((SELECT AVG(rating) FROM store_reviews WHERE store_id = ${stores.id})::numeric, 2), 0)`,
+	}
+}
+
 export const storeService = {
 	async getSuggestions(search: string, limit: number = 10) {
 		if (search.length < 2) return []
@@ -144,6 +166,8 @@ export const storeService = {
 					},
 					province: { name: provinces.name, code: provinces.code },
 					isSave: isSaveColumn(currentUserId),
+					isOwner: isOwnerColumn(currentUserId),
+					...reviewStatsColumns(),
 				})
 				.from(stores)
 				.leftJoin(users, eq(users.id, stores.owner_id))
@@ -179,6 +203,9 @@ export const storeService = {
 			},
 			extras: {
 				isSave: isSaveColumn(currentUserId).as('isSave'),
+				isOwner: isOwnerColumn(currentUserId).as('isOwner'),
+				review_count: reviewStatsColumns().review_count.as('review_count'),
+				average_rating: reviewStatsColumns().average_rating.as('average_rating'),
 			},
 			orderBy: [desc(stores.created_at), desc(stores.id)],
 			limit: limit + 1,
