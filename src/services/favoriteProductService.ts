@@ -7,7 +7,7 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
-import { PRODUCT_LIST_COLUMNS } from './productService'
+import { isOwnerColumn, PRODUCT_LIST_COLUMNS } from './productService'
 
 export const favoriteProductService = {
 	async toggle(userId: string, productId: number) {
@@ -88,6 +88,7 @@ export const favoriteProductService = {
 			.select({
 				...PRODUCT_LIST_COLUMNS,
 				favorited_at: favoriteProducts.favorited_at,
+				isOwner: isOwnerColumn(userId),
 			})
 			.from(favoriteProducts)
 			.innerJoin(products, eq(favoriteProducts.product_id, products.id))
@@ -99,7 +100,10 @@ export const favoriteProductService = {
 			.limit(limit + 1)
 
 		const { list, nextCursor } = paginateResults(
-			rows.map((r) => ({ ...r, created_at: r.favorited_at })),
+			// Every row here is already filtered to `userId`'s own favorites —
+			// `isSave` is trivially true for all of them, same reasoning as
+			// `productRequestService.getUserRequests`'s `isOwner`.
+			rows.map((r) => ({ ...r, created_at: r.favorited_at, isSave: true })),
 			limit,
 		)
 		return { products: list, nextCursor }

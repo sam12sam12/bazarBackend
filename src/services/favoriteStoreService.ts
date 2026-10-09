@@ -84,6 +84,7 @@ export const favoriteStoreService = {
 						id: true,
 						name: true,
 						logo_url: true,
+						owner_id: true,
 						is_active: true,
 						product_count: true,
 						approval_status: true,
@@ -105,9 +106,19 @@ export const favoriteStoreService = {
 			limit,
 		)
 		return {
+			// Every row here is already filtered to `userId`'s own favorites —
+			// `isSave` is trivially true for all of them. `isOwner` still needs
+			// the real per-row check (you can favorite your own store) — only
+			// fetched `owner_id` to compute it, so it's stripped before return,
+			// same as `StoreResponse`'s shape everywhere else.
 			stores: list
 				.map((r) => r.store)
-				.filter((s): s is NonNullable<typeof s> => s?.is_active === true),
+				.filter((s): s is NonNullable<typeof s> => s?.is_active === true)
+				.map(({ owner_id, ...store }) => ({
+					...store,
+					isOwner: owner_id === userId,
+					isSave: true,
+				})),
 			nextCursor,
 		}
 	},

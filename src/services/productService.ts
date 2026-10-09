@@ -54,7 +54,7 @@ function isSaveColumn(currentUserId?: string) {
 // SQL cost when there's no signed-in caller. Same literal-SQL-correlation
 // caveat as `isSaveColumn` above: `products.store_id` is written as plain
 // text, not interpolated via the column object.
-function isOwnerColumn(currentUserId?: string) {
+export function isOwnerColumn(currentUserId?: string) {
 	return currentUserId
 		? sql<boolean>`EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = ${currentUserId})`
 		: sql<boolean>`false`

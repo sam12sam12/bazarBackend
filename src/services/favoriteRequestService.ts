@@ -91,6 +91,19 @@ export const favoriteRequestService = {
 			rows.map((r) => ({ ...r, created_at: r.favorited_at, id: r.request_id })),
 			limit,
 		)
-		return { requests: list.map((r) => r.request), nextCursor }
+		return {
+			// Every row here is already filtered to `userId`'s own favorites —
+			// `isSave` is trivially true for all of them. `isOwner` still needs
+			// the real per-row check (you can favorite your own request) —
+			// `requestWith` already joins `user`, so no extra column needed.
+			requests: list
+				.filter((r) => r.request)
+				.map((r) => ({
+					...r.request!,
+					isOwner: r.request!.user.id === userId,
+					isSave: true,
+				})),
+			nextCursor,
+		}
 	},
 }
