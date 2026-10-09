@@ -11,7 +11,14 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
+import { storage } from '../utils/storage/instance'
 import type { PublicRequestFilters } from '../utils/types'
+
+interface RequestImage {
+	url: string
+	sort_order: number
+	is_primary: boolean
+}
 
 type RequestStatus = 'resolved' | 'closed'
 
@@ -44,6 +51,10 @@ function isSaveColumn(currentUserId?: string) {
 
 export const productRequestService = {
 	async create(userId: string, data: InsertProductRequest) {
+		await storage.validateNewImages(
+			(data.images as RequestImage[] | undefined ?? []).map((i) => i.url),
+		)
+
 		const [request] = await db
 			.insert(productRequests)
 			.values({ ...data, user_id: userId })
@@ -178,11 +189,37 @@ export const productRequestService = {
 		data: UpdateProductRequest,
 	) {
 		await assertOwnerOrAdmin(id, userId, isAdmin)
+
+		const previous = data.images
+			? await db.query.productRequests.findFirst({
+					where: eq(productRequests.id, id),
+					columns: { images: true },
+				})
+			: undefined
+		const previousUrls = (previous?.images as RequestImage[] | undefined)?.map(
+			(i) => i.url,
+		)
+
+		if (data.images) {
+			await storage.validateNewImages(
+				(data.images as RequestImage[]).map((i) => i.url),
+				previousUrls ?? [],
+			)
+		}
+
 		const [updated] = await db
 			.update(productRequests)
 			.set(data)
 			.where(eq(productRequests.id, id))
 			.returning()
+		if (!updated) return null
+
+		if (data.images) {
+			await storage.reconcileImages(
+				previousUrls,
+				(data.images as RequestImage[]).map((i) => i.url),
+			)
+		}
 		return updated
 	},
 

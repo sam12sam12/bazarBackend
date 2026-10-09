@@ -8,6 +8,7 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
+import { storage } from '../utils/storage/instance'
 import type { ReviewFilters, ReviewReaction } from '../utils/types'
 
 async function recalculateReactionCounts(reviewId: number) {
@@ -163,6 +164,8 @@ export const storeReviewService = {
 	},
 
 	async create(userId: string, data: InsertStoreReview) {
+		await storage.validateNewImages(data.images ?? [])
+
 		try {
 			await db.insert(storeReviews).values({ ...data, user_id: userId })
 		} catch (error) {
@@ -182,7 +185,24 @@ export const storeReviewService = {
 		data: UpdateStoreReview,
 	) {
 		await assertOwnerOrAdmin(id, userId, isAdmin)
+
+		const previous = data.images
+			? await db.query.storeReviews.findFirst({
+					where: eq(storeReviews.id, id),
+					columns: { images: true },
+				})
+			: undefined
+		const previousUrls = previous?.images as string[] | undefined
+
+		if (data.images) {
+			await storage.validateNewImages(data.images, previousUrls ?? [])
+		}
+
 		await db.update(storeReviews).set(data).where(eq(storeReviews.id, id))
+
+		if (data.images) {
+			await storage.reconcileImages(previousUrls, data.images)
+		}
 		return 'Review updated successfully'
 	},
 

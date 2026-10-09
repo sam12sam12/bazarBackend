@@ -1,7 +1,15 @@
 import { isNotNull } from 'drizzle-orm'
 import type { Context } from 'hono'
 import { db } from '../../db/db'
-import { messages, products, stores, users } from '../../db/schema'
+import {
+	messages,
+	productRequests,
+	productReviews,
+	products,
+	storeReviews,
+	stores,
+	users,
+} from '../../db/schema'
 import { ApiError } from '../ApiError'
 import { keyFromPublicUrl } from './client'
 import { createStorage } from './createStorage'
@@ -27,7 +35,15 @@ interface ProductImage {
 // objects (seed placeholders, etc.), so those never show up as "referenced"
 // or "orphaned" either; they're simply not R2's problem.
 async function getReferencedKeys(): Promise<Set<string>> {
-	const [userRows, storeRows, productRows, messageRows] = await Promise.all([
+	const [
+		userRows,
+		storeRows,
+		productRows,
+		messageRows,
+		productRequestRows,
+		productReviewRows,
+		storeReviewRows,
+	] = await Promise.all([
 		db
 			.select({ avatar_url: users.avatar_url })
 			.from(users)
@@ -39,6 +55,9 @@ async function getReferencedKeys(): Promise<Set<string>> {
 		db
 			.select({ images: messages.images, audio_url: messages.audio_url })
 			.from(messages),
+		db.select({ images: productRequests.images }).from(productRequests),
+		db.select({ images: productReviews.images }).from(productReviews),
+		db.select({ images: storeReviews.images }).from(storeReviews),
 	])
 
 	const referenced = new Set<string>()
@@ -62,6 +81,18 @@ async function getReferencedKeys(): Promise<Set<string>> {
 	for (const { images, audio_url } of messageRows) {
 		for (const url of [...(images ?? []), audio_url]) {
 			if (!url) continue
+			const key = keyFromPublicUrl(url)
+			if (key) referenced.add(key)
+		}
+	}
+	for (const { images } of productRequestRows) {
+		for (const image of images as ProductImage[]) {
+			const key = keyFromPublicUrl(image.url)
+			if (key) referenced.add(key)
+		}
+	}
+	for (const { images } of [...productReviewRows, ...storeReviewRows]) {
+		for (const url of images as string[]) {
 			const key = keyFromPublicUrl(url)
 			if (key) referenced.add(key)
 		}
