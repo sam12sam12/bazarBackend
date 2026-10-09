@@ -160,7 +160,10 @@ export const productRequestService = {
 		const results = await db.query.productRequests.findMany({
 			where: whereCondition,
 			with: requestWith,
-			extras: { isSave: isSaveColumn(currentUserId).as('isSave') },
+			extras: {
+				isSave: isSaveColumn(currentUserId).as('isSave'),
+				isOwner: isOwnerColumn(currentUserId).as('isOwner'),
+			},
 			orderBy: [desc(productRequests.created_at), desc(productRequests.id)],
 			limit: limit + 1,
 		})
