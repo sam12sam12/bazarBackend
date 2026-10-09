@@ -208,7 +208,14 @@ export const productReviewService = {
 
 	async delete(id: number, userId: string, isAdmin: boolean) {
 		await assertOwnerOrAdmin(id, userId, isAdmin)
+		const review = await db.query.productReviews.findFirst({
+			where: eq(productReviews.id, id),
+			columns: { images: true },
+		})
 		await db.delete(productReviews).where(eq(productReviews.id, id))
+		if (review) {
+			await storage.reconcileImages(review.images as string[], [])
+		}
 		return 'Review deleted successfully'
 	},
 

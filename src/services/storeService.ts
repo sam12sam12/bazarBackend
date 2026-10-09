@@ -3,6 +3,8 @@ import { db } from '../db/db'
 import {
 	categories,
 	notifications,
+	productReviews,
+	products,
 	provinces,
 	storeFollows,
 	storeReviews,
@@ -17,7 +19,7 @@ import {
 	paginateResults,
 } from '../utils/pagination'
 import { storage } from '../utils/storage/instance'
-import type { StoreFilters } from '../utils/types'
+import type { ProductImage, StoreFilters } from '../utils/types'
 
 // Whether `currentUserId` has favorited this row — `false` with no SQL cost
 // when there's no signed-in caller. Mirrors `isOwner`'s controller-level
@@ -328,16 +330,58 @@ export const storeService = {
 		return updated
 	},
 
+	// Deleting the row cascades (at the DB level — `products.store_id` and
+	// `store_reviews.store_id` are both `onDelete: cascade`, and products'
+	// own cascade takes their reviews with them too) straight through every
+	// product and review this store has, two levels deep. None of that ever
+	// runs application code, so this is the only place any of those images
+	// get reconciled — collect every url *before* the delete fires, since
+	// the rows (and the only record of which urls they held) are gone the
+	// instant it does.
 	async delete(id: number) {
-		const store = await db.query.stores.findFirst({
-			where: eq(stores.id, id),
-			columns: { logo_url: true, banner_url: true },
-		})
+		const [store, ownReviews, storeProducts] = await Promise.all([
+			db.query.stores.findFirst({
+				where: eq(stores.id, id),
+				columns: { logo_url: true, banner_url: true },
+			}),
+			db.query.storeReviews.findMany({
+				where: eq(storeReviews.store_id, id),
+				columns: { images: true },
+			}),
+			db.query.products.findMany({
+				where: eq(products.store_id, id),
+				columns: { id: true, images: true },
+			}),
+		])
+
+		const productIds = storeProducts.map((p) => p.id)
+		const productReviewRows = productIds.length
+			? await db.query.productReviews.findMany({
+					where: inArray(productReviews.product_id, productIds),
+					columns: { images: true },
+				})
+			: []
+
 		await db.delete(stores).where(eq(stores.id, id))
+
 		if (store) {
 			await Promise.all([
 				storage.reconcileImage(store.logo_url, null),
 				storage.reconcileImage(store.banner_url, null),
+				storage.reconcileImages(
+					ownReviews.flatMap((r) => r.images as string[]),
+					[],
+				),
+				storage.reconcileImages(
+					productReviewRows.flatMap((r) => r.images as string[]),
+					[],
+				),
+				storage.reconcileImages(
+					storeProducts.flatMap((p) =>
+						(p.images as ProductImage[]).map((i) => i.url),
+					),
+					[],
+				),
 			])
 		}
 		return 'Store deleted successfully'

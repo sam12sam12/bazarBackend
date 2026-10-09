@@ -261,7 +261,17 @@ export const productRequestService = {
 
 	async remove(id: number, userId: string, isAdmin: boolean) {
 		await assertOwnerOrAdmin(id, userId, isAdmin)
+		const request = await db.query.productRequests.findFirst({
+			where: eq(productRequests.id, id),
+			columns: { images: true },
+		})
 		await db.delete(productRequests).where(eq(productRequests.id, id))
+		if (request) {
+			await storage.reconcileImages(
+				(request.images as RequestImage[]).map((i) => i.url),
+				[],
+			)
+		}
 		return 'Product request deleted'
 	},
 }

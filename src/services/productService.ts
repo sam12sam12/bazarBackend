@@ -11,7 +11,7 @@ import {
 	sql,
 } from 'drizzle-orm'
 import { db } from '../db/db'
-import { categories, products, stores } from '../db/schema'
+import { categories, productReviews, products, stores } from '../db/schema'
 import type { InsertProduct, UpdateProduct } from '../db/validation'
 import {
 	buildCursorFilter,
@@ -443,11 +443,23 @@ export const productService = {
 	},
 
 	// ── Delete product ──
+	// Deleting the row cascades (at the DB level, via `products_reviews`'
+	// `onDelete: cascade`) straight through every review left on it — that
+	// cascade never runs application code, so this is the only place those
+	// reviews' own images ever get reconciled; collect them *before* the
+	// delete fires, since the rows (and the only record of which urls they
+	// held) are gone the instant it does.
 	async delete(id: number) {
-		const product = await db.query.products.findFirst({
-			where: eq(products.id, id),
-			columns: { store_id: true, images: true },
-		})
+		const [product, reviews] = await Promise.all([
+			db.query.products.findFirst({
+				where: eq(products.id, id),
+				columns: { store_id: true, images: true },
+			}),
+			db.query.productReviews.findMany({
+				where: eq(productReviews.product_id, id),
+				columns: { images: true },
+			}),
+		])
 		await db.delete(products).where(eq(products.id, id))
 		if (product) {
 			await db
@@ -456,6 +468,10 @@ export const productService = {
 				.where(eq(stores.id, product.store_id))
 			await storage.reconcileImages(
 				(product.images as ProductImage[]).map((i) => i.url),
+				[],
+			)
+			await storage.reconcileImages(
+				reviews.flatMap((r) => r.images as string[]),
 				[],
 			)
 		}
