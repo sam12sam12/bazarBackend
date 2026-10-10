@@ -188,6 +188,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 
 	// ──────────── Electronics (parent 1) ────────────
+	// Every leaf below is one standalone product type — no more merged
+	// "X & Y" names (TVs & Home Theater, Cameras & Drones, ...); each half
+	// of a former merge is its own category now.
 	{
 		id: 15,
 		name: { en: 'Tablets', ps: 'ټابلیټونه', fa: 'تبلت‌ها' },
@@ -202,13 +205,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 16,
-		name: {
-			en: 'TVs & Home Theater',
-			ps: 'ټلویزیون او هوم تیاتر',
-			fa: 'تلویزیون و سینمای خانگی',
-		},
+		name: { en: 'Televisions', ps: 'ټلویزیونونه', fa: 'تلویزیون‌ها' },
 		parent_id: 1,
-		path: 'electronics.tvs-home-theater',
+		path: 'electronics.televisions',
 		depth: 1,
 		sort_order: 4,
 		icon_url:
@@ -217,14 +216,14 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: true,
 	},
 	{
-		id: 17,
+		id: 102,
 		name: {
-			en: 'Cameras & Drones',
-			ps: 'کمرې او ډرونونه',
-			fa: 'دوربین‌ها و پهپادها',
+			en: 'Home Theater Systems',
+			ps: 'د کور تیاتر سیسټمونه',
+			fa: 'سیستم‌های سینمای خانگی',
 		},
 		parent_id: 1,
-		path: 'electronics.cameras-drones',
+		path: 'electronics.home-theater-systems',
 		depth: 1,
 		sort_order: 5,
 		icon_url:
@@ -233,14 +232,10 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 18,
-		name: {
-			en: 'Audio & Headphones',
-			ps: 'اوډیو او هیدفونونه',
-			fa: 'صدا و هدفون‌ها',
-		},
+		id: 17,
+		name: { en: 'Cameras', ps: 'کمرې', fa: 'دوربین‌ها' },
 		parent_id: 1,
-		path: 'electronics.audio-headphones',
+		path: 'electronics.cameras',
 		depth: 1,
 		sort_order: 6,
 		icon_url:
@@ -249,14 +244,10 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 19,
-		name: {
-			en: 'Smart Watches & Wearables',
-			ps: 'سمارټ ساعتونه',
-			fa: 'ساعت‌های هوشمند',
-		},
+		id: 103,
+		name: { en: 'Drones', ps: 'ډرونونه', fa: 'پهپادها' },
 		parent_id: 1,
-		path: 'electronics.smart-watches-wearables',
+		path: 'electronics.drones',
 		depth: 1,
 		sort_order: 7,
 		icon_url:
@@ -265,16 +256,76 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 20,
-		name: {
-			en: 'Gaming Consoles & Accessories',
-			ps: 'د لوبو کنسولونه',
-			fa: 'کنسول‌های بازی',
-		},
+		id: 18,
+		name: { en: 'Headphones', ps: 'هیدفونونه', fa: 'هدفون‌ها' },
 		parent_id: 1,
-		path: 'electronics.gaming-consoles-accessories',
+		path: 'electronics.headphones',
 		depth: 1,
 		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 104,
+		name: { en: 'Speakers', ps: 'سپیکرونه', fa: 'اسپیکرها' },
+		parent_id: 1,
+		path: 'electronics.speakers',
+		depth: 1,
+		sort_order: 9,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 19,
+		name: { en: 'Smart Watches', ps: 'سمارټ ساعتونه', fa: 'ساعت‌های هوشمند' },
+		parent_id: 1,
+		path: 'electronics.smart-watches',
+		depth: 1,
+		sort_order: 10,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 105,
+		name: { en: 'Fitness Bands', ps: 'د فټنس بنډونه', fa: 'بندهای تناسب اندام' },
+		parent_id: 1,
+		path: 'electronics.fitness-bands',
+		depth: 1,
+		sort_order: 11,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 20,
+		name: { en: 'Gaming Consoles', ps: 'د لوبو کنسولونه', fa: 'کنسول‌های بازی' },
+		parent_id: 1,
+		path: 'electronics.gaming-consoles',
+		depth: 1,
+		sort_order: 12,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 106,
+		name: {
+			en: 'Gaming Accessories',
+			ps: 'د لوبو ملحقات',
+			fa: 'لوازم بازی',
+		},
+		parent_id: 1,
+		path: 'electronics.gaming-accessories',
+		depth: 1,
+		sort_order: 13,
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
@@ -290,7 +341,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 1,
 		path: 'electronics.computer-accessories',
 		depth: 1,
-		sort_order: 9,
+		sort_order: 14,
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
@@ -302,7 +353,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 1,
 		path: 'electronics.networking',
 		depth: 1,
-		sort_order: 10,
+		sort_order: 15,
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
@@ -310,15 +361,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 23,
-		name: {
-			en: 'Printers & Scanners',
-			ps: 'پرنټرونه او سکینرونه',
-			fa: 'پرینترها و اسکنرها',
-		},
+		name: { en: 'Printers', ps: 'پرنټرونه', fa: 'پرینترها' },
 		parent_id: 1,
-		path: 'electronics.printers-scanners',
+		path: 'electronics.printers',
 		depth: 1,
-		sort_order: 11,
+		sort_order: 16,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 107,
+		name: { en: 'Scanners', ps: 'سکینرونه', fa: 'اسکنرها' },
+		parent_id: 1,
+		path: 'electronics.scanners',
+		depth: 1,
+		sort_order: 17,
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
@@ -326,15 +385,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 24,
-		name: {
-			en: 'Power Banks & Chargers',
-			ps: 'پاور بانکونه او چارجرونه',
-			fa: 'پاوربانک و شارژرها',
-		},
+		name: { en: 'Power Banks', ps: 'پاور بانکونه', fa: 'پاوربانک‌ها' },
 		parent_id: 1,
-		path: 'electronics.power-banks-chargers',
+		path: 'electronics.power-banks',
 		depth: 1,
-		sort_order: 12,
+		sort_order: 18,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 108,
+		name: { en: 'Chargers', ps: 'چارجرونه', fa: 'شارژرها' },
+		parent_id: 1,
+		path: 'electronics.chargers',
+		depth: 1,
+		sort_order: 19,
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
@@ -395,15 +462,22 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 31,
-		name: {
-			en: 'Shops & Offices',
-			ps: 'دوکانونه او دفترونه',
-			fa: 'دکان و دفتر',
-		},
+		name: { en: 'Shops', ps: 'دوکانونه', fa: 'دکان‌ها' },
 		parent_id: 2,
-		path: 'real-estate.shops-offices',
+		path: 'real-estate.shops',
 		depth: 1,
 		sort_order: 5,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 109,
+		name: { en: 'Offices', ps: 'دفترونه', fa: 'دفترها' },
+		parent_id: 2,
+		path: 'real-estate.offices',
+		depth: 1,
+		sort_order: 6,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
 		delivery: true,
 		is_popular: false,
@@ -414,7 +488,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 2,
 		path: 'real-estate.guest-houses',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 7,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
 		delivery: true,
 		is_popular: false,
@@ -475,9 +549,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 37,
-		name: { en: 'Shoes & Footwear', ps: 'بوټان', fa: 'کفش' },
+		name: { en: 'Shoes', ps: 'بوټان', fa: 'کفش' },
 		parent_id: 3,
-		path: 'clothes.shoes-footwear',
+		path: 'clothes.shoes',
 		depth: 1,
 		sort_order: 5,
 		icon_url:
@@ -487,9 +561,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 38,
-		name: { en: 'Bags & Wallets', ps: 'بګونه او پاکټونه', fa: 'کیف و کیف پول' },
+		name: { en: 'Bags', ps: 'بګونه', fa: 'کیف' },
 		parent_id: 3,
-		path: 'clothes.bags-wallets',
+		path: 'clothes.bags',
 		depth: 1,
 		sort_order: 6,
 		icon_url:
@@ -498,14 +572,10 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 39,
-		name: {
-			en: 'Sunglasses & Eyewear',
-			ps: 'د لمر عینکي',
-			fa: 'عینک آفتابی',
-		},
+		id: 110,
+		name: { en: 'Wallets', ps: 'پاکټونه', fa: 'کیف پول' },
 		parent_id: 3,
-		path: 'clothes.sunglasses-eyewear',
+		path: 'clothes.wallets',
 		depth: 1,
 		sort_order: 7,
 		icon_url:
@@ -514,16 +584,48 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 40,
-		name: {
-			en: 'Belts & Accessories',
-			ps: 'پټۍ او تزئینات',
-			fa: 'کمربند و اکسسوری',
-		},
+		id: 39,
+		name: { en: 'Sunglasses', ps: 'د لمر عینکي', fa: 'عینک آفتابی' },
 		parent_id: 3,
-		path: 'clothes.belts-accessories',
+		path: 'clothes.sunglasses',
 		depth: 1,
 		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 111,
+		name: { en: 'Eyeglasses', ps: 'د لید عینکي', fa: 'عینک طبی' },
+		parent_id: 3,
+		path: 'clothes.eyeglasses',
+		depth: 1,
+		sort_order: 9,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 40,
+		name: { en: 'Belts', ps: 'پټۍ', fa: 'کمربند' },
+		parent_id: 3,
+		path: 'clothes.belts',
+		depth: 1,
+		sort_order: 10,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 112,
+		name: { en: 'Fashion Accessories', ps: 'فیشني تزئینات', fa: 'اکسسوری فشن' },
+		parent_id: 3,
+		path: 'clothes.fashion-accessories',
+		depth: 1,
+		sort_order: 11,
 		icon_url:
 			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
 		delivery: true,
@@ -545,13 +647,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 42,
-		name: {
-			en: 'Motorcycles & Scooters',
-			ps: 'موټرسایکلونه',
-			fa: 'موتورسیکلت‌ها',
-		},
+		name: { en: 'Motorcycles', ps: 'موټرسایکلونه', fa: 'موتورسیکلت‌ها' },
 		parent_id: 4,
-		path: 'vehicles.motorcycles-scooters',
+		path: 'vehicles.motorcycles',
 		depth: 1,
 		sort_order: 2,
 		icon_url:
@@ -560,26 +658,22 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 43,
-		name: {
-			en: 'Auto Parts & Accessories',
-			ps: 'د موټر پرزې',
-			fa: 'قطعات موتر',
-		},
+		id: 113,
+		name: { en: 'Scooters', ps: 'سکوټرونه', fa: 'اسکوترها' },
 		parent_id: 4,
-		path: 'vehicles.auto-parts-accessories',
+		path: 'vehicles.scooters',
 		depth: 1,
 		sort_order: 3,
 		icon_url:
 			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 	{
-		id: 44,
-		name: { en: 'Tyres & Rims', ps: 'ټایرونه', fa: 'تایرها' },
+		id: 43,
+		name: { en: 'Auto Parts', ps: 'د موټر پرزې', fa: 'قطعات موتر' },
 		parent_id: 4,
-		path: 'vehicles.tyres-rims',
+		path: 'vehicles.auto-parts',
 		depth: 1,
 		sort_order: 4,
 		icon_url:
@@ -588,16 +682,60 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 45,
-		name: {
-			en: 'Heavy Vehicles & Trucks',
-			ps: 'درانه موټرونه',
-			fa: 'موترهای سنگین',
-		},
+		id: 114,
+		name: { en: 'Auto Accessories', ps: 'د موټر ملحقات', fa: 'لوازم جانبی موتر' },
 		parent_id: 4,
-		path: 'vehicles.heavy-vehicles-trucks',
+		path: 'vehicles.auto-accessories',
 		depth: 1,
 		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 44,
+		name: { en: 'Tyres', ps: 'ټایرونه', fa: 'تایرها' },
+		parent_id: 4,
+		path: 'vehicles.tyres',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 115,
+		name: { en: 'Rims', ps: 'ریمونه', fa: 'رینگ‌ها' },
+		parent_id: 4,
+		path: 'vehicles.rims',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 45,
+		name: { en: 'Trucks', ps: 'درانه موټرونه', fa: 'کامیون‌ها' },
+		parent_id: 4,
+		path: 'vehicles.trucks',
+		depth: 1,
+		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: false,
+	},
+	{
+		id: 116,
+		name: { en: 'Heavy Machinery', ps: 'درانه مکینې', fa: 'ماشین‌آلات سنگین' },
+		parent_id: 4,
+		path: 'vehicles.heavy-machinery',
+		depth: 1,
+		sort_order: 9,
 		icon_url:
 			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
 		delivery: false,
@@ -605,11 +743,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 46,
-		name: { en: 'Buses & Vans', ps: 'بسونه', fa: 'بس‌ها' },
+		name: { en: 'Buses', ps: 'بسونه', fa: 'بس‌ها' },
 		parent_id: 4,
-		path: 'vehicles.buses-vans',
+		path: 'vehicles.buses',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 10,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: false,
+	},
+	{
+		id: 117,
+		name: { en: 'Vans', ps: 'وینونه', fa: 'ون‌ها' },
+		parent_id: 4,
+		path: 'vehicles.vans',
+		depth: 1,
+		sort_order: 11,
 		icon_url:
 			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
 		delivery: false,
@@ -621,7 +771,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 4,
 		path: 'vehicles.bicycles',
 		depth: 1,
-		sort_order: 7,
+		sort_order: 12,
 		icon_url:
 			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
 		delivery: true,
@@ -734,15 +884,23 @@ export const categorySeedData: InsertCategory[] = [
 	// ──────────── Home Appliances (parent 6) ────────────
 	{
 		id: 55,
-		name: {
-			en: 'Refrigerators & Freezers',
-			ps: 'یخچالونه',
-			fa: 'یخچال و فریزر',
-		},
+		name: { en: 'Refrigerators', ps: 'یخچالونه', fa: 'یخچال‌ها' },
 		parent_id: 6,
-		path: 'home-appliances.refrigerators-freezers',
+		path: 'home-appliances.refrigerators',
 		depth: 1,
 		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 118,
+		name: { en: 'Freezers', ps: 'فریزرونه', fa: 'فریزرها' },
+		parent_id: 6,
+		path: 'home-appliances.freezers',
+		depth: 1,
+		sort_order: 2,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -758,22 +916,6 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 6,
 		path: 'home-appliances.washing-machines',
 		depth: 1,
-		sort_order: 2,
-		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
-		delivery: true,
-		is_popular: false,
-	},
-	{
-		id: 57,
-		name: {
-			en: 'Air Conditioners & Coolers',
-			ps: 'ایرکنډیشنونه',
-			fa: 'کولر و ایرکاندیشن',
-		},
-		parent_id: 6,
-		path: 'home-appliances.air-conditioners-coolers',
-		depth: 1,
 		sort_order: 3,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
@@ -781,14 +923,10 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 58,
-		name: {
-			en: 'Heaters & Geysers',
-			ps: 'ګرم کوونکي',
-			fa: 'بخاری و آبگرم‌کن',
-		},
+		id: 57,
+		name: { en: 'Air Conditioners', ps: 'ایرکنډیشنونه', fa: 'ایرکاندیشن‌ها' },
 		parent_id: 6,
-		path: 'home-appliances.heaters-geysers',
+		path: 'home-appliances.air-conditioners',
 		depth: 1,
 		sort_order: 4,
 		icon_url:
@@ -797,16 +935,60 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 59,
-		name: {
-			en: 'Microwaves & Ovens',
-			ps: 'مایکروویفونه',
-			fa: 'مایکروویو و اوون',
-		},
+		id: 119,
+		name: { en: 'Air Coolers', ps: 'ایر کولرونه', fa: 'کولرهای آبی' },
 		parent_id: 6,
-		path: 'home-appliances.microwaves-ovens',
+		path: 'home-appliances.air-coolers',
 		depth: 1,
 		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 58,
+		name: { en: 'Heaters', ps: 'ګرم کوونکي', fa: 'بخاری‌ها' },
+		parent_id: 6,
+		path: 'home-appliances.heaters',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 120,
+		name: { en: 'Geysers', ps: 'ګیزرونه', fa: 'آبگرم‌کن‌ها' },
+		parent_id: 6,
+		path: 'home-appliances.geysers',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 59,
+		name: { en: 'Microwaves', ps: 'مایکروویفونه', fa: 'مایکروویوها' },
+		parent_id: 6,
+		path: 'home-appliances.microwaves',
+		depth: 1,
+		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 121,
+		name: { en: 'Ovens', ps: 'تنورونه', fa: 'اوون‌ها' },
+		parent_id: 6,
+		path: 'home-appliances.ovens',
+		depth: 1,
+		sort_order: 9,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -822,7 +1004,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 6,
 		path: 'home-appliances.small-kitchen-appliances',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 10,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -830,15 +1012,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 61,
-		name: {
-			en: 'Generators & Solar',
-			ps: 'جنراتورونه',
-			fa: 'ژنراتور و سولار',
-		},
+		name: { en: 'Generators', ps: 'جنراتورونه', fa: 'ژنراتورها' },
 		parent_id: 6,
-		path: 'home-appliances.generators-solar',
+		path: 'home-appliances.generators',
 		depth: 1,
-		sort_order: 7,
+		sort_order: 11,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 122,
+		name: { en: 'Solar Equipment', ps: 'د لمر وړانګو توکي', fa: 'تجهیزات سولار' },
+		parent_id: 6,
+		path: 'home-appliances.solar-equipment',
+		depth: 1,
+		sort_order: 12,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -850,7 +1040,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 6,
 		path: 'home-appliances.fans',
 		depth: 1,
-		sort_order: 8,
+		sort_order: 13,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -858,15 +1048,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 63,
-		name: {
-			en: 'Water Dispensers & Purifiers',
-			ps: 'د اوبو پاکوونکي',
-			fa: 'دستگاه تصفیه آب',
-		},
+		name: { en: 'Water Dispensers', ps: 'د اوبو ماشینونه', fa: 'دستگاه آب سردکن' },
 		parent_id: 6,
-		path: 'home-appliances.water-dispensers-purifiers',
+		path: 'home-appliances.water-dispensers',
 		depth: 1,
-		sort_order: 9,
+		sort_order: 14,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 123,
+		name: { en: 'Water Purifiers', ps: 'د اوبو پاکوونکي', fa: 'دستگاه تصفیه آب' },
+		parent_id: 6,
+		path: 'home-appliances.water-purifiers',
+		depth: 1,
+		sort_order: 15,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -882,7 +1080,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 6,
 		path: 'home-appliances.vacuum-cleaners',
 		depth: 1,
-		sort_order: 10,
+		sort_order: 16,
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
@@ -916,13 +1114,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 67,
-		name: {
-			en: 'Hair Care & Styling Tools',
-			ps: 'د ویښتو پاملرنه',
-			fa: 'مراقبت و آرایش مو',
-		},
+		name: { en: 'Hair Care Products', ps: 'د ویښتو پاملرنه', fa: 'مراقبت از مو' },
 		parent_id: 7,
-		path: 'beauty-health.hair-care-styling-tools',
+		path: 'beauty-health.hair-care-products',
 		depth: 1,
 		sort_order: 3,
 		icon_url:
@@ -931,16 +1125,24 @@ export const categorySeedData: InsertCategory[] = [
 		is_popular: false,
 	},
 	{
-		id: 68,
-		name: {
-			en: 'Fragrances & Perfumes',
-			ps: 'عطرونه',
-			fa: 'عطرها',
-		},
+		id: 124,
+		name: { en: 'Hair Styling Tools', ps: 'د ویښتو ډیزاین وسایل', fa: 'ابزار آرایش مو' },
 		parent_id: 7,
-		path: 'beauty-health.fragrances-perfumes',
+		path: 'beauty-health.hair-styling-tools',
 		depth: 1,
 		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 68,
+		name: { en: 'Perfumes', ps: 'عطرونه', fa: 'عطرها' },
+		parent_id: 7,
+		path: 'beauty-health.perfumes',
+		depth: 1,
+		sort_order: 5,
 		icon_url:
 			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
 		delivery: true,
@@ -952,7 +1154,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 7,
 		path: 'beauty-health.personal-care',
 		depth: 1,
-		sort_order: 5,
+		sort_order: 6,
 		icon_url:
 			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
 		delivery: true,
@@ -968,7 +1170,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 7,
 		path: 'beauty-health.health-wellness-devices',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 7,
 		icon_url:
 			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
 		delivery: true,
@@ -984,7 +1186,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 7,
 		path: 'beauty-health.mens-grooming',
 		depth: 1,
-		sort_order: 7,
+		sort_order: 8,
 		icon_url:
 			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
 		delivery: true,
@@ -994,13 +1196,9 @@ export const categorySeedData: InsertCategory[] = [
 	// ──────────── Sports & Outdoors (parent 8) ────────────
 	{
 		id: 72,
-		name: {
-			en: 'Exercise & Fitness Equipment',
-			ps: 'د بدني روغتیا وسایل',
-			fa: 'لوازم ورزشی',
-		},
+		name: { en: 'Fitness Equipment', ps: 'د بدني روغتیا وسایل', fa: 'لوازم ورزشی' },
 		parent_id: 8,
-		path: 'sports-outdoors.exercise-fitness-equipment',
+		path: 'sports-outdoors.fitness-equipment',
 		depth: 1,
 		sort_order: 1,
 		icon_url:
@@ -1084,13 +1282,9 @@ export const categorySeedData: InsertCategory[] = [
 	// ──────────── Books & Stationery (parent 9) ────────────
 	{
 		id: 79,
-		name: {
-			en: 'Textbooks & Academic Books',
-			ps: 'درسي کتابونه',
-			fa: 'کتاب‌های درسی',
-		},
+		name: { en: 'Academic Books', ps: 'درسي کتابونه', fa: 'کتاب‌های درسی' },
 		parent_id: 9,
-		path: 'books-stationery.textbooks-academic-books',
+		path: 'books-stationery.academic-books',
 		depth: 1,
 		sort_order: 1,
 		icon_url:
@@ -1112,9 +1306,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 81,
-		name: { en: 'Novels & Literature', ps: 'ناولونه', fa: 'رمان و ادبیات' },
+		name: { en: 'Novels', ps: 'ناولونه', fa: 'رمان‌ها' },
 		parent_id: 9,
-		path: 'books-stationery.novels-literature',
+		path: 'books-stationery.novels',
 		depth: 1,
 		sort_order: 3,
 		icon_url:
@@ -1140,11 +1334,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 83,
-		name: { en: 'Notebooks & Diaries', ps: 'کتابچې', fa: 'دفترچه‌ها' },
+		name: { en: 'Notebooks', ps: 'کتابچې', fa: 'دفترچه‌ها' },
 		parent_id: 9,
-		path: 'books-stationery.notebooks-diaries',
+		path: 'books-stationery.notebooks',
 		depth: 1,
 		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 125,
+		name: { en: 'Diaries', ps: 'ورځپاڼې', fa: 'یادداشت‌ها' },
+		parent_id: 9,
+		path: 'books-stationery.diaries',
+		depth: 1,
+		sort_order: 6,
 		icon_url:
 			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
 		delivery: true,
@@ -1156,7 +1362,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 9,
 		path: 'books-stationery.art-supplies',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 7,
 		icon_url:
 			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
 		delivery: true,
@@ -1206,15 +1412,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 88,
-		name: {
-			en: "Kids' Bicycles & Ride-ons",
-			ps: 'د ماشومانو بایسکلونه',
-			fa: 'دوچرخه کودکان',
-		},
+		name: { en: "Kids' Bicycles", ps: 'د ماشومانو بایسکلونه', fa: 'دوچرخه کودکان' },
 		parent_id: 10,
-		path: 'toys-kids.kids-bicycles-ride-ons',
+		path: 'toys-kids.kids-bicycles',
 		depth: 1,
 		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 126,
+		name: { en: 'Ride-on Toys', ps: 'سواري لوبغالي', fa: 'اسباب‌بازی سوارشدنی' },
+		parent_id: 10,
+		path: 'toys-kids.ride-on-toys',
+		depth: 1,
+		sort_order: 5,
 		icon_url:
 			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
 		delivery: true,
@@ -1230,7 +1444,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 10,
 		path: 'toys-kids.baby-feeding-nursing',
 		depth: 1,
-		sort_order: 5,
+		sort_order: 6,
 		icon_url:
 			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
 		delivery: true,
@@ -1246,7 +1460,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 10,
 		path: 'toys-kids.kids-furniture',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 7,
 		icon_url:
 			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
 		delivery: true,
@@ -1280,13 +1494,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 93,
-		name: {
-			en: 'Gold & Precious Jewelry',
-			ps: 'سرې زرو زیورات',
-			fa: 'جواهرات طلا',
-		},
+		name: { en: 'Fine Jewelry', ps: 'سرې زرو زیورات', fa: 'جواهرات طلا' },
 		parent_id: 11,
-		path: 'watches-jewelry.gold-precious-jewelry',
+		path: 'watches-jewelry.fine-jewelry',
 		depth: 1,
 		sort_order: 3,
 		icon_url:
@@ -1312,15 +1522,27 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 95,
-		name: {
-			en: 'Rings & Wedding Jewelry',
-			ps: 'ګوتۍ',
-			fa: 'حلقه و جواهرات عروسی',
-		},
+		name: { en: 'Rings', ps: 'ګوتۍ', fa: 'حلقه‌ها' },
 		parent_id: 11,
-		path: 'watches-jewelry.rings-wedding-jewelry',
+		path: 'watches-jewelry.rings',
 		depth: 1,
 		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 127,
+		name: {
+			en: 'Wedding Jewelry Sets',
+			ps: 'د واده زیورات سیټونه',
+			fa: 'ست جواهرات عروسی',
+		},
+		parent_id: 11,
+		path: 'watches-jewelry.wedding-jewelry-sets',
+		depth: 1,
+		sort_order: 6,
 		icon_url:
 			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
 		delivery: true,
@@ -1330,9 +1552,9 @@ export const categorySeedData: InsertCategory[] = [
 	// ──────────── Art & Crafts (parent 12) ────────────
 	{
 		id: 96,
-		name: { en: 'Paintings & Wall Art', ps: 'انځورونه', fa: 'نقاشی و تابلو' },
+		name: { en: 'Wall Art', ps: 'د دیوال انځورونه', fa: 'تابلو و نقاشی' },
 		parent_id: 12,
-		path: 'art-crafts.paintings-wall-art',
+		path: 'art-crafts.wall-art',
 		depth: 1,
 		sort_order: 1,
 		icon_url:
@@ -1354,9 +1576,9 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 98,
-		name: { en: 'Carpets & Rugs', ps: 'غالۍ', fa: 'قالین و فرش' },
+		name: { en: 'Carpets', ps: 'غالۍ', fa: 'قالین‌ها' },
 		parent_id: 12,
-		path: 'art-crafts.carpets-rugs',
+		path: 'art-crafts.carpets',
 		depth: 1,
 		sort_order: 3,
 		icon_url:
@@ -1364,6 +1586,18 @@ export const categorySeedData: InsertCategory[] = [
 		delivery: true,
 		// Afghan carpets/rugs are a globally recognized specialty — genuinely
 		// popular, not a generic filler pick.
+		is_popular: true,
+	},
+	{
+		id: 128,
+		name: { en: 'Rugs', ps: 'غالیچې', fa: 'فرش‌ها' },
+		parent_id: 12,
+		path: 'art-crafts.rugs',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
 		is_popular: true,
 	},
 	{
@@ -1376,7 +1610,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 12,
 		path: 'art-crafts.calligraphy-islamic-art',
 		depth: 1,
-		sort_order: 4,
+		sort_order: 5,
 		icon_url:
 			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
 		delivery: true,
@@ -1392,7 +1626,7 @@ export const categorySeedData: InsertCategory[] = [
 		parent_id: 12,
 		path: 'art-crafts.craft-supplies',
 		depth: 1,
-		sort_order: 5,
+		sort_order: 6,
 		icon_url:
 			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
 		delivery: true,
@@ -1400,11 +1634,23 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 101,
-		name: { en: 'Pottery & Decor', ps: 'سفالي لوازم', fa: 'سرامیک و دکور' },
+		name: { en: 'Pottery', ps: 'سفالي لوازم', fa: 'سرامیک' },
 		parent_id: 12,
-		path: 'art-crafts.pottery-decor',
+		path: 'art-crafts.pottery',
 		depth: 1,
-		sort_order: 6,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 129,
+		name: { en: 'Home Decor', ps: 'د کور ښایست', fa: 'دکوراسیون خانه' },
+		parent_id: 12,
+		path: 'art-crafts.home-decor',
+		depth: 1,
+		sort_order: 8,
 		icon_url:
 			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
 		delivery: true,
@@ -1439,15 +1685,43 @@ const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => ({
 	label: { en: size, ps: size, fa: size },
 }))
 
-const CLOTHING_COLORS = [
+// One shared, comprehensive color catalog for every "Color" attribute in
+// the app (mobiles, clothing, furniture, ...) — mirrors Amazon's
+// standardized seller color map (Beige/Black/Blue/Brass/Bronze/Brown/
+// Chrome/Gold/Gray/Green/Metallic/Multicolored/Orange/Pink/Purple/Red/
+// Silver/White/Yellow) plus the shades Daraz/AliExpress commonly add for
+// fashion & electronics (Navy, Maroon, Teal, Olive, Turquoise, Coral,
+// Lavender, Mint, Cream, Charcoal, Khaki, Rose Gold, Space Gray). Matches
+// Bazar56's `PRODUCT_COLORS` catalog key-for-key.
+const COLORS = [
 	{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
 	{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
+	{ value: 'gray', label: { en: 'Gray', ps: 'خړ', fa: 'خاکستری' } },
 	{ value: 'red', label: { en: 'Red', ps: 'سور', fa: 'قرمز' } },
-	{ value: 'blue', label: { en: 'Blue', ps: 'آسمانی', fa: 'آبی' } },
-	{ value: 'green', label: { en: 'Green', ps: 'شین', fa: 'سبز' } },
+	{ value: 'orange', label: { en: 'Orange', ps: 'نارنجي', fa: 'نارنجی' } },
 	{ value: 'yellow', label: { en: 'Yellow', ps: 'ژېړ', fa: 'زرد' } },
-	{ value: 'gray', label: { en: 'Gray', ps: 'ګرے', fa: 'خاکستری' } },
+	{ value: 'green', label: { en: 'Green', ps: 'شین', fa: 'سبز' } },
+	{ value: 'blue', label: { en: 'Blue', ps: 'آسمانی', fa: 'آبی' } },
+	{ value: 'purple', label: { en: 'Purple', ps: 'بنفش', fa: 'بنفش' } },
+	{ value: 'pink', label: { en: 'Pink', ps: 'ګلابي', fa: 'صورتی' } },
 	{ value: 'brown', label: { en: 'Brown', ps: 'نسواري', fa: 'قهوه‌ای' } },
+	{ value: 'gold', label: { en: 'Gold', ps: 'طلایي', fa: 'طلایی' } },
+	{ value: 'silver', label: { en: 'Silver', ps: 'سپینزر', fa: 'نقره‌ای' } },
+	{ value: 'beige', label: { en: 'Beige', ps: 'بېج', fa: 'بژ' } },
+	{ value: 'navy', label: { en: 'Navy', ps: 'نیوي شین', fa: 'سرمه‌ای' } },
+	{ value: 'maroon', label: { en: 'Maroon', ps: 'مرون', fa: 'زرشکی' } },
+	{ value: 'teal', label: { en: 'Teal', ps: 'تیل شین', fa: 'سبز آبی' } },
+	{ value: 'olive', label: { en: 'Olive', ps: 'زیتوني', fa: 'زیتونی' } },
+	{ value: 'turquoise', label: { en: 'Turquoise', ps: 'تورکوایز', fa: 'فیروزه‌ای' } },
+	{ value: 'coral', label: { en: 'Coral', ps: 'کورال', fa: 'مرجانی' } },
+	{ value: 'lavender', label: { en: 'Lavender', ps: 'لاوېنډر', fa: 'بنفش روشن' } },
+	{ value: 'mint', label: { en: 'Mint', ps: 'نعناع رنګ', fa: 'نعنایی' } },
+	{ value: 'cream', label: { en: 'Cream', ps: 'کریمي', fa: 'کرمی' } },
+	{ value: 'charcoal', label: { en: 'Charcoal', ps: 'تیاره خړ', fa: 'ذغالی' } },
+	{ value: 'khaki', label: { en: 'Khaki', ps: 'خاکي', fa: 'خاکی' } },
+	{ value: 'multicolor', label: { en: 'Multicolor', ps: 'ګډ رنګ', fa: 'رنگارنگ' } },
+	{ value: 'rose_gold', label: { en: 'Rose Gold', ps: 'ګلابي طلایي', fa: 'رزگلد' } },
+	{ value: 'space_gray', label: { en: 'Space Gray', ps: 'فضايي خړ', fa: 'خاکستری فضایی' } },
 	OTHER,
 ]
 
@@ -1469,15 +1743,6 @@ const FURNITURE_MATERIALS = [
 	{ value: 'plastic', label: { en: 'Plastic', ps: 'پلاستیک', fa: 'پلاستیکی' } },
 	{ value: 'glass', label: { en: 'Glass', ps: 'ګلاس', fa: 'شیشه‌ای' } },
 	{ value: 'fabric', label: { en: 'Fabric', ps: 'کپړه', fa: 'پارچه‌ای' } },
-]
-
-const FURNITURE_COLORS = [
-	{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
-	{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
-	{ value: 'brown', label: { en: 'Brown', ps: 'نسواري', fa: 'قهوه‌ای' } },
-	{ value: 'gray', label: { en: 'Gray', ps: 'ګرے', fa: 'خاکستری' } },
-	{ value: 'beige', label: { en: 'Beige', ps: 'بیج', fa: 'بژ' } },
-	OTHER,
 ]
 
 const FURNITURE_CONDITION = [
@@ -1547,6 +1812,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			fa: 'رم را انتخاب کنید',
 		},
 		menu_data: [2, 3, 4, 6, 8, 12, 16].map(gbOption),
+		// a listing can be offered in more than one RAM configuration.
+		multiple: true,
 		sort_order: 2,
 	},
 	{
@@ -1563,6 +1830,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			...[16, 32, 64, 128, 256, 512].map(gbOption),
 			tbOption(1),
 		],
+		multiple: true,
 		sort_order: 3,
 	},
 	{
@@ -1588,15 +1856,9 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			ps: 'رنگ غوره کړئ',
 			fa: 'رنگ را انتخاب کنید',
 		},
-		menu_data: [
-			{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
-			{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
-			{ value: 'blue', label: { en: 'Blue', ps: 'آسمانی', fa: 'آبی' } },
-			{ value: 'gold', label: { en: 'Gold', ps: 'ګولډي', fa: 'طلایی' } },
-			{ value: 'silver', label: { en: 'Silver', ps: 'سپین زرين', fa: 'نقره‌ای' } },
-			{ value: 'green', label: { en: 'Green', ps: 'شین', fa: 'سبز' } },
-			OTHER,
-		],
+		menu_data: COLORS,
+		// a store can stock this model in several color options at once.
+		multiple: true,
 		sort_order: 5,
 	},
 	{
@@ -1613,6 +1875,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			value: g,
 			label: { en: g, ps: g, fa: g },
 		})),
+		// a listing can support more than one network generation.
+		multiple: true,
 		sort_order: 6,
 	},
 
@@ -1660,6 +1924,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			{ value: 'apple_m', label: { en: 'Apple M-series', ps: 'Apple M-series', fa: 'Apple M-series' } },
 			OTHER,
 		],
+		// a listing can be offered with more than one processor option.
+		multiple: true,
 		sort_order: 2,
 	},
 	{
@@ -1673,6 +1939,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			fa: 'رم را انتخاب کنید',
 		},
 		menu_data: [4, 8, 16, 32, 64].map(gbOption),
+		multiple: true,
 		sort_order: 3,
 	},
 	{
@@ -1706,6 +1973,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 				label: { en: '1TB HDD', ps: '۱ ټیرابایت HDD', fa: '۱ ترابایت HDD' },
 			},
 		]),
+		multiple: true,
 		sort_order: 4,
 	},
 	{
@@ -1729,6 +1997,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			},
 			{ value: '16+', label: { en: '16"+', ps: '۱۶+ انچ', fa: '۱۶ اینچ به بالا' } },
 		],
+		multiple: true,
 		sort_order: 5,
 	},
 	{
@@ -1751,6 +2020,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 				label: { en: 'Dedicated', ps: 'جلا شوی', fa: 'اختصاصی' },
 			},
 		],
+		multiple: true,
 		sort_order: 6,
 	},
 	{
@@ -1765,6 +2035,17 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 		},
 		menu_data: CONDITION_NEW_USED_REFURBISHED,
 		sort_order: 7,
+	},
+	{
+		category_id: 14,
+		code: 'color',
+		label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
+		type: 'menu',
+		placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
+		menu_data: COLORS,
+		// a store can stock this model in several color options at once.
+		multiple: true,
+		sort_order: 8,
 	},
 
 	// ──────────── Cars (41) ────────────
@@ -1789,12 +2070,44 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 	},
 	{
 		category_id: 41,
+		code: 'model',
+		label: { en: 'Model', ps: 'ماډل', fa: 'مدل' },
+		// too many models per make to enumerate in a menu (Corolla, Civic,
+		// Alto, ...) — free text instead, like a real listing form would ask.
+		type: 'text',
+		placeholder: { en: 'e.g. Corolla', ps: 'د بیلګې په توګه Corolla', fa: 'مثلاً Corolla' },
+		menu_data: null,
+		sort_order: 2,
+	},
+	{
+		category_id: 41,
+		code: 'body_type',
+		label: { en: 'Body Type', ps: 'د بدن ډول', fa: 'نوع بدنه' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select body type',
+			ps: 'د بدن ډول غوره کړئ',
+			fa: 'نوع بدنه را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'sedan', label: { en: 'Sedan', ps: 'سیدان', fa: 'سدان' } },
+			{ value: 'suv', label: { en: 'SUV', ps: 'SUV', fa: 'شاسی‌بلند' } },
+			{ value: 'hatchback', label: { en: 'Hatchback', ps: 'هیچبک', fa: 'هاچبک' } },
+			{ value: 'pickup', label: { en: 'Pickup', ps: 'پیکپ', fa: 'پیکاپ' } },
+			{ value: 'van', label: { en: 'Van', ps: 'ون', fa: 'ون' } },
+			{ value: 'coupe', label: { en: 'Coupe', ps: 'کوپ', fa: 'کوپه' } },
+			OTHER,
+		],
+		sort_order: 3,
+	},
+	{
+		category_id: 41,
 		code: 'year',
 		label: { en: 'Year', ps: 'کال', fa: 'سال' },
 		type: 'number',
 		placeholder: { en: 'e.g. 2018', ps: 'د بیلګې په توګه ۲۰۱۸', fa: 'مثلاً ۲۰۱۸' },
 		menu_data: null,
-		sort_order: 2,
+		sort_order: 4,
 	},
 	{
 		category_id: 41,
@@ -1810,7 +2123,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			{ value: 'automatic', label: { en: 'Automatic', ps: 'اتومات', fa: 'اتومات' } },
 			{ value: 'manual', label: { en: 'Manual', ps: 'لاسي', fa: 'دستی' } },
 		],
-		sort_order: 3,
+		sort_order: 5,
 	},
 	{
 		category_id: 41,
@@ -1829,7 +2142,17 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			{ value: 'electric', label: { en: 'Electric', ps: 'بریښنایی', fa: 'برقی' } },
 			{ value: 'cng', label: { en: 'CNG', ps: 'CNG', fa: 'CNG' } },
 		],
-		sort_order: 4,
+		sort_order: 6,
+	},
+	{
+		category_id: 41,
+		code: 'color',
+		label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
+		type: 'menu',
+		placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
+		menu_data: COLORS,
+		// one specific car has exactly one exterior color.
+		sort_order: 7,
 	},
 	{
 		category_id: 41,
@@ -1842,7 +2165,7 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			fa: 'وضعیت را انتخاب کنید',
 		},
 		menu_data: CONDITION_NEW_USED,
-		sort_order: 5,
+		sort_order: 8,
 	},
 	{
 		category_id: 41,
@@ -1851,14 +2174,15 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 		type: 'number',
 		placeholder: { en: 'e.g. 50000', ps: 'د بیلګې په توګه ۵۰۰۰۰', fa: 'مثلاً ۵۰۰۰۰' },
 		menu_data: null,
-		sort_order: 6,
+		sort_order: 9,
 	},
 
 	// ──────────── Real estate: `purpose` (for sale / for rent / mortgage) on
-	// every property-type leaf (25, 26, 29, 30, 31, 32) — this is what
+	// every property-type leaf (25, 26, 29, 30, 31, 32, 109) — this is what
 	// replaced the old per-purpose categories (the separate "...for Rent"
-	// leaves). ────────────
-	...[25, 26, 29, 30, 31, 32].map((category_id) => ({
+	// leaves). 109 (Offices) is the split-off half of the old "Shops &
+	// Offices" (31 "Shops" is the other half, keeping its original row). ────────────
+	...[25, 26, 29, 30, 31, 32, 109].map((category_id) => ({
 		category_id,
 		code: 'purpose',
 		label: { en: 'Purpose', ps: 'هدف', fa: 'هدف' },
@@ -1874,6 +2198,19 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			{ value: 'mortgage', label: { en: 'Mortgage', ps: 'ګروي', fa: 'گروی' } },
 		],
 		sort_order: 0,
+	}) satisfies InsertCategoryAttribute),
+
+	// Land & Plots (29), Commercial (30), Shops (31), Offices (109), Guest
+	// Houses (32) — just area; House/Apartment (25, 26) get their own
+	// richer area_sqm below alongside bedrooms/bathrooms/furnishing.
+	...[29, 30, 31, 109, 32].map((category_id) => ({
+		category_id,
+		code: 'area_sqm',
+		label: { en: 'Area (m²)', ps: 'مساحت (مترمربع)', fa: 'مساحت (متر مربع)' },
+		type: 'number',
+		placeholder: { en: 'e.g. 120', ps: 'د بیلګې په توګه ۱۲۰', fa: 'مثلاً ۱۲۰' },
+		menu_data: null,
+		sort_order: 1,
 	}) satisfies InsertCategoryAttribute),
 
 	// House (25) & Apartment (26) only — same 4 detail attributes on both.
@@ -1962,6 +2299,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			type: 'menu',
 			placeholder: { en: 'Select size', ps: 'سایز غوره کړئ', fa: 'سایز را انتخاب کنید' },
 			menu_data: CLOTHING_SIZES,
+			// a listing can be offered in more than one size.
+			multiple: true,
 			sort_order: 1,
 		},
 		{
@@ -1970,7 +2309,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
 			type: 'menu',
 			placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
-			menu_data: CLOTHING_COLORS,
+			menu_data: COLORS,
+			multiple: true,
 			sort_order: 2,
 		},
 		{
@@ -2023,7 +2363,8 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
 			type: 'menu',
 			placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
-			menu_data: FURNITURE_COLORS,
+			menu_data: COLORS,
+			multiple: true,
 			sort_order: 2,
 		},
 		{

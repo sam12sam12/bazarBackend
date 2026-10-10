@@ -90,6 +90,11 @@ export const categoryAttribute = pgTable(
 		// numbers, no translation). Now a translated `{value, label}[]`, only
 		// populated for `type: "menu"`.
 		menu_data: jsonb('menu_data').$type<CategoryAttributeOption[]>(),
+		// Only meaningful for `type: "menu"` — lets the seller pick more than
+		// one value (e.g. a listing offered in several RAM/Storage/Color
+		// variants). False for single-fact attributes like Brand/Condition,
+		// where exactly one value ever makes sense.
+		multiple: boolean('multiple').default(false).notNull(),
 		sort_order: integer('sort_order').default(0).notNull(),
 	},
 	(table) => [

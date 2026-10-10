@@ -36,6 +36,7 @@ export const categoryService = {
 					type: categoryAttribute.type,
 					placeholder: categoryAttribute.placeholder,
 					menu_data: categoryAttribute.menu_data,
+					multiple: categoryAttribute.multiple,
 					sort_order: categoryAttribute.sort_order,
 				})
 				.from(categoryAttribute)
