@@ -20,6 +20,15 @@ export type CategoryName = {
 	fa: string
 }
 
+// One selectable value inside a `type: "menu"` attribute (e.g. one of
+// RAM's "4GB"/"8GB"/"16GB" choices) — `value` is the machine-stable key
+// stored on a product's `specifications`, `label` is what's shown per
+// locale.
+export type CategoryAttributeOption = {
+	value: string
+	label: CategoryName
+}
+
 // ==================== CATEGORIES ====================
 export const categories = pgTable(
 	'categories',
@@ -36,6 +45,11 @@ export const categories = pgTable(
 
 		icon_url: text('icon_url'),
 		delivery: boolean('delivery').default(false).notNull(),
+		// Curated Home-rail pick — independent of depth, so a specific leaf
+		// (e.g. "Mobiles") can show up there without its whole department
+		// ("Electronics") needing to, and without the rail just defaulting
+		// to "every root department" the way it does today.
+		is_popular: boolean('is_popular').default(false).notNull(),
 
 		...timestamps,
 	},
@@ -60,10 +74,22 @@ export const categoryAttribute = pgTable(
 		category_id: bigint('category_id', { mode: 'number' }).notNull(),
 
 		code: varchar('code', { length: 80 }).notNull(),
-		label: varchar('label', { length: 150 }).notNull(),
+		// Translated, same shape as `categories.name` — was a plain
+		// untranslated varchar.
+		label: jsonb('label').$type<CategoryName>().notNull(),
+		// Exactly three canonical values going forward: "menu" (translated
+		// select, `menu_data` required), "number" (free numeric input),
+		// "text" (free text input) — the old seed data mixed "dropdown"/
+		// "select" inconsistently for the same thing.
 		type: varchar('type', { length: 30 }).notNull(),
 
-		options: jsonb('options'),
+		// Only meaningful for `type: "menu"` — e.g. "Select RAM" / "رام غوره
+		// کړئ". Not used by "number"/"text" inputs.
+		placeholder: jsonb('placeholder').$type<CategoryName>(),
+		// Renamed from `options` — was an untyped flat array (plain strings/
+		// numbers, no translation). Now a translated `{value, label}[]`, only
+		// populated for `type: "menu"`.
+		menu_data: jsonb('menu_data').$type<CategoryAttributeOption[]>(),
 		sort_order: integer('sort_order').default(0).notNull(),
 	},
 	(table) => [

@@ -3,6 +3,8 @@ import type {
 	InsertCategoryAttribute,
 } from '../src/db/validation'
 
+// Ids 1–14 are untouched — already live, already referenced by seeded
+// products/stores. Everything from 15 on is a pure addition.
 export const categorySeedData: InsertCategory[] = [
 	{
 		id: 1,
@@ -14,6 +16,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 2,
@@ -24,6 +27,7 @@ export const categorySeedData: InsertCategory[] = [
 		sort_order: 2,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 3,
@@ -35,6 +39,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 4,
@@ -46,6 +51,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
 		delivery: false,
+		is_popular: false,
 	},
 	{
 		id: 5,
@@ -56,6 +62,9 @@ export const categorySeedData: InsertCategory[] = [
 		sort_order: 5,
 		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
 		delivery: true,
+		// Whole department popular — "furniture" is browsed as a dept, not via
+		// one specific subcategory (see plan's Popular Categories pick list).
+		is_popular: true,
 	},
 	{
 		id: 6,
@@ -67,6 +76,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
 		delivery: true,
+		is_popular: true,
 	},
 	{
 		id: 7,
@@ -78,6 +88,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 8,
@@ -89,6 +100,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 9,
@@ -104,6 +116,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 10,
@@ -115,6 +128,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 11,
@@ -130,6 +144,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
 		delivery: true,
+		is_popular: true,
 	},
 	{
 		id: 12,
@@ -145,6 +160,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
 		delivery: true,
+		is_popular: false,
 	},
 	{
 		id: 13,
@@ -156,6 +172,7 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
 		delivery: true,
+		is_popular: true,
 	},
 	{
 		id: 14,
@@ -167,597 +184,1860 @@ export const categorySeedData: InsertCategory[] = [
 		icon_url:
 			'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800',
 		delivery: true,
+		is_popular: true,
+	},
+
+	// ──────────── Electronics (parent 1) ────────────
+	{
+		id: 15,
+		name: { en: 'Tablets', ps: 'ټابلیټونه', fa: 'تبلت‌ها' },
+		parent_id: 1,
+		path: 'electronics.tablets',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 16,
+		name: {
+			en: 'TVs & Home Theater',
+			ps: 'ټلویزیون او هوم تیاتر',
+			fa: 'تلویزیون و سینمای خانگی',
+		},
+		parent_id: 1,
+		path: 'electronics.tvs-home-theater',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: true,
+	},
+	{
+		id: 17,
+		name: {
+			en: 'Cameras & Drones',
+			ps: 'کمرې او ډرونونه',
+			fa: 'دوربین‌ها و پهپادها',
+		},
+		parent_id: 1,
+		path: 'electronics.cameras-drones',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 18,
+		name: {
+			en: 'Audio & Headphones',
+			ps: 'اوډیو او هیدفونونه',
+			fa: 'صدا و هدفون‌ها',
+		},
+		parent_id: 1,
+		path: 'electronics.audio-headphones',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 19,
+		name: {
+			en: 'Smart Watches & Wearables',
+			ps: 'سمارټ ساعتونه',
+			fa: 'ساعت‌های هوشمند',
+		},
+		parent_id: 1,
+		path: 'electronics.smart-watches-wearables',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 20,
+		name: {
+			en: 'Gaming Consoles & Accessories',
+			ps: 'د لوبو کنسولونه',
+			fa: 'کنسول‌های بازی',
+		},
+		parent_id: 1,
+		path: 'electronics.gaming-consoles-accessories',
+		depth: 1,
+		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 21,
+		name: {
+			en: 'Computer Accessories',
+			ps: 'د کمپیوټر ملحقات',
+			fa: 'لوازم کامپیوتر',
+		},
+		parent_id: 1,
+		path: 'electronics.computer-accessories',
+		depth: 1,
+		sort_order: 9,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 22,
+		name: { en: 'Networking', ps: 'شبکه سازي', fa: 'شبکه' },
+		parent_id: 1,
+		path: 'electronics.networking',
+		depth: 1,
+		sort_order: 10,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 23,
+		name: {
+			en: 'Printers & Scanners',
+			ps: 'پرنټرونه او سکینرونه',
+			fa: 'پرینترها و اسکنرها',
+		},
+		parent_id: 1,
+		path: 'electronics.printers-scanners',
+		depth: 1,
+		sort_order: 11,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 24,
+		name: {
+			en: 'Power Banks & Chargers',
+			ps: 'پاور بانکونه او چارجرونه',
+			fa: 'پاوربانک و شارژرها',
+		},
+		parent_id: 1,
+		path: 'electronics.power-banks-chargers',
+		depth: 1,
+		sort_order: 12,
+		icon_url:
+			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Real Estate (parent 2) ────────────
+	// Property TYPE only — "for sale" vs "for rent" vs "mortgage" is the
+	// `purpose` category_attribute below, not a separate category per type
+	// (ids 27/28, the old "...for Rent" leaves, were merged into these).
+	{
+		id: 25,
+		name: { en: 'House', ps: 'کور', fa: 'خانه' },
+		parent_id: 2,
+		path: 'real-estate.house',
+		depth: 1,
+		sort_order: 1,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: true,
+	},
+	{
+		id: 26,
+		name: { en: 'Apartment', ps: 'اپارتمان', fa: 'آپارتمان' },
+		parent_id: 2,
+		path: 'real-estate.apartment',
+		depth: 1,
+		sort_order: 2,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: true,
+	},
+	{
+		id: 29,
+		name: { en: 'Land & Plots', ps: 'ځمکه', fa: 'زمین' },
+		parent_id: 2,
+		path: 'real-estate.land-plots',
+		depth: 1,
+		sort_order: 3,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 30,
+		name: {
+			en: 'Commercial Property',
+			ps: 'سوداگریزه ملکیت',
+			fa: 'ملک تجاری',
+		},
+		parent_id: 2,
+		path: 'real-estate.commercial-property',
+		depth: 1,
+		sort_order: 4,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 31,
+		name: {
+			en: 'Shops & Offices',
+			ps: 'دوکانونه او دفترونه',
+			fa: 'دکان و دفتر',
+		},
+		parent_id: 2,
+		path: 'real-estate.shops-offices',
+		depth: 1,
+		sort_order: 5,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 32,
+		name: { en: 'Guest Houses', ps: 'مېلمستون', fa: 'مهمان‌خانه' },
+		parent_id: 2,
+		path: 'real-estate.guest-houses',
+		depth: 1,
+		sort_order: 6,
+		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Clothes (parent 3) ────────────
+	{
+		id: 33,
+		name: { en: "Men's Clothing", ps: 'د نارینه کالي', fa: 'لباس مردانه' },
+		parent_id: 3,
+		path: 'clothes.mens-clothing',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: true,
+	},
+	{
+		id: 34,
+		name: { en: "Women's Clothing", ps: 'د ښځو کالي', fa: 'لباس زنانه' },
+		parent_id: 3,
+		path: 'clothes.womens-clothing',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: true,
+	},
+	{
+		id: 35,
+		name: { en: "Kids' Clothing", ps: 'د ماشومانو کالي', fa: 'لباس بچه‌گانه' },
+		parent_id: 3,
+		path: 'clothes.kids-clothing',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 36,
+		name: {
+			en: 'Traditional Afghan Wear',
+			ps: 'افغاني دودیز کالي',
+			fa: 'لباس سنتی افغانی',
+		},
+		parent_id: 3,
+		path: 'clothes.traditional-afghan-wear',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 37,
+		name: { en: 'Shoes & Footwear', ps: 'بوټان', fa: 'کفش' },
+		parent_id: 3,
+		path: 'clothes.shoes-footwear',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 38,
+		name: { en: 'Bags & Wallets', ps: 'بګونه او پاکټونه', fa: 'کیف و کیف پول' },
+		parent_id: 3,
+		path: 'clothes.bags-wallets',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 39,
+		name: {
+			en: 'Sunglasses & Eyewear',
+			ps: 'د لمر عینکي',
+			fa: 'عینک آفتابی',
+		},
+		parent_id: 3,
+		path: 'clothes.sunglasses-eyewear',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 40,
+		name: {
+			en: 'Belts & Accessories',
+			ps: 'پټۍ او تزئینات',
+			fa: 'کمربند و اکسسوری',
+		},
+		parent_id: 3,
+		path: 'clothes.belts-accessories',
+		depth: 1,
+		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Vehicles (parent 4) ────────────
+	{
+		id: 41,
+		name: { en: 'Cars', ps: 'موټرونه', fa: 'موترها' },
+		parent_id: 4,
+		path: 'vehicles.cars',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: true,
+	},
+	{
+		id: 42,
+		name: {
+			en: 'Motorcycles & Scooters',
+			ps: 'موټرسایکلونه',
+			fa: 'موتورسیکلت‌ها',
+		},
+		parent_id: 4,
+		path: 'vehicles.motorcycles-scooters',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: false,
+	},
+	{
+		id: 43,
+		name: {
+			en: 'Auto Parts & Accessories',
+			ps: 'د موټر پرزې',
+			fa: 'قطعات موتر',
+		},
+		parent_id: 4,
+		path: 'vehicles.auto-parts-accessories',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 44,
+		name: { en: 'Tyres & Rims', ps: 'ټایرونه', fa: 'تایرها' },
+		parent_id: 4,
+		path: 'vehicles.tyres-rims',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 45,
+		name: {
+			en: 'Heavy Vehicles & Trucks',
+			ps: 'درانه موټرونه',
+			fa: 'موترهای سنگین',
+		},
+		parent_id: 4,
+		path: 'vehicles.heavy-vehicles-trucks',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: false,
+	},
+	{
+		id: 46,
+		name: { en: 'Buses & Vans', ps: 'بسونه', fa: 'بس‌ها' },
+		parent_id: 4,
+		path: 'vehicles.buses-vans',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: false,
+		is_popular: false,
+	},
+	{
+		id: 47,
+		name: { en: 'Bicycles', ps: 'بایسکلونه', fa: 'دوچرخه‌ها' },
+		parent_id: 4,
+		path: 'vehicles.bicycles',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Furniture (parent 5) ────────────
+	{
+		id: 48,
+		name: {
+			en: 'Living Room Furniture',
+			ps: 'د ناستې خونې فرنیچر',
+			fa: 'مبلمان اتاق نشیمن',
+		},
+		parent_id: 5,
+		path: 'furniture.living-room',
+		depth: 1,
+		sort_order: 1,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 49,
+		name: {
+			en: 'Bedroom Furniture',
+			ps: 'د خوب خونې فرنیچر',
+			fa: 'مبلمان اتاق خواب',
+		},
+		parent_id: 5,
+		path: 'furniture.bedroom',
+		depth: 1,
+		sort_order: 2,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 50,
+		name: {
+			en: 'Office Furniture',
+			ps: 'د دفتر فرنیچر',
+			fa: 'مبلمان دفتر',
+		},
+		parent_id: 5,
+		path: 'furniture.office',
+		depth: 1,
+		sort_order: 3,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 51,
+		name: {
+			en: 'Dining Furniture',
+			ps: 'د ډوډۍ خونې فرنیچر',
+			fa: 'مبلمان اتاق غذاخوری',
+		},
+		parent_id: 5,
+		path: 'furniture.dining',
+		depth: 1,
+		sort_order: 4,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 52,
+		name: {
+			en: 'Outdoor Furniture',
+			ps: 'د بیرون فرنیچر',
+			fa: 'مبلمان فضای باز',
+		},
+		parent_id: 5,
+		path: 'furniture.outdoor',
+		depth: 1,
+		sort_order: 5,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 53,
+		name: {
+			en: 'Storage & Organization',
+			ps: 'د ساتنې لوازم',
+			fa: 'لوازم نگهداری',
+		},
+		parent_id: 5,
+		path: 'furniture.storage-organization',
+		depth: 1,
+		sort_order: 6,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 54,
+		name: { en: 'Mattresses', ps: 'توشکونه', fa: 'تشک‌ها' },
+		parent_id: 5,
+		path: 'furniture.mattresses',
+		depth: 1,
+		sort_order: 7,
+		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Home Appliances (parent 6) ────────────
+	{
+		id: 55,
+		name: {
+			en: 'Refrigerators & Freezers',
+			ps: 'یخچالونه',
+			fa: 'یخچال و فریزر',
+		},
+		parent_id: 6,
+		path: 'home-appliances.refrigerators-freezers',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 56,
+		name: {
+			en: 'Washing Machines',
+			ps: 'د کالي مینځلو ماشینونه',
+			fa: 'ماشین لباسشویی',
+		},
+		parent_id: 6,
+		path: 'home-appliances.washing-machines',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 57,
+		name: {
+			en: 'Air Conditioners & Coolers',
+			ps: 'ایرکنډیشنونه',
+			fa: 'کولر و ایرکاندیشن',
+		},
+		parent_id: 6,
+		path: 'home-appliances.air-conditioners-coolers',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 58,
+		name: {
+			en: 'Heaters & Geysers',
+			ps: 'ګرم کوونکي',
+			fa: 'بخاری و آبگرم‌کن',
+		},
+		parent_id: 6,
+		path: 'home-appliances.heaters-geysers',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 59,
+		name: {
+			en: 'Microwaves & Ovens',
+			ps: 'مایکروویفونه',
+			fa: 'مایکروویو و اوون',
+		},
+		parent_id: 6,
+		path: 'home-appliances.microwaves-ovens',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 60,
+		name: {
+			en: 'Small Kitchen Appliances',
+			ps: 'د کوچنۍ پخلنځي اسباب',
+			fa: 'لوازم کوچک آشپزخانه',
+		},
+		parent_id: 6,
+		path: 'home-appliances.small-kitchen-appliances',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 61,
+		name: {
+			en: 'Generators & Solar',
+			ps: 'جنراتورونه',
+			fa: 'ژنراتور و سولار',
+		},
+		parent_id: 6,
+		path: 'home-appliances.generators-solar',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 62,
+		name: { en: 'Fans', ps: 'پنکې', fa: 'پنکه‌ها' },
+		parent_id: 6,
+		path: 'home-appliances.fans',
+		depth: 1,
+		sort_order: 8,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 63,
+		name: {
+			en: 'Water Dispensers & Purifiers',
+			ps: 'د اوبو پاکوونکي',
+			fa: 'دستگاه تصفیه آب',
+		},
+		parent_id: 6,
+		path: 'home-appliances.water-dispensers-purifiers',
+		depth: 1,
+		sort_order: 9,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 64,
+		name: {
+			en: 'Vacuum Cleaners',
+			ps: 'واکیوم کلینرونه',
+			fa: 'جاروبرقی',
+		},
+		parent_id: 6,
+		path: 'home-appliances.vacuum-cleaners',
+		depth: 1,
+		sort_order: 10,
+		icon_url:
+			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Beauty & Health (parent 7) ────────────
+	{
+		id: 65,
+		name: { en: 'Skincare', ps: 'د پوستکي پاملرنه', fa: 'مراقبت از پوست' },
+		parent_id: 7,
+		path: 'beauty-health.skincare',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 66,
+		name: { en: 'Makeup', ps: 'میک اپ', fa: 'آرایش' },
+		parent_id: 7,
+		path: 'beauty-health.makeup',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 67,
+		name: {
+			en: 'Hair Care & Styling Tools',
+			ps: 'د ویښتو پاملرنه',
+			fa: 'مراقبت و آرایش مو',
+		},
+		parent_id: 7,
+		path: 'beauty-health.hair-care-styling-tools',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 68,
+		name: {
+			en: 'Fragrances & Perfumes',
+			ps: 'عطرونه',
+			fa: 'عطرها',
+		},
+		parent_id: 7,
+		path: 'beauty-health.fragrances-perfumes',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 69,
+		name: { en: 'Personal Care', ps: 'شخصي پاملرنه', fa: 'مراقبت شخصی' },
+		parent_id: 7,
+		path: 'beauty-health.personal-care',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 70,
+		name: {
+			en: 'Health & Wellness Devices',
+			ps: 'د روغتیا وسایل',
+			fa: 'دستگاه‌های سلامتی',
+		},
+		parent_id: 7,
+		path: 'beauty-health.health-wellness-devices',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 71,
+		name: {
+			en: "Men's Grooming",
+			ps: 'د نارینه وو پاملرنه',
+			fa: 'مراقبت مردانه',
+		},
+		parent_id: 7,
+		path: 'beauty-health.mens-grooming',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Sports & Outdoors (parent 8) ────────────
+	{
+		id: 72,
+		name: {
+			en: 'Exercise & Fitness Equipment',
+			ps: 'د بدني روغتیا وسایل',
+			fa: 'لوازم ورزشی',
+		},
+		parent_id: 8,
+		path: 'sports-outdoors.exercise-fitness-equipment',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 73,
+		name: { en: 'Cycling', ps: 'بایسکل سواري', fa: 'دوچرخه‌سواری' },
+		parent_id: 8,
+		path: 'sports-outdoors.cycling',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 74,
+		name: { en: 'Cricket Gear', ps: 'د کرکټ سامان', fa: 'لوازم کریکت' },
+		parent_id: 8,
+		path: 'sports-outdoors.cricket-gear',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 75,
+		name: { en: 'Football Gear', ps: 'د فوټبال سامان', fa: 'لوازم فوتبال' },
+		parent_id: 8,
+		path: 'sports-outdoors.football-gear',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 76,
+		name: { en: 'Camping & Hiking', ps: 'کمپینګ', fa: 'کمپینگ' },
+		parent_id: 8,
+		path: 'sports-outdoors.camping-hiking',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 77,
+		name: { en: 'Outdoor Games', ps: 'بیرون ته لوبې', fa: 'بازی‌های فضای باز' },
+		parent_id: 8,
+		path: 'sports-outdoors.outdoor-games',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 78,
+		name: { en: 'Sportswear', ps: 'د سپورت کالي', fa: 'لباس ورزشی' },
+		parent_id: 8,
+		path: 'sports-outdoors.sportswear',
+		depth: 1,
+		sort_order: 7,
+		icon_url:
+			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Books & Stationery (parent 9) ────────────
+	{
+		id: 79,
+		name: {
+			en: 'Textbooks & Academic Books',
+			ps: 'درسي کتابونه',
+			fa: 'کتاب‌های درسی',
+		},
+		parent_id: 9,
+		path: 'books-stationery.textbooks-academic-books',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 80,
+		name: { en: 'Islamic Books', ps: 'اسلامي کتابونه', fa: 'کتاب‌های دینی' },
+		parent_id: 9,
+		path: 'books-stationery.islamic-books',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 81,
+		name: { en: 'Novels & Literature', ps: 'ناولونه', fa: 'رمان و ادبیات' },
+		parent_id: 9,
+		path: 'books-stationery.novels-literature',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 82,
+		name: {
+			en: 'Office & School Stationery',
+			ps: 'د دفتر توکي',
+			fa: 'لوازم‌التحریر',
+		},
+		parent_id: 9,
+		path: 'books-stationery.office-school-stationery',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 83,
+		name: { en: 'Notebooks & Diaries', ps: 'کتابچې', fa: 'دفترچه‌ها' },
+		parent_id: 9,
+		path: 'books-stationery.notebooks-diaries',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 84,
+		name: { en: 'Art Supplies', ps: 'د هنر توکي', fa: 'لوازم هنری' },
+		parent_id: 9,
+		path: 'books-stationery.art-supplies',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Toys & Kids (parent 10) ────────────
+	{
+		id: 85,
+		name: { en: 'Baby Gear', ps: 'د ماشوم سامان', fa: 'لوازم نوزاد' },
+		parent_id: 10,
+		path: 'toys-kids.baby-gear',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 86,
+		name: { en: 'Toys', ps: 'لوبغالي', fa: 'اسباب‌بازی' },
+		parent_id: 10,
+		path: 'toys-kids.toys',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 87,
+		name: {
+			en: 'Educational Toys',
+			ps: 'تعلیمي لوبغالي',
+			fa: 'اسباب‌بازی آموزشی',
+		},
+		parent_id: 10,
+		path: 'toys-kids.educational-toys',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 88,
+		name: {
+			en: "Kids' Bicycles & Ride-ons",
+			ps: 'د ماشومانو بایسکلونه',
+			fa: 'دوچرخه کودکان',
+		},
+		parent_id: 10,
+		path: 'toys-kids.kids-bicycles-ride-ons',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 89,
+		name: {
+			en: 'Baby Feeding & Nursing',
+			ps: 'د ماشوم تغذیه',
+			fa: 'تغذیه نوزاد',
+		},
+		parent_id: 10,
+		path: 'toys-kids.baby-feeding-nursing',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 90,
+		name: {
+			en: "Kids' Furniture",
+			ps: 'د ماشومانو فرنیچر',
+			fa: 'مبلمان کودک',
+		},
+		parent_id: 10,
+		path: 'toys-kids.kids-furniture',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Watches & Jewelry (parent 11) ────────────
+	{
+		id: 91,
+		name: { en: "Men's Watches", ps: 'د نارینه ساعتونه', fa: 'ساعت مردانه' },
+		parent_id: 11,
+		path: 'watches-jewelry.mens-watches',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 92,
+		name: { en: "Women's Watches", ps: 'د ښځو ساعتونه', fa: 'ساعت زنانه' },
+		parent_id: 11,
+		path: 'watches-jewelry.womens-watches',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 93,
+		name: {
+			en: 'Gold & Precious Jewelry',
+			ps: 'سرې زرو زیورات',
+			fa: 'جواهرات طلا',
+		},
+		parent_id: 11,
+		path: 'watches-jewelry.gold-precious-jewelry',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 94,
+		name: {
+			en: 'Fashion Jewelry',
+			ps: 'فیشني زیورات',
+			fa: 'جواهرات فشن',
+		},
+		parent_id: 11,
+		path: 'watches-jewelry.fashion-jewelry',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 95,
+		name: {
+			en: 'Rings & Wedding Jewelry',
+			ps: 'ګوتۍ',
+			fa: 'حلقه و جواهرات عروسی',
+		},
+		parent_id: 11,
+		path: 'watches-jewelry.rings-wedding-jewelry',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+
+	// ──────────── Art & Crafts (parent 12) ────────────
+	{
+		id: 96,
+		name: { en: 'Paintings & Wall Art', ps: 'انځورونه', fa: 'نقاشی و تابلو' },
+		parent_id: 12,
+		path: 'art-crafts.paintings-wall-art',
+		depth: 1,
+		sort_order: 1,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 97,
+		name: { en: 'Handicrafts', ps: 'لاسي صنایع', fa: 'صنایع دستی' },
+		parent_id: 12,
+		path: 'art-crafts.handicrafts',
+		depth: 1,
+		sort_order: 2,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 98,
+		name: { en: 'Carpets & Rugs', ps: 'غالۍ', fa: 'قالین و فرش' },
+		parent_id: 12,
+		path: 'art-crafts.carpets-rugs',
+		depth: 1,
+		sort_order: 3,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		// Afghan carpets/rugs are a globally recognized specialty — genuinely
+		// popular, not a generic filler pick.
+		is_popular: true,
+	},
+	{
+		id: 99,
+		name: {
+			en: 'Calligraphy & Islamic Art',
+			ps: 'خط کا�لي',
+			fa: 'خطاطی و هنر اسلامی',
+		},
+		parent_id: 12,
+		path: 'art-crafts.calligraphy-islamic-art',
+		depth: 1,
+		sort_order: 4,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 100,
+		name: {
+			en: 'Craft Supplies',
+			ps: 'د صنایعو توکي',
+			fa: 'لوازم صنایع دستی',
+		},
+		parent_id: 12,
+		path: 'art-crafts.craft-supplies',
+		depth: 1,
+		sort_order: 5,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
+	},
+	{
+		id: 101,
+		name: { en: 'Pottery & Decor', ps: 'سفالي لوازم', fa: 'سرامیک و دکور' },
+		parent_id: 12,
+		path: 'art-crafts.pottery-decor',
+		depth: 1,
+		sort_order: 6,
+		icon_url:
+			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+		delivery: true,
+		is_popular: false,
 	},
 ]
 
+// ──────────────────────────────────────────────────────────────────────────
+// Shared option sets — the same translated {value,label} lists get reused
+// across several attributes (every "Condition" dropdown, every "Color"
+// dropdown, ...) instead of retyping the same translations repeatedly.
+// ──────────────────────────────────────────────────────────────────────────
+
+const OTHER = { value: 'other', label: { en: 'Other', ps: 'نور', fa: 'دیگر' } }
+
+const CONDITION_NEW_USED_REFURBISHED = [
+	{ value: 'new', label: { en: 'New', ps: 'نوی', fa: 'نو' } },
+	{ value: 'used', label: { en: 'Used', ps: 'کارول شوی', fa: 'دسته دوم' } },
+	{
+		value: 'refurbished',
+		label: { en: 'Refurbished', ps: 'بیا رغول شوی', fa: 'نوسازی شده' },
+	},
+]
+
+const CONDITION_NEW_USED = [
+	{ value: 'new', label: { en: 'New', ps: 'نوی', fa: 'نو' } },
+	{ value: 'used', label: { en: 'Used', ps: 'کارول شوی', fa: 'دسته دوم' } },
+]
+
+const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => ({
+	value: size,
+	label: { en: size, ps: size, fa: size },
+}))
+
+const CLOTHING_COLORS = [
+	{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
+	{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
+	{ value: 'red', label: { en: 'Red', ps: 'سور', fa: 'قرمز' } },
+	{ value: 'blue', label: { en: 'Blue', ps: 'آسمانی', fa: 'آبی' } },
+	{ value: 'green', label: { en: 'Green', ps: 'شین', fa: 'سبز' } },
+	{ value: 'yellow', label: { en: 'Yellow', ps: 'ژېړ', fa: 'زرد' } },
+	{ value: 'gray', label: { en: 'Gray', ps: 'ګرے', fa: 'خاکستری' } },
+	{ value: 'brown', label: { en: 'Brown', ps: 'نسواري', fa: 'قهوه‌ای' } },
+	OTHER,
+]
+
+const CLOTHING_MATERIALS = [
+	{ value: 'cotton', label: { en: 'Cotton', ps: 'کاټن', fa: 'نخی' } },
+	{
+		value: 'polyester',
+		label: { en: 'Polyester', ps: 'پولیسټر', fa: 'پلی‌استر' },
+	},
+	{ value: 'wool', label: { en: 'Wool', ps: 'وړۍ', fa: 'پشمی' } },
+	{ value: 'silk', label: { en: 'Silk', ps: 'ورېښمینه', fa: 'ابریشمی' } },
+	{ value: 'denim', label: { en: 'Denim', ps: 'ډینم', fa: 'جین' } },
+	OTHER,
+]
+
+const FURNITURE_MATERIALS = [
+	{ value: 'wood', label: { en: 'Wood', ps: 'دوه', fa: 'چوبی' } },
+	{ value: 'metal', label: { en: 'Metal', ps: 'فلزي', fa: 'فلزی' } },
+	{ value: 'plastic', label: { en: 'Plastic', ps: 'پلاستیک', fa: 'پلاستیکی' } },
+	{ value: 'glass', label: { en: 'Glass', ps: 'ګلاس', fa: 'شیشه‌ای' } },
+	{ value: 'fabric', label: { en: 'Fabric', ps: 'کپړه', fa: 'پارچه‌ای' } },
+]
+
+const FURNITURE_COLORS = [
+	{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
+	{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
+	{ value: 'brown', label: { en: 'Brown', ps: 'نسواري', fa: 'قهوه‌ای' } },
+	{ value: 'gray', label: { en: 'Gray', ps: 'ګرے', fa: 'خاکستری' } },
+	{ value: 'beige', label: { en: 'Beige', ps: 'بیج', fa: 'بژ' } },
+	OTHER,
+]
+
+const FURNITURE_CONDITION = [
+	...CONDITION_NEW_USED_REFURBISHED.filter((o) => o.value !== 'refurbished'),
+	{
+		value: 'needs_repair',
+		label: {
+			en: 'Needs Repair',
+			ps: 'د ترمیم ته اړتیا لري',
+			fa: 'نیاز به تعمیر',
+		},
+	},
+]
+
+// `{value,label}` pairs for a plain numeral unit where the unit word itself
+// is translated but the number stays as a numeral — e.g. "16GB" / "۱۶
+// ګیگابایت" / "۱۶ گیگابایت".
+const gbOption = (n: number) => ({
+	value: `${n}GB`,
+	label: {
+		en: `${n}GB`,
+		ps: `${n} ګیگابایت`,
+		fa: `${n} گیگابایت`,
+	},
+})
+const tbOption = (n: number) => ({
+	value: `${n}TB`,
+	label: {
+		en: `${n}TB`,
+		ps: `${n} ټیرابایت`,
+		fa: `${n} ترابایت`,
+	},
+})
+
 export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
-	// Electronics
+	// ──────────── Mobiles (13) ────────────
 	{
-		category_id: 1,
-		code: 'model',
-		label: 'Model',
-		type: 'dropdown',
-		options: ['1999', '2000', '2001'],
-	},
-	{
-		category_id: 1,
+		category_id: 13,
 		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: ['Samsung', 'Apple', 'LG', 'Sony', 'Other'],
+		label: { en: 'Brand', ps: 'برانډ', fa: 'برند' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select brand',
+			ps: 'برانډ غوره کړئ',
+			fa: 'برند را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'samsung', label: { en: 'Samsung', ps: 'Samsung', fa: 'Samsung' } },
+			{ value: 'apple', label: { en: 'Apple', ps: 'Apple', fa: 'Apple' } },
+			{ value: 'xiaomi', label: { en: 'Xiaomi', ps: 'Xiaomi', fa: 'Xiaomi' } },
+			{ value: 'huawei', label: { en: 'Huawei', ps: 'Huawei', fa: 'Huawei' } },
+			{ value: 'infinix', label: { en: 'Infinix', ps: 'Infinix', fa: 'Infinix' } },
+			{ value: 'tecno', label: { en: 'Tecno', ps: 'Tecno', fa: 'Tecno' } },
+			{ value: 'nokia', label: { en: 'Nokia', ps: 'Nokia', fa: 'Nokia' } },
+			OTHER,
+		],
+		sort_order: 1,
 	},
 	{
-		category_id: 1,
-		code: 'color',
-		label: 'Color',
-		type: 'dropdown',
-		options: ['red', 'blue', 'green'],
+		category_id: 13,
+		code: 'ram',
+		label: { en: 'RAM', ps: 'رام', fa: 'رم' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select RAM',
+			ps: 'رام غوره کړئ',
+			fa: 'رم را انتخاب کنید',
+		},
+		menu_data: [2, 3, 4, 6, 8, 12, 16].map(gbOption),
+		sort_order: 2,
 	},
 	{
-		category_id: 1,
+		category_id: 13,
+		code: 'storage',
+		label: { en: 'Storage', ps: 'ذخیره ساتنه', fa: 'حافظه ذخیره‌سازی' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select storage',
+			ps: 'ذخیره ساتنه غوره کړئ',
+			fa: 'حافظه ذخیره‌سازی را انتخاب کنید',
+		},
+		menu_data: [
+			...[16, 32, 64, 128, 256, 512].map(gbOption),
+			tbOption(1),
+		],
+		sort_order: 3,
+	},
+	{
+		category_id: 13,
 		code: 'condition',
-		label: 'Condition',
-		type: 'dropdown',
-		options: ['new', 'used', 'refurbished', 'like new'],
+		label: { en: 'Condition', ps: 'حالت', fa: 'وضعیت' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select condition',
+			ps: 'حالت غوره کړئ',
+			fa: 'وضعیت را انتخاب کنید',
+		},
+		menu_data: CONDITION_NEW_USED_REFURBISHED,
+		sort_order: 4,
 	},
 	{
-		category_id: 1,
-		code: 'warranty_months',
-		label: 'Warranty (months)',
-		type: 'number',
-		options: [0, 1, 5, 6, 4],
-	},
-	{
-		category_id: 1,
-		code: 'power_source',
-		label: 'Power Source',
-		type: 'dropdown',
-		options: ['Battery', 'AC', 'DC', 'Other'],
-	},
-	{
-		category_id: 1,
-		code: 'weight_kg',
-		label: 'Weight (kg)',
-		type: 'number',
-		options: [0, 1, 5, 6, 4],
-	},
-	{
-		category_id: 1,
-		code: 'dimensions_cm',
-		label: 'Dimensions (cm)',
-		type: 'text',
-		options: ['option_1', 'option_2', 'option_3'],
-	},
-	// Real Estate
-	{
-		category_id: 2,
-		code: 'property_type',
-		label: 'Property Type',
-		type: 'dropdown',
-		options: [
-			'House',
-			'Apartment',
-			'Villa',
-			'Pre-sale',
-			'Land',
-			'Office',
-			'Shop',
-			'planed land',
-			'industial land',
-			'unplanned land',
-			'agricultural land',
-			'commercial',
-			'commercial land',
-			'Other',
-		],
-	},
-	{
-		category_id: 2,
-		code: 'sale_type',
-		label: 'Sale Type',
-		type: 'select',
-		options: ['rent', 'sale', 'lease', 'mortgage', 'other'],
-	},
-	{
-		category_id: 2,
-		code: 'bedrooms',
-		label: 'Bedrooms',
-		type: 'number',
-		options: [0, 1, 5, 6, 4],
-	},
-	{
-		category_id: 2,
-		code: 'bathrooms',
-		label: 'Bathrooms',
-		type: 'number',
-		options: [0, 1, 5, 6, 4],
-	},
-	{
-		category_id: 2,
-		code: 'floors',
-		label: 'Floors',
-		type: 'number',
-		options: [0, 1, 5, 6, 4],
-	},
-	// Clothes
-	{
-		category_id: 3,
-		code: 'gender',
-		label: 'Gender',
-		type: 'select',
-		options: ['men', 'women', 'kids'],
-	},
-	{
-		category_id: 3,
-		code: 'clothing_type',
-		label: 'Clothing Type',
-		type: 'select',
-		options: [
-			't-shirt',
-			'shirt',
-			'pants',
-			'jeans',
-			'jacket',
-			'coat',
-			'dress',
-			'skirt',
-			'shorts',
-			'hoodie',
-			'sweater',
-			'traditional',
-		],
-	},
-	{
-		category_id: 3,
-		code: 'material',
-		label: 'Material',
-		type: 'select',
-		options: [
-			'cotton',
-			'polyester',
-			'wool',
-			'silk',
-			'denim',
-			'leather',
-			'linen',
-			'mixed',
-		],
-	},
-	{
-		category_id: 3,
-		code: 'size',
-		label: 'Size',
-		type: 'select',
-		options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-	},
-	{
-		category_id: 3,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'good', 'used'],
-	},
-	{
-		category_id: 3,
+		category_id: 13,
 		code: 'color',
-		label: 'Color',
-		type: 'select',
-		options: [
-			'black',
-			'white',
-			'red',
-			'blue',
-			'green',
-			'yellow',
-			'gray',
-			'brown',
-			'other',
+		label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select color',
+			ps: 'رنگ غوره کړئ',
+			fa: 'رنگ را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'black', label: { en: 'Black', ps: 'تور', fa: 'سیاه' } },
+			{ value: 'white', label: { en: 'White', ps: 'سپین', fa: 'سفید' } },
+			{ value: 'blue', label: { en: 'Blue', ps: 'آسمانی', fa: 'آبی' } },
+			{ value: 'gold', label: { en: 'Gold', ps: 'ګولډي', fa: 'طلایی' } },
+			{ value: 'silver', label: { en: 'Silver', ps: 'سپین زرين', fa: 'نقره‌ای' } },
+			{ value: 'green', label: { en: 'Green', ps: 'شین', fa: 'سبز' } },
+			OTHER,
 		],
-	},
-	// Vehicles
-	{
-		category_id: 4,
-		code: 'vehicle_type',
-		label: 'Vehicle Type',
-		type: 'select',
-		options: ['car', 'motorcycle', 'truck', 'van', 'bus', 'other'],
+		sort_order: 5,
 	},
 	{
-		category_id: 4,
+		category_id: 13,
+		code: 'network',
+		label: { en: 'Network', ps: 'شبکه', fa: 'شبکه' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select network',
+			ps: 'شبکه غوره کړئ',
+			fa: 'شبکه را انتخاب کنید',
+		},
+		menu_data: ['3G', '4G', '5G'].map((g) => ({
+			value: g,
+			label: { en: g, ps: g, fa: g },
+		})),
+		sort_order: 6,
+	},
+
+	// ──────────── Laptops (14) ────────────
+	{
+		category_id: 14,
 		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: [
-			'Toyota',
-			'Honda',
-			'Ford',
-			'Nissan',
-			'Hyundai',
-			'Kia',
-			'Suzuki',
-			'Other',
+		label: { en: 'Brand', ps: 'برانډ', fa: 'برند' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select brand',
+			ps: 'برانډ غوره کړئ',
+			fa: 'برند را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'hp', label: { en: 'HP', ps: 'HP', fa: 'HP' } },
+			{ value: 'dell', label: { en: 'Dell', ps: 'Dell', fa: 'Dell' } },
+			{ value: 'lenovo', label: { en: 'Lenovo', ps: 'Lenovo', fa: 'Lenovo' } },
+			{ value: 'asus', label: { en: 'Asus', ps: 'Asus', fa: 'Asus' } },
+			{ value: 'apple', label: { en: 'Apple', ps: 'Apple', fa: 'Apple' } },
+			{ value: 'acer', label: { en: 'Acer', ps: 'Acer', fa: 'Acer' } },
+			{ value: 'msi', label: { en: 'MSI', ps: 'MSI', fa: 'MSI' } },
+			OTHER,
 		],
+		sort_order: 1,
 	},
 	{
-		category_id: 4,
-		code: 'model_year',
-		label: 'Model Year',
+		category_id: 14,
+		code: 'processor',
+		label: { en: 'Processor', ps: 'پروسیسر', fa: 'پردازنده' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select processor',
+			ps: 'پروسیسر غوره کړئ',
+			fa: 'پردازنده را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'intel_i3', label: { en: 'Intel Core i3', ps: 'Intel Core i3', fa: 'Intel Core i3' } },
+			{ value: 'intel_i5', label: { en: 'Intel Core i5', ps: 'Intel Core i5', fa: 'Intel Core i5' } },
+			{ value: 'intel_i7', label: { en: 'Intel Core i7', ps: 'Intel Core i7', fa: 'Intel Core i7' } },
+			{ value: 'intel_i9', label: { en: 'Intel Core i9', ps: 'Intel Core i9', fa: 'Intel Core i9' } },
+			{ value: 'amd_ryzen3', label: { en: 'AMD Ryzen 3', ps: 'AMD Ryzen 3', fa: 'AMD Ryzen 3' } },
+			{ value: 'amd_ryzen5', label: { en: 'AMD Ryzen 5', ps: 'AMD Ryzen 5', fa: 'AMD Ryzen 5' } },
+			{ value: 'amd_ryzen7', label: { en: 'AMD Ryzen 7', ps: 'AMD Ryzen 7', fa: 'AMD Ryzen 7' } },
+			{ value: 'apple_m', label: { en: 'Apple M-series', ps: 'Apple M-series', fa: 'Apple M-series' } },
+			OTHER,
+		],
+		sort_order: 2,
+	},
+	{
+		category_id: 14,
+		code: 'ram',
+		label: { en: 'RAM', ps: 'رام', fa: 'رم' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select RAM',
+			ps: 'رام غوره کړئ',
+			fa: 'رم را انتخاب کنید',
+		},
+		menu_data: [4, 8, 16, 32, 64].map(gbOption),
+		sort_order: 3,
+	},
+	{
+		category_id: 14,
+		code: 'storage',
+		label: { en: 'Storage', ps: 'ذخیره ساتنه', fa: 'حافظه ذخیره‌سازی' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select storage',
+			ps: 'ذخیره ساتنه غوره کړئ',
+			fa: 'حافظه ذخیره‌سازی را انتخاب کنید',
+		},
+		menu_data: [128, 256, 512].map((n) => ({
+			value: `${n}GB_SSD`,
+			label: {
+				en: `${n}GB SSD`,
+				ps: `${n} ګیگابایت SSD`,
+				fa: `${n} گیگابایت SSD`,
+			},
+		})).concat([
+			{
+				value: '1TB_SSD',
+				label: { en: '1TB SSD', ps: '۱ ټیرابایت SSD', fa: '۱ ترابایت SSD' },
+			},
+			{
+				value: '500GB_HDD',
+				label: { en: '500GB HDD', ps: '۵۰۰ ګیگابایت HDD', fa: '۵۰۰ گیگابایت HDD' },
+			},
+			{
+				value: '1TB_HDD',
+				label: { en: '1TB HDD', ps: '۱ ټیرابایت HDD', fa: '۱ ترابایت HDD' },
+			},
+		]),
+		sort_order: 4,
+	},
+	{
+		category_id: 14,
+		code: 'screen_size',
+		label: { en: 'Screen Size', ps: 'د سکرین اندازه', fa: 'اندازه صفحه نمایش' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select screen size',
+			ps: 'د سکرین اندازه غوره کړئ',
+			fa: 'اندازه صفحه نمایش را انتخاب کنید',
+		},
+		menu_data: [
+			{
+				value: '11-13',
+				label: { en: '11"–13"', ps: '۱۱–۱۳ انچ', fa: '۱۱ تا ۱۳ اینچ' },
+			},
+			{
+				value: '14-15',
+				label: { en: '14"–15"', ps: '۱۴–۱۵ انچ', fa: '۱۴ تا ۱۵ اینچ' },
+			},
+			{ value: '16+', label: { en: '16"+', ps: '۱۶+ انچ', fa: '۱۶ اینچ به بالا' } },
+		],
+		sort_order: 5,
+	},
+	{
+		category_id: 14,
+		code: 'graphics',
+		label: { en: 'Graphics', ps: 'ګرافیک', fa: 'گرافیک' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select graphics',
+			ps: 'ګرافیک غوره کړئ',
+			fa: 'گرافیک را انتخاب کنید',
+		},
+		menu_data: [
+			{
+				value: 'integrated',
+				label: { en: 'Integrated', ps: 'ضمیمه شوی', fa: 'یکپارچه' },
+			},
+			{
+				value: 'dedicated',
+				label: { en: 'Dedicated', ps: 'جلا شوی', fa: 'اختصاصی' },
+			},
+		],
+		sort_order: 6,
+	},
+	{
+		category_id: 14,
+		code: 'condition',
+		label: { en: 'Condition', ps: 'حالت', fa: 'وضعیت' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select condition',
+			ps: 'حالت غوره کړئ',
+			fa: 'وضعیت را انتخاب کنید',
+		},
+		menu_data: CONDITION_NEW_USED_REFURBISHED,
+		sort_order: 7,
+	},
+
+	// ──────────── Cars (41) ────────────
+	{
+		category_id: 41,
+		code: 'make',
+		label: { en: 'Make', ps: 'برانډ', fa: 'برند' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select make',
+			ps: 'برانډ غوره کړئ',
+			fa: 'برند را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'toyota', label: { en: 'Toyota', ps: 'Toyota', fa: 'Toyota' } },
+			{ value: 'honda', label: { en: 'Honda', ps: 'Honda', fa: 'Honda' } },
+			{ value: 'suzuki', label: { en: 'Suzuki', ps: 'Suzuki', fa: 'Suzuki' } },
+			{ value: 'nissan', label: { en: 'Nissan', ps: 'Nissan', fa: 'Nissan' } },
+			OTHER,
+		],
+		sort_order: 1,
+	},
+	{
+		category_id: 41,
+		code: 'year',
+		label: { en: 'Year', ps: 'کال', fa: 'سال' },
 		type: 'number',
-		options: [2000, 2010, 2015, 2020, 2024],
+		placeholder: { en: 'e.g. 2018', ps: 'د بیلګې په توګه ۲۰۱۸', fa: 'مثلاً ۲۰۱۸' },
+		menu_data: null,
+		sort_order: 2,
 	},
 	{
-		category_id: 4,
-		code: 'mileage_km',
-		label: 'Mileage (km)',
-		type: 'number',
-		options: [0, 50000, 100000, 150000, 200000],
-	},
-	{
-		category_id: 4,
-		code: 'fuel_type',
-		label: 'Fuel Type',
-		type: 'select',
-		options: ['petrol', 'diesel', 'hybrid', 'electric', 'cng'],
-	},
-	{
-		category_id: 4,
+		category_id: 41,
 		code: 'transmission',
-		label: 'Transmission',
-		type: 'select',
-		options: ['automatic', 'manual'],
-	},
-	{
-		category_id: 4,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'used', 'damaged'],
-	},
-	{
-		category_id: 4,
-		code: 'color',
-		label: 'Color',
-		type: 'select',
-		options: ['black', 'white', 'silver', 'gray', 'red', 'blue', 'other'],
-	},
-	// Furniture
-	{
-		category_id: 5,
-		code: 'furniture_type',
-		label: 'Furniture Type',
-		type: 'select',
-		options: [
-			'sofa',
-			'bed',
-			'table',
-			'chair',
-			'wardrobe',
-			'cabinet',
-			'desk',
-			'bookshelf',
-			'other',
+		label: { en: 'Transmission', ps: 'ترانسمیشن', fa: 'گیربکس' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select transmission',
+			ps: 'ترانسمیشن غوره کړئ',
+			fa: 'گیربکس را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'automatic', label: { en: 'Automatic', ps: 'اتومات', fa: 'اتومات' } },
+			{ value: 'manual', label: { en: 'Manual', ps: 'لاسي', fa: 'دستی' } },
 		],
+		sort_order: 3,
 	},
 	{
-		category_id: 5,
-		code: 'material',
-		label: 'Material',
-		type: 'select',
-		options: [
-			'wood',
-			'metal',
-			'glass',
-			'plastic',
-			'fabric',
-			'leather',
-			'mixed',
+		category_id: 41,
+		code: 'fuel_type',
+		label: { en: 'Fuel Type', ps: 'د تیلو ډول', fa: 'نوع سوخت' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select fuel type',
+			ps: 'د تیلو ډول غوره کړئ',
+			fa: 'نوع سوخت را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'petrol', label: { en: 'Petrol', ps: 'پطرول', fa: 'پترول' } },
+			{ value: 'diesel', label: { en: 'Diesel', ps: 'ډیزل', fa: 'دیزل' } },
+			{ value: 'hybrid', label: { en: 'Hybrid', ps: 'هایبرید', fa: 'هیبرید' } },
+			{ value: 'electric', label: { en: 'Electric', ps: 'بریښنایی', fa: 'برقی' } },
+			{ value: 'cng', label: { en: 'CNG', ps: 'CNG', fa: 'CNG' } },
 		],
+		sort_order: 4,
 	},
 	{
-		category_id: 5,
-		code: 'color',
-		label: 'Color',
-		type: 'select',
-		options: ['black', 'white', 'brown', 'gray', 'beige', 'other'],
-	},
-	{
-		category_id: 5,
+		category_id: 41,
 		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'used', 'needs repair'],
+		label: { en: 'Condition', ps: 'حالت', fa: 'وضعیت' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select condition',
+			ps: 'حالت غوره کړئ',
+			fa: 'وضعیت را انتخاب کنید',
+		},
+		menu_data: CONDITION_NEW_USED,
+		sort_order: 5,
 	},
 	{
-		category_id: 5,
-		code: 'dimensions_cm',
-		label: 'Dimensions (cm)',
-		type: 'text',
-		options: ['option_1', 'option_2', 'option_3'],
-	},
-	{
-		category_id: 5,
-		code: 'assembly_required',
-		label: 'Assembly Required',
-		type: 'select',
-		options: ['yes', 'no'],
-	},
-	// Home Appliances
-	{
-		category_id: 6,
-		code: 'appliance_type',
-		label: 'Appliance Type',
-		type: 'select',
-		options: [
-			'refrigerator',
-			'washing machine',
-			'air conditioner',
-			'microwave',
-			'vacuum cleaner',
-			'water dispenser',
-			'heater',
-			'fan',
-			'other',
-		],
-	},
-	{
-		category_id: 6,
-		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: ['Samsung', 'LG', 'Bosch', 'Panasonic', 'Haier', 'Other'],
-	},
-	{
-		category_id: 6,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'used', 'refurbished'],
-	},
-	{
-		category_id: 6,
-		code: 'power_consumption_watt',
-		label: 'Power Consumption (W)',
+		category_id: 41,
+		code: 'mileage',
+		label: { en: 'Mileage (km)', ps: 'طی شوې مسافه (کیلومتر)', fa: 'کیلومتر طی شده' },
 		type: 'number',
-		options: [50, 100, 500, 1000, 2000],
+		placeholder: { en: 'e.g. 50000', ps: 'د بیلګې په توګه ۵۰۰۰۰', fa: 'مثلاً ۵۰۰۰۰' },
+		menu_data: null,
+		sort_order: 6,
 	},
-	{
-		category_id: 6,
-		code: 'warranty_months',
-		label: 'Warranty (months)',
-		type: 'number',
-		options: [0, 6, 12, 24],
-	},
-	// Beauty & Health
-	{
-		category_id: 7,
-		code: 'product_type',
-		label: 'Product Type',
-		type: 'select',
-		options: [
-			'skincare',
-			'makeup',
-			'haircare',
-			'fragrance',
-			'personal care',
-			'supplements',
-			'medical equipment',
-			'other',
+
+	// ──────────── Real estate: `purpose` (for sale / for rent / mortgage) on
+	// every property-type leaf (25, 26, 29, 30, 31, 32) — this is what
+	// replaced the old per-purpose categories (the separate "...for Rent"
+	// leaves). ────────────
+	...[25, 26, 29, 30, 31, 32].map((category_id) => ({
+		category_id,
+		code: 'purpose',
+		label: { en: 'Purpose', ps: 'هدف', fa: 'هدف' },
+		type: 'menu',
+		placeholder: {
+			en: 'Select purpose',
+			ps: 'هدف غوره کړئ',
+			fa: 'هدف را انتخاب کنید',
+		},
+		menu_data: [
+			{ value: 'for_sale', label: { en: 'For Sale', ps: 'د پلورلو لپاره', fa: 'برای فروش' } },
+			{ value: 'for_rent', label: { en: 'For Rent', ps: 'د کرایې لپاره', fa: 'برای کرایه' } },
+			{ value: 'mortgage', label: { en: 'Mortgage', ps: 'ګروي', fa: 'گروی' } },
 		],
-	},
-	{
-		category_id: 7,
-		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: ['Nivea', "L'Oreal", 'Dove', 'Gillette', 'Other'],
-	},
-	{
-		category_id: 7,
-		code: 'gender',
-		label: 'Gender',
-		type: 'select',
-		options: ['men', 'women', 'unisex'],
-	},
-	{
-		category_id: 7,
-		code: 'expiry_date',
-		label: 'Expiry Date',
-		type: 'text',
-		options: ['option_1', 'option_2', 'option_3'],
-	},
-	{
-		category_id: 7,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'used'],
-	},
-	// Sports & Outdoors
-	{
-		category_id: 8,
-		code: 'sport_type',
-		label: 'Sport Type',
-		type: 'select',
-		options: [
-			'football',
-			'cricket',
-			'cycling',
-			'gym & fitness',
-			'camping',
-			'martial arts',
-			'other',
-		],
-	},
-	{
-		category_id: 8,
-		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: ['Nike', 'Adidas', 'Puma', 'Decathlon', 'Other'],
-	},
-	{
-		category_id: 8,
-		code: 'size',
-		label: 'Size',
-		type: 'select',
-		options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'one size'],
-	},
-	{
-		category_id: 8,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'used'],
-	},
-	// Books & Stationery
-	{
-		category_id: 9,
-		code: 'item_type',
-		label: 'Item Type',
-		type: 'select',
-		options: ['book', 'notebook', 'pen', 'backpack', 'art supplies', 'other'],
-	},
-	{
-		category_id: 9,
-		code: 'language',
-		label: 'Language',
-		type: 'select',
-		options: ['english', 'pashto', 'dari', 'arabic', 'other'],
-	},
-	{
-		category_id: 9,
-		code: 'category_genre',
-		label: 'Genre / Subject',
-		type: 'select',
-		options: [
-			'fiction',
-			'non-fiction',
-			'academic',
-			'religious',
-			'children',
-			'other',
-		],
-	},
-	{
-		category_id: 9,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'used'],
-	},
-	// Toys & Kids
-	{
-		category_id: 10,
-		code: 'item_type',
-		label: 'Item Type',
-		type: 'select',
-		options: ['toy', 'stroller', 'car seat', 'clothing', 'feeding', 'other'],
-	},
-	{
-		category_id: 10,
-		code: 'age_group',
-		label: 'Age Group',
-		type: 'select',
-		options: ['0-1 years', '1-3 years', '3-6 years', '6-12 years', '12+ years'],
-	},
-	{
-		category_id: 10,
-		code: 'gender',
-		label: 'Gender',
-		type: 'select',
-		options: ['boys', 'girls', 'unisex'],
-	},
-	{
-		category_id: 10,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'used'],
-	},
-	// Watches & Jewelry
-	{
-		category_id: 11,
-		code: 'item_type',
-		label: 'Item Type',
-		type: 'select',
-		options: ['watch', 'necklace', 'ring', 'bracelet', 'earrings', 'other'],
-	},
-	{
-		category_id: 11,
-		code: 'material',
-		label: 'Material',
-		type: 'select',
-		options: [
-			'gold',
-			'silver',
-			'platinum',
-			'stainless steel',
-			'leather',
-			'other',
-		],
-	},
-	{
-		category_id: 11,
-		code: 'brand',
-		label: 'Brand',
-		type: 'dropdown',
-		options: ['Rolex', 'Casio', 'Seiko', 'Fossil', 'Local', 'Other'],
-	},
-	{
-		category_id: 11,
-		code: 'gender',
-		label: 'Gender',
-		type: 'select',
-		options: ['men', 'women', 'unisex'],
-	},
-	{
-		category_id: 11,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'like new', 'used'],
-	},
-	// Art & Crafts
-	{
-		category_id: 12,
-		code: 'item_type',
-		label: 'Item Type',
-		type: 'select',
-		options: [
-			'painting',
-			'sculpture',
-			'handmade rug',
-			'pottery',
-			'craft supplies',
-			'other',
-		],
-	},
-	{
-		category_id: 12,
-		code: 'material',
-		label: 'Material',
-		type: 'select',
-		options: ['canvas', 'wood', 'clay', 'fabric', 'metal', 'mixed'],
-	},
-	{
-		category_id: 12,
-		code: 'style',
-		label: 'Style',
-		type: 'select',
-		options: ['traditional', 'modern', 'calligraphy', 'abstract', 'other'],
-	},
-	{
-		category_id: 12,
-		code: 'handmade',
-		label: 'Handmade',
-		type: 'select',
-		options: ['yes', 'no'],
-	},
-	{
-		category_id: 12,
-		code: 'condition',
-		label: 'Condition',
-		type: 'select',
-		options: ['new', 'used'],
-	},
+		sort_order: 0,
+	}) satisfies InsertCategoryAttribute),
+
+	// House (25) & Apartment (26) only — same 4 detail attributes on both.
+	...[25, 26].flatMap((category_id) => [
+		{
+			category_id,
+			code: 'bedrooms',
+			label: { en: 'Bedrooms', ps: 'د خوب خونې', fa: 'تعداد اتاق خواب' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select bedrooms',
+				ps: 'د خوب خونې غوره کړئ',
+				fa: 'تعداد اتاق خواب را انتخاب کنید',
+			},
+			menu_data: [
+				{ value: '1', label: { en: '1', ps: '۱', fa: '۱' } },
+				{ value: '2', label: { en: '2', ps: '۲', fa: '۲' } },
+				{ value: '3', label: { en: '3', ps: '۳', fa: '۳' } },
+				{ value: '4', label: { en: '4', ps: '۴', fa: '۴' } },
+				{ value: '5+', label: { en: '5+', ps: '۵+', fa: '۵ یا بیشتر' } },
+			],
+			sort_order: 1,
+		},
+		{
+			category_id,
+			code: 'bathrooms',
+			label: { en: 'Bathrooms', ps: 'تشناب', fa: 'تعداد سرویس بهداشتی' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select bathrooms',
+				ps: 'تشناب غوره کړئ',
+				fa: 'تعداد سرویس بهداشتی را انتخاب کنید',
+			},
+			menu_data: [
+				{ value: '1', label: { en: '1', ps: '۱', fa: '۱' } },
+				{ value: '2', label: { en: '2', ps: '۲', fa: '۲' } },
+				{ value: '3', label: { en: '3', ps: '۳', fa: '۳' } },
+				{ value: '4+', label: { en: '4+', ps: '۴+', fa: '۴ یا بیشتر' } },
+			],
+			sort_order: 2,
+		},
+		{
+			category_id,
+			code: 'area_sqm',
+			label: { en: 'Area (m²)', ps: 'مساحت (مترمربع)', fa: 'مساحت (متر مربع)' },
+			type: 'number',
+			placeholder: { en: 'e.g. 120', ps: 'د بیلګې په توګه ۱۲۰', fa: 'مثلاً ۱۲۰' },
+			menu_data: null,
+			sort_order: 3,
+		},
+		{
+			category_id,
+			code: 'furnishing',
+			label: { en: 'Furnishing', ps: 'فرنیچر حالت', fa: 'وضعیت مبلمان' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select furnishing',
+				ps: 'فرنیچر حالت غوره کړئ',
+				fa: 'وضعیت مبلمان را انتخاب کنید',
+			},
+			menu_data: [
+				{
+					value: 'furnished',
+					label: { en: 'Furnished', ps: 'فرنیچر شوی', fa: 'مبله' },
+				},
+				{
+					value: 'semi_furnished',
+					label: { en: 'Semi-furnished', ps: 'نیمه فرنیچر شوی', fa: 'نیمه مبله' },
+				},
+				{
+					value: 'unfurnished',
+					label: { en: 'Unfurnished', ps: 'غیر فرنیچر شوی', fa: 'بدون مبل' },
+				},
+			],
+			sort_order: 4,
+		},
+	] satisfies InsertCategoryAttribute[]),
+
+	// ──────────── Men's Clothing (33) / Women's Clothing (34) — same 4
+	// attributes on both. ────────────
+	...[33, 34].flatMap((category_id) => [
+		{
+			category_id,
+			code: 'size',
+			label: { en: 'Size', ps: 'سایز', fa: 'سایز' },
+			type: 'menu',
+			placeholder: { en: 'Select size', ps: 'سایز غوره کړئ', fa: 'سایز را انتخاب کنید' },
+			menu_data: CLOTHING_SIZES,
+			sort_order: 1,
+		},
+		{
+			category_id,
+			code: 'color',
+			label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
+			type: 'menu',
+			placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
+			menu_data: CLOTHING_COLORS,
+			sort_order: 2,
+		},
+		{
+			category_id,
+			code: 'material',
+			label: { en: 'Material', ps: 'موده', fa: 'جنس' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select material',
+				ps: 'موده غوره کړئ',
+				fa: 'جنس را انتخاب کنید',
+			},
+			menu_data: CLOTHING_MATERIALS,
+			sort_order: 3,
+		},
+		{
+			category_id,
+			code: 'condition',
+			label: { en: 'Condition', ps: 'حالت', fa: 'وضعیت' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select condition',
+				ps: 'حالت غوره کړئ',
+				fa: 'وضعیت را انتخاب کنید',
+			},
+			menu_data: CONDITION_NEW_USED,
+			sort_order: 4,
+		},
+	] satisfies InsertCategoryAttribute[]),
+
+	// ──────────── Furniture leaves (48–54) — same 3 attributes on all 7.
+	// ────────────
+	...[48, 49, 50, 51, 52, 53, 54].flatMap((category_id) => [
+		{
+			category_id,
+			code: 'material',
+			label: { en: 'Material', ps: 'موده', fa: 'جنس' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select material',
+				ps: 'موده غوره کړئ',
+				fa: 'جنس را انتخاب کنید',
+			},
+			menu_data: FURNITURE_MATERIALS,
+			sort_order: 1,
+		},
+		{
+			category_id,
+			code: 'color',
+			label: { en: 'Color', ps: 'رنگ', fa: 'رنگ' },
+			type: 'menu',
+			placeholder: { en: 'Select color', ps: 'رنگ غوره کړئ', fa: 'رنگ را انتخاب کنید' },
+			menu_data: FURNITURE_COLORS,
+			sort_order: 2,
+		},
+		{
+			category_id,
+			code: 'condition',
+			label: { en: 'Condition', ps: 'حالت', fa: 'وضعیت' },
+			type: 'menu',
+			placeholder: {
+				en: 'Select condition',
+				ps: 'حالت غوره کړئ',
+				fa: 'وضعیت را انتخاب کنید',
+			},
+			menu_data: FURNITURE_CONDITION,
+			sort_order: 3,
+		},
+	] satisfies InsertCategoryAttribute[]),
 ]

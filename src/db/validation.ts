@@ -97,10 +97,32 @@ export const updateCategorySchema = insertCategorySchema.partial().strict()
 
 // ==================== CATEGORY ATTRIBUTE VALIDATION ====================
 
-export const selectCategoryAttributeSchema =
-	createSelectSchema(categoryAttribute)
-export const insertCategoryAttributeSchema =
-	createInsertSchema(categoryAttribute).strict()
+/**
+ * One selectable value inside a `type: "menu"` attribute (e.g. one of
+ * RAM's "4GB"/"8GB"/"16GB" choices) — `value` is the machine-stable key,
+ * `label` is translated same as everything else.
+ */
+export const categoryAttributeOptionSchema = z.object({
+	value: z.string().trim().min(1, 'Option value is required'),
+	label: categoryNameSchema,
+})
+
+export const selectCategoryAttributeSchema = createSelectSchema(
+	categoryAttribute,
+	{
+		label: categoryNameSchema,
+		placeholder: categoryNameSchema.nullable(),
+		menu_data: z.array(categoryAttributeOptionSchema).nullable(),
+	},
+)
+export const insertCategoryAttributeSchema = createInsertSchema(
+	categoryAttribute,
+	{
+		label: categoryNameSchema,
+		placeholder: categoryNameSchema.nullable().optional(),
+		menu_data: z.array(categoryAttributeOptionSchema).nullable().optional(),
+	},
+).strict()
 export const updateCategoryAttributeSchema = insertCategoryAttributeSchema
 	.partial()
 	.strict()
