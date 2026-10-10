@@ -38,7 +38,7 @@ export const PRODUCT_LIST_COLUMNS = {
 // when there's no signed-in caller. Mirrors `isOwner`'s controller-level
 // pattern but as a SQL column, since list rows come straight out of a
 // `.select()` rather than a relational query with `with`.
-function isSaveColumn(currentUserId?: string) {
+export function isSaveColumn(currentUserId?: string) {
 	// `products.id` is deliberately written as literal SQL (not interpolated
 	// via the column object) — drizzle renders an interpolated column as a
 	// bare, unqualified identifier here, and since `favorite_products` has

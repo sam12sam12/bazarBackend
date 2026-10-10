@@ -20,6 +20,7 @@ import {
 } from '../utils/pagination'
 import { storage } from '../utils/storage/instance'
 import type { ProductImage, StoreFilters } from '../utils/types'
+import { favoriteStoreService } from './favoriteStoreService'
 
 // Whether `currentUserId` has favorited this row — `false` with no SQL cost
 // when there's no signed-in caller. Mirrors `isOwner`'s controller-level
@@ -31,7 +32,7 @@ import type { ProductImage, StoreFilters } from '../utils/types'
 // column too, an unqualified `id` inside this subquery would resolve to
 // *that* one instead of correlating to the outer `stores` row, silently
 // matching nothing.
-function isSaveColumn(currentUserId?: string) {
+export function isSaveColumn(currentUserId?: string) {
 	return currentUserId
 		? sql<boolean>`EXISTS (SELECT 1 FROM favorite_stores WHERE favorite_stores.user_id = ${currentUserId} AND favorite_stores.store_id = stores.id)`
 		: sql<boolean>`false`
@@ -40,7 +41,7 @@ function isSaveColumn(currentUserId?: string) {
 // Whether `currentUserId` owns this row — no subquery needed (unlike
 // `isSaveColumn`/products' `isOwnerColumn`) since `owner_id` already lives
 // directly on `stores`, not a joined table.
-function isOwnerColumn(currentUserId?: string) {
+export function isOwnerColumn(currentUserId?: string) {
 	return currentUserId
 		? sql<boolean>`${stores.owner_id} = ${currentUserId}`
 		: sql<boolean>`false`
@@ -275,10 +276,15 @@ export const storeService = {
 					columns: { name: true, code: true },
 				},
 			},
+			extras: { isSave: isSaveColumn(userId).as('isSave') },
 			orderBy: [desc(stores.created_at), desc(stores.id)],
 		})
 
-		return results
+		// Every row here is already filtered to `userId`'s own stores — no
+		// per-row SQL needed, `isOwner` is trivially true for all of them.
+		// `isSave` still needs the real check — favoriting your own store is
+		// an edge case, but a real one.
+		return results.map((store) => ({ ...store, isOwner: true }))
 	},
 
 	async create(data: CreateStore & { owner_id: string }) {
@@ -481,6 +487,7 @@ export const storeService = {
 						id: true,
 						name: true,
 						logo_url: true,
+						owner_id: true,
 						product_count: true,
 					},
 				},
@@ -493,7 +500,25 @@ export const storeService = {
 			rows.map((r) => ({ ...r, created_at: r.followed_at, id: r.store_id })),
 			limit,
 		)
-		return { stores: list.map((r) => r.store), nextCursor, hasMore }
+		// One extra query for the whole page instead of a per-row subquery —
+		// `isOwner` only needed `owner_id`, already fetched above, but `isSave`
+		// has no column to compare against here, so membership-check it the
+		// same way `favoriteStoreService.getFavorites` does.
+		const favoriteIds = new Set(await favoriteStoreService.getIds(userId))
+		return {
+			stores: list
+				.filter((r) => r.store)
+				.map((r) => {
+					const { owner_id, ...store } = r.store!
+					return {
+						...store,
+						isOwner: owner_id === userId,
+						isSave: favoriteIds.has(store.id),
+					}
+				}),
+			nextCursor,
+			hasMore,
+		}
 	},
 
 	// ── Followers of a store (paginated) ──────────────────────────────────

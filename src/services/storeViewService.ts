@@ -1,6 +1,7 @@
 import { desc, eq } from 'drizzle-orm'
 import { db } from '../db/db'
 import { storeViews } from '../db/schema'
+import { favoriteStoreService } from './favoriteStoreService'
 
 export const storeViewService = {
 	// Upsert — re-viewing a store bumps viewed_at instead of duplicating.
@@ -25,6 +26,7 @@ export const storeViewService = {
 						id: true,
 						name: true,
 						logo_url: true,
+						owner_id: true,
 						is_active: true,
 						product_count: true,
 						approval_status: true,
@@ -36,11 +38,20 @@ export const storeViewService = {
 			},
 		})
 
+		// One extra query for the whole page instead of a per-row subquery —
+		// same membership-check `storeService.getFollowedStores`/
+		// `favoriteStoreService.getFavorites` use for `isSave`.
+		const favoriteIds = new Set(await favoriteStoreService.getIds(userId))
 		return rows
 			.map((row) => row.store)
 			.filter(
 				(store): store is NonNullable<typeof store> =>
 					store?.is_active === true,
 			)
+			.map(({ owner_id, ...store }) => ({
+				...store,
+				isOwner: owner_id === userId,
+				isSave: favoriteIds.has(store.id),
+			}))
 	},
 }

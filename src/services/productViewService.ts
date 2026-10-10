@@ -1,7 +1,11 @@
 import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../db/db'
 import { productViews, products } from '../db/schema'
-import { PRODUCT_LIST_COLUMNS } from './productService'
+import {
+	isOwnerColumn,
+	isSaveColumn,
+	PRODUCT_LIST_COLUMNS,
+} from './productService'
 
 export const productViewService = {
 	// Upsert — re-viewing a product bumps viewed_at instead of duplicating.
@@ -17,7 +21,11 @@ export const productViewService = {
 
 	async getRecent(userId: string, limit = 5) {
 		return db
-			.select(PRODUCT_LIST_COLUMNS)
+			.select({
+				...PRODUCT_LIST_COLUMNS,
+				isSave: isSaveColumn(userId),
+				isOwner: isOwnerColumn(userId),
+			})
 			.from(productViews)
 			.innerJoin(products, eq(productViews.product_id, products.id))
 			.where(

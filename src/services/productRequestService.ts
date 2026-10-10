@@ -181,6 +181,7 @@ export const productRequestService = {
 		const results = await db.query.productRequests.findMany({
 			where: whereCondition,
 			with: requestWith,
+			extras: { isSave: isSaveColumn(userId).as('isSave') },
 			orderBy: [desc(productRequests.created_at), desc(productRequests.id)],
 			limit: limit + 1,
 		})
@@ -188,6 +189,8 @@ export const productRequestService = {
 		const { list, nextCursor } = paginateResults(results, limit)
 		// Every row here is already filtered to `userId`'s own requests — no
 		// per-row SQL needed, `isOwner` is trivially true for all of them.
+		// `isSave` still needs the real check — favoriting your own request
+		// is an edge case, but a real one.
 		return {
 			requests: list.map((request) => ({ ...request, isOwner: true })),
 			nextCursor,
