@@ -36,6 +36,13 @@ export const conversations = pgTable(
 		// chatService.sendMessage in the same insert as the new message.
 		last_message_preview: text('last_message_preview').notNull().default(''),
 		last_message_sender_id: uuid('last_message_sender_id').notNull(),
+		// So the list screen can show a kind-appropriate icon/label (image,
+		// voice) instead of only ever rendering `last_message_preview` as
+		// plain text — kept in sync alongside `last_message_preview` above.
+		last_message_kind: text('last_message_kind')
+			.$type<MessageKind>()
+			.notNull()
+			.default('text'),
 
 		...timestamps,
 	},

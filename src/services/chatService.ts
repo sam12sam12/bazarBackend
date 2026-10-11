@@ -26,13 +26,15 @@ function directKey(userA: UserId, userB: UserId): string {
 	return [userA, userB].sort().join(':')
 }
 
+// Kind-specific fallback copy (no caption to show) is the client's job —
+// see Bazar56's ChatUserCard, which renders an icon + a localized "Photo"/
+// "Voice" label for a blank image/voice preview. This only ever carries
+// real caption text (or '' when there isn't one); voice never has a
+// caption at all (sendVoiceMessageSchema has no `content` field).
 function buildPreview(data: SendMessage): string {
 	if (data.kind === 'text') return data.content.slice(0, 200)
-	if (data.kind === 'image')
-		return data.images.length > 1
-			? `📷 ${data.images.length} photos`
-			: '📷 Photo'
-	return '🎤 Voice message'
+	if (data.kind === 'image') return (data.content ?? '').slice(0, 200)
+	return ''
 }
 
 // Sibling of buildPreview for recomputing a conversation's list preview
@@ -48,11 +50,8 @@ function previewForMessage(message: {
 }): string {
 	if (message.deleted_at) return 'This message was deleted'
 	if (message.kind === 'text') return (message.content ?? '').slice(0, 200)
-	if (message.kind === 'image') {
-		const count = message.images?.length ?? 0
-		return count > 1 ? `📷 ${count} photos` : '📷 Photo'
-	}
-	return '🎤 Voice message'
+	if (message.kind === 'image') return (message.content ?? '').slice(0, 200)
+	return ''
 }
 
 // Editing/deleting a message only needs to touch the conversation's
@@ -86,6 +85,7 @@ async function refreshPreviewIfLatest(
 		.set({
 			last_message_preview: preview,
 			last_message_sender_id: message.sender_id,
+			last_message_kind: message.kind,
 		})
 		.where(eq(conversations.id, conversationId))
 	return preview
@@ -277,6 +277,7 @@ export const chatService = {
 					last_message_at: message.created_at,
 					last_message_preview: preview,
 					last_message_sender_id: senderId,
+					last_message_kind: data.kind,
 				})
 				.where(eq(conversations.id, conversationId))
 
@@ -384,6 +385,7 @@ export const chatService = {
 			return {
 				id: c.id,
 				last_message_preview: c.last_message_preview,
+				last_message_kind: c.last_message_kind,
 				last_message_sender_id: c.last_message_sender_id,
 				// Computed server-side against the requesting session — callers
 				// (ChatUserCard) should never re-derive this by comparing

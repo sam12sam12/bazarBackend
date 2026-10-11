@@ -285,6 +285,7 @@ router.get(
 								type: 'conversation:updated',
 								conversation_id: conversationId,
 								last_message_preview: preview,
+								last_message_kind: message.kind,
 								last_message_sender_id: user.id,
 								created_at: message.created_at,
 							})
@@ -302,6 +303,20 @@ router.get(
 							const offlineRecipients = participantIds.filter(
 								(id) => id !== user.id && !onlineIds.includes(id),
 							)
+							// `preview` is blank for an image/voice message with no
+							// caption (the conversation list renders its own icon +
+							// localized "Photo"/"Voice" label for that case instead —
+							// see Bazar56's ChatUserCard) — a push notification has no
+							// such icon to fall back on, so it needs real fallback text.
+							const notificationBody =
+								preview ||
+								(data.kind === 'image'
+									? data.images.length > 1
+										? `📷 ${data.images.length} photos`
+										: '📷 Photo'
+									: data.kind === 'voice'
+										? '🎤 Voice message'
+										: preview)
 							notificationDispatchService
 								.notifyUsers({
 									type: 'new_message',
@@ -310,10 +325,10 @@ router.get(
 									messageId: message.id,
 									data: {
 										title: 'New Message',
-										preview,
+										preview: notificationBody,
 										conversation_id: conversationId,
 									},
-									push: { title: user.name, body: preview },
+									push: { title: user.name, body: notificationBody },
 								})
 								.catch((err) =>
 									console.error('[chat] failed to notify recipients:', err),
@@ -358,6 +373,7 @@ router.get(
 									type: 'conversation:updated',
 									conversation_id: parsed.conversation_id,
 									last_message_preview: preview,
+									last_message_kind: message.kind,
 									created_at: message.created_at,
 								})
 								for (const participantId of participantIds) {
@@ -395,6 +411,7 @@ router.get(
 									type: 'conversation:updated',
 									conversation_id: parsed.conversation_id,
 									last_message_preview: preview,
+									last_message_kind: message.kind,
 									created_at: message.created_at,
 								})
 								for (const participantId of participantIds) {
