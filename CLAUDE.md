@@ -44,7 +44,7 @@ better-auth with Google OAuth only. Three required tables: `users`, `session`, `
 - The DB was historically set up via `drizzle-kit push`; always check the migration history before applying.
 - Categories use PostgreSQL `ltree` for hierarchical trees.
 - Products store images and specs in `JSONB` columns — use atomic operators for partial JSONB updates.
-- Afghan market specifics: phone numbers are `07xxxxxxxx` or `+937xxxxxxxx`, pricing supports `AFN` and `USD`.
+- Afghan market specifics: phone numbers are `07xxxxxxxx` or `+937xxxxxxxx`, pricing supports `AFN`, `USD`, and `PKR`.
 - `content_version` is a single-row table holding one monotonic integer, bumped via `contentVersionService.bumpVersion(tx)` inside the same transaction whenever `dashboardService` creates/updates/deletes a category, category attribute, or province. Read it with `contentVersionService.getVersion()` (exposed at `GET /api/v1/meta/version`) — mobile clients compare it to their cached value to decide whether to refetch.
 
 ## Scripts

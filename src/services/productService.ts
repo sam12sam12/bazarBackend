@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm'
 import { db } from '../db/db'
 import { categories, productReviews, products, stores } from '../db/schema'
-import type { InsertProduct, UpdateProduct } from '../db/validation'
+import type { CreateProduct, UpdateProductClient } from '../db/validation'
 import {
 	buildCursorFilter,
 	type CursorData,
@@ -358,7 +358,7 @@ export const productService = {
 	},
 
 	// ── Create product ──
-	async create(data: InsertProduct) {
+	async create(data: CreateProduct & { province_id: number }) {
 		await storage.validateNewImages(
 			(data.images as ProductImage[]).map((i) => i.url),
 		)
@@ -408,7 +408,7 @@ export const productService = {
 	},
 
 	// ── Update product (partial) ──
-	async update(id: number, data: UpdateProduct) {
+	async update(id: number, data: UpdateProductClient & { province_id?: number }) {
 		const previous = data.images
 			? await db.query.products.findFirst({
 					where: eq(products.id, id),

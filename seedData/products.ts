@@ -1,15 +1,16 @@
 import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { products } from '../src/db/schema'
-import type { InsertProduct } from '../src/db/validation'
 import { getCategoryIds, getProvinceIds, getStoreIds } from './index'
+
+type InsertProductRow = typeof products.$inferInsert
 
 export function createRandomProduct(params: {
 	storeIds: number[]
 	categoryIds: number[]
 	provinceIds: number[]
 	created_at?: Date
-}): InsertProduct {
+}): InsertProductRow {
 	const store_id = faker.helpers.arrayElement(params.storeIds)
 	const category_id = faker.helpers.arrayElement(params.categoryIds)
 	const province_id = faker.helpers.arrayElement(params.provinceIds)
@@ -89,7 +90,7 @@ export async function generateProductsFakerData(count = 10) {
 	const categoryIds = await getCategoryIds()
 	const provinceIds = await getProvinceIds()
 
-	const productsFakerData: InsertProduct[] = faker.helpers.multiple(
+	const productsFakerData: InsertProductRow[] = faker.helpers.multiple(
 		() =>
 			createRandomProduct({
 				storeIds,

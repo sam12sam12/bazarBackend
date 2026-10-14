@@ -36,7 +36,7 @@ export const listingStatusEnum = pgEnum('listing_status', [
 	'removed',
 ] as const)
 
-export const currencyEnum = pgEnum('currency', ['AFN', 'USD'] as const)
+export const currencyEnum = pgEnum('currency', ['AFN', 'USD', 'PKR'] as const)
 
 export const addressTypeEnum = pgEnum('address_type', [
 	'home',

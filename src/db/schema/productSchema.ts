@@ -53,6 +53,13 @@ export const products = pgTable(
 
 		// ── Delivery & Location (critical for real estate & vehicles) ──
 		delivery_available: boolean('delivery_available').default(false).notNull(),
+		// Only meaningful when `delivery_available` is true — same-city vs.
+		// other-province fee/timeframe, same split CreateProductScreen's
+		// delivery step collects (see ProductDeliveryStep.tsx).
+		intra_city_fee: numeric('intra_city_fee', { precision: 12, scale: 2 }),
+		intra_city_days: varchar('intra_city_days', { length: 50 }),
+		inter_province_fee: numeric('inter_province_fee', { precision: 12, scale: 2 }),
+		inter_province_days: varchar('inter_province_days', { length: 50 }),
 		latitude: numeric('latitude', { precision: 10, scale: 7 }),
 		longitude: numeric('longitude', { precision: 10, scale: 7 }),
 		is_global: boolean('is_global').default(false).notNull(),

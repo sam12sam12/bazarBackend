@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { productController } from '../controllers/productController.ts'
 import {
-	insertProductSchema,
+	createProductSchema,
 	productImagesArraySchema,
 	productSpecificationsSchema,
 	removeImageSchema,
-	updateProductSchema,
+	updateProductClientSchema,
 } from '../db/validation.ts'
 import { authMiddleware, optionalAuth } from '../middlewares/authMiddleware.ts'
 import { validate } from '../middlewares/validator.ts'
@@ -26,8 +26,12 @@ router.get('/', productController.getAll)
 router.get('/store/:storeId', productController.getByStore)
 router.get('/:id/related', productController.getRelated)
 router.get('/:id', productController.getById)
-router.post('/', validate(insertProductSchema), productController.create)
-router.patch('/:id', validate(updateProductSchema), productController.update)
+router.post('/', validate(createProductSchema), productController.create)
+router.patch(
+	'/:id',
+	validate(updateProductClientSchema),
+	productController.update,
+)
 router.delete('/:id', productController.delete)
 
 // ── JSONB Images (stored in products.images column) ──

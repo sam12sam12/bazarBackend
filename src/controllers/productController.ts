@@ -201,7 +201,14 @@ export const productController = {
 			throw ApiError.forbidden()
 		}
 
-		await productService.create(data)
+		// A product's province is always its store's — never taken from the
+		// client (see createProductSchema's comment). New listings go live
+		// immediately; there's no draft-saving step in the create flow.
+		await productService.create({
+			...data,
+			province_id: store.province_id,
+			listing_status: 'active',
+		})
 		return c.json({ success: true, data: 'Product created successfully' }, 201)
 	},
 
@@ -211,7 +218,22 @@ export const productController = {
 		await assertProductOwner(id, currentUser)
 
 		const data = c.get('validated')
-		const product = await productService.update(id, data)
+
+		// Re-derive province_id if the edit reassigns the listing to a
+		// different one of the seller's stores — same server-side rule as
+		// create, and re-checked for ownership since `assertProductOwner`
+		// above only verified the *current* store, not the target one.
+		let province_id: number | undefined
+		if (data.store_id !== undefined) {
+			const store = await storeService.getById(data.store_id)
+			if (!store) throw ApiError.notFound('Store not found')
+			if (store.owner_id !== currentUser.id && currentUser.role !== 'admin') {
+				throw ApiError.forbidden()
+			}
+			province_id = store.province_id
+		}
+
+		const product = await productService.update(id, { ...data, province_id })
 		if (!product) throw ApiError.notFound('Product not found')
 		return c.json({ success: true, data: product })
 	},

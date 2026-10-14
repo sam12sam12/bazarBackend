@@ -46,10 +46,19 @@ export const presignUploadSchema = z
 /**
  * Schema for product specifications stored in JSONB
  * Key-value pairs representing technical details (e.g., color, size, etc.)
+ * — a value is a plain scalar for a single-select/number/text attribute, or
+ * a string array for a `multiple: true` category attribute (RAM, Storage,
+ * Color, ...; see categoryAttribute.multiple).
  */
 export const productSpecificationsSchema = z.record(
 	z.string(),
-	z.union([z.string(), z.number(), z.boolean(), z.null()]),
+	z.union([
+		z.string(),
+		z.number(),
+		z.boolean(),
+		z.null(),
+		z.array(z.string()),
+	]),
 )
 
 // ==================== USER VALIDATION ====================
@@ -243,6 +252,13 @@ export const createStoreSchema = insertStoreSchema.omit({
 
 // ==================== PRODUCT VALIDATION ====================
 
+const deliveryFee = () =>
+	z
+		.string()
+		.regex(/^\d+(\.\d{1,2})?$/, 'Invalid price format')
+		.nullable()
+		.optional()
+
 export const selectProductSchema = createSelectSchema(products)
 export const insertProductSchema = createInsertSchema(products, {
 	price: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid price format'),
@@ -252,11 +268,30 @@ export const insertProductSchema = createInsertSchema(products, {
 		.nullable()
 		.optional(),
 	quantity: (schema) => schema.int().nonnegative(),
+	intra_city_fee: deliveryFee(),
+	inter_province_fee: deliveryFee(),
 	// Overwrite JSONB fields with structured validation
 	images: productImagesArraySchema,
 	specifications: productSpecificationsSchema,
 }).strict()
 export const updateProductSchema = insertProductSchema.partial().strict()
+
+/**
+ * Client payload for creating/updating a product. `province_id` is set
+ * server-side from the listing's store (a product's province is always its
+ * store's province — there's no reason to ask the seller to repeat it per
+ * listing) — see productController.create/update.
+ */
+export const createProductSchema = insertProductSchema.omit({
+	province_id: true,
+})
+export type CreateProduct = z.infer<typeof createProductSchema>
+
+// Same `province_id` exclusion as createProductSchema above — if an edit
+// changes `store_id`, productController.update re-derives province_id from
+// the new store rather than letting the client set it directly.
+export const updateProductClientSchema = createProductSchema.partial().strict()
+export type UpdateProductClient = z.infer<typeof updateProductClientSchema>
 
 export const removeImageSchema = z.object({
 	url: z.string().url('Invalid image URL'),
@@ -588,7 +623,6 @@ export const cancelOrderSchema = z
 // ==================== TYPE EXPORTS ====================
 
 export type InsertUser = z.infer<typeof insertUserSchema>
-export type InsertProduct = z.infer<typeof insertProductSchema>
 export type InsertStore = z.infer<typeof insertStoreSchema>
 export type CreateStore = z.infer<typeof createStoreSchema>
 export type InsertCategory = z.infer<typeof insertCategorySchema>
@@ -598,7 +632,6 @@ export type InsertCategoryAttribute = z.infer<
 export type InsertProvince = z.infer<typeof insertProvinceSchema>
 export type InsertAddress = z.infer<typeof insertAddressSchema>
 
-export type UpdateProduct = z.infer<typeof updateProductSchema>
 export type UpdateStore = z.infer<typeof updateStoreSchema>
 export type UpdateUser = z.infer<typeof updateUserSchema>
 export type UpdateCategory = z.infer<typeof updateCategorySchema>

@@ -32,6 +32,11 @@ export const stores = pgTable(
 		description: text('description'),
 		is_active: boolean('is_active').default(true).notNull(),
 
+		// Whether this store delivers at all — gates whether any of its own
+		// products can turn on their own per-listing delivery step/fees (see
+		// productSchema's delivery_available/intra_city_fee/...).
+		delivery_available: boolean('delivery_available').default(false).notNull(),
+
 		// ── Location (Afghanistan optimized) ──
 		address: text('address'),
 		province_id: bigint('province_id', { mode: 'number' }).notNull(),

@@ -161,7 +161,7 @@ export const ordersService = {
 				id: number
 				order_number: string
 				store_id: number
-				currency: 'AFN' | 'USD'
+				currency: 'AFN' | 'USD' | 'PKR'
 				subtotal: string
 				total: string
 				item_count: number
