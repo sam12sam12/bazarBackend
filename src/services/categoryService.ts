@@ -23,6 +23,7 @@ export const categoryService = {
 					icon_url: categories.icon_url,
 					sort_order: categories.sort_order,
 					is_popular: categories.is_popular,
+					delivery: categories.delivery,
 				})
 				.from(categories)
 				.where(eq(categories.is_active, true))
@@ -37,6 +38,7 @@ export const categoryService = {
 					placeholder: categoryAttribute.placeholder,
 					menu_data: categoryAttribute.menu_data,
 					multiple: categoryAttribute.multiple,
+					required: categoryAttribute.required,
 					sort_order: categoryAttribute.sort_order,
 				})
 				.from(categoryAttribute)

@@ -26,7 +26,9 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 0,
 		sort_order: 2,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		// Immovable property — never shippable/deliverable, unlike every other
+		// department.
+		delivery: false,
 		is_popular: false,
 	},
 	{
@@ -420,7 +422,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: true,
 	},
 	{
@@ -431,7 +433,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: true,
 	},
 	{
@@ -442,7 +444,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 	{
@@ -457,7 +459,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 	{
@@ -468,7 +470,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 	{
@@ -479,7 +481,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 	{
@@ -490,7 +492,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
-		delivery: true,
+		delivery: false,
 		is_popular: false,
 	},
 
@@ -755,7 +757,7 @@ export const categorySeedData: InsertCategory[] = [
 	},
 	{
 		id: 117,
-		name: { en: 'Vans', ps: 'وینونه', fa: 'ون‌ها' },
+		name: { en: 'Vans', ps: 'وانونه', fa: 'ون‌ها' },
 		parent_id: 4,
 		path: 'vehicles.vans',
 		depth: 1,
@@ -1604,7 +1606,7 @@ export const categorySeedData: InsertCategory[] = [
 		id: 99,
 		name: {
 			en: 'Calligraphy & Islamic Art',
-			ps: 'خط کا�لي',
+			ps: 'خطاطي او اسلامي هنر',
 			fa: 'خطاطی و هنر اسلامی',
 		},
 		parent_id: 12,
@@ -1738,7 +1740,7 @@ const CLOTHING_MATERIALS = [
 ]
 
 const FURNITURE_MATERIALS = [
-	{ value: 'wood', label: { en: 'Wood', ps: 'دوه', fa: 'چوبی' } },
+	{ value: 'wood', label: { en: 'Wood', ps: 'لرګی', fa: 'چوبی' } },
 	{ value: 'metal', label: { en: 'Metal', ps: 'فلزي', fa: 'فلزی' } },
 	{ value: 'plastic', label: { en: 'Plastic', ps: 'پلاستیک', fa: 'پلاستیکی' } },
 	{ value: 'glass', label: { en: 'Glass', ps: 'ګلاس', fa: 'شیشه‌ای' } },
@@ -2219,37 +2221,26 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 			category_id,
 			code: 'bedrooms',
 			label: { en: 'Bedrooms', ps: 'د خوب خونې', fa: 'تعداد اتاق خواب' },
-			type: 'menu',
+			type: 'number',
 			placeholder: {
-				en: 'Select bedrooms',
-				ps: 'د خوب خونې غوره کړئ',
-				fa: 'تعداد اتاق خواب را انتخاب کنید',
+				en: 'e.g. 3',
+				ps: 'د بیلګې په توګه ۳',
+				fa: 'مثلاً ۳',
 			},
-			menu_data: [
-				{ value: '1', label: { en: '1', ps: '۱', fa: '۱' } },
-				{ value: '2', label: { en: '2', ps: '۲', fa: '۲' } },
-				{ value: '3', label: { en: '3', ps: '۳', fa: '۳' } },
-				{ value: '4', label: { en: '4', ps: '۴', fa: '۴' } },
-				{ value: '5+', label: { en: '5+', ps: '۵+', fa: '۵ یا بیشتر' } },
-			],
+			menu_data: null,
 			sort_order: 1,
 		},
 		{
 			category_id,
 			code: 'bathrooms',
 			label: { en: 'Bathrooms', ps: 'تشناب', fa: 'تعداد سرویس بهداشتی' },
-			type: 'menu',
+			type: 'number',
 			placeholder: {
-				en: 'Select bathrooms',
-				ps: 'تشناب غوره کړئ',
-				fa: 'تعداد سرویس بهداشتی را انتخاب کنید',
+				en: 'e.g. 2',
+				ps: 'د بیلګې په توګه ۲',
+				fa: 'مثلاً ۲',
 			},
-			menu_data: [
-				{ value: '1', label: { en: '1', ps: '۱', fa: '۱' } },
-				{ value: '2', label: { en: '2', ps: '۲', fa: '۲' } },
-				{ value: '3', label: { en: '3', ps: '۳', fa: '۳' } },
-				{ value: '4+', label: { en: '4+', ps: '۴+', fa: '۴ یا بیشتر' } },
-			],
+			menu_data: null,
 			sort_order: 2,
 		},
 		{
@@ -2316,11 +2307,11 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 		{
 			category_id,
 			code: 'material',
-			label: { en: 'Material', ps: 'موده', fa: 'جنس' },
+			label: { en: 'Material', ps: 'جنس', fa: 'جنس' },
 			type: 'menu',
 			placeholder: {
 				en: 'Select material',
-				ps: 'موده غوره کړئ',
+				ps: 'جنس غوره کړئ',
 				fa: 'جنس را انتخاب کنید',
 			},
 			menu_data: CLOTHING_MATERIALS,
@@ -2347,11 +2338,11 @@ export const categoryAttributeSeedData: InsertCategoryAttribute[] = [
 		{
 			category_id,
 			code: 'material',
-			label: { en: 'Material', ps: 'موده', fa: 'جنس' },
+			label: { en: 'Material', ps: 'جنس', fa: 'جنس' },
 			type: 'menu',
 			placeholder: {
 				en: 'Select material',
-				ps: 'موده غوره کړئ',
+				ps: 'جنس غوره کړئ',
 				fa: 'جنس را انتخاب کنید',
 			},
 			menu_data: FURNITURE_MATERIALS,

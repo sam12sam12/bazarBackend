@@ -95,6 +95,10 @@ export const categoryAttribute = pgTable(
 		// variants). False for single-fact attributes like Brand/Condition,
 		// where exactly one value ever makes sense.
 		multiple: boolean('multiple').default(false).notNull(),
+		// Whether a listing under this category must answer this attribute —
+		// the create-product wizard blocks advancing past the specs step
+		// until every `required` attribute has a value (see ProductSpecsStep).
+		required: boolean('required').default(true).notNull(),
 		sort_order: integer('sort_order').default(0).notNull(),
 	},
 	(table) => [
