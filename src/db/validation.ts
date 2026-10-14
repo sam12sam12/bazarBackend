@@ -68,8 +68,8 @@ export const insertUserSchema = createInsertSchema(users, {
 	email: (schema) => schema.email('Invalid email address'),
 	phone: (schema) =>
 		schema.regex(
-			/^(?:\+93|0)7\d{8}$/,
-			'Invalid Afghanistan phone number (e.g., 0701234567 or +93701234567)',
+			/^\+[1-9]\d{6,14}$/,
+			'Invalid phone number (expected E.164 format, e.g. +93701234567)',
 		),
 	avatar_url: (schema) => schema.url('Invalid image URL').optional(),
 }).strict()
@@ -161,8 +161,8 @@ export const selectAddressSchema = createSelectSchema(addresses)
 export const insertAddressSchema = createInsertSchema(addresses, {
 	phone: (schema) =>
 		schema.regex(
-			/^(?:\+93|0)7\d{8}$/,
-			'Invalid Afghanistan phone number (e.g., 0701234567 or +93701234567)',
+			/^\+[1-9]\d{6,14}$/,
+			'Invalid phone number (expected E.164 format, e.g. +93701234567)',
 		),
 	latitude: z
 		.string()
@@ -199,15 +199,15 @@ export const insertStoreSchema = createInsertSchema(stores, {
 
 	contact_phone: (schema) =>
 		schema
-			.regex(/^(?:\+93|0)7\d{8}$/, 'Invalid Afghanistan phone number')
+			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
 			.optional(),
 	secondary_phone: (schema) =>
 		schema
-			.regex(/^(?:\+93|0)7\d{8}$/, 'Invalid Afghanistan phone number')
+			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
 			.optional(),
 	whatsapp: (schema) =>
 		schema
-			.regex(/^(?:\+93|0)7\d{8}$/, 'Invalid Afghanistan phone number')
+			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
 			.optional(),
 	latitude: z
 		.union([
