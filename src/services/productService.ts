@@ -30,6 +30,7 @@ export const PRODUCT_LIST_COLUMNS = {
 	price: products.price,
 	compare_at_price: products.compare_at_price,
 	off_percentage: products.off_percentage,
+	currency: products.currency,
 	created_at: products.created_at,
 	image: sql<string>`images->0->>'url'`,
 } as const
