@@ -47,6 +47,15 @@ export function isOwnerColumn(currentUserId?: string) {
 		: sql<boolean>`false`
 }
 
+// Whether `currentUserId` follows this row — same correlated-subquery shape
+// as `isSaveColumn`, just against `store_follows` instead of
+// `favorite_stores`.
+export function isFollowColumn(currentUserId?: string) {
+	return currentUserId
+		? sql<boolean>`EXISTS (SELECT 1 FROM store_follows WHERE store_follows.user_id = ${currentUserId} AND store_follows.store_id = stores.id)`
+		: sql<boolean>`false`
+}
+
 // Live review count + average rating for a listing row — same correlated
 // subquery shape `getAll`'s own `min_rating` filter and `rating_desc` sort
 // already use inline, just exposed as actual output columns here instead of
@@ -170,6 +179,7 @@ export const storeService = {
 					province: { name: provinces.name, code: provinces.code },
 					isSave: isSaveColumn(currentUserId),
 					isOwner: isOwnerColumn(currentUserId),
+					isFollowed: isFollowColumn(currentUserId),
 					...reviewStatsColumns(),
 				})
 				.from(stores)
@@ -207,6 +217,7 @@ export const storeService = {
 			extras: {
 				isSave: isSaveColumn(currentUserId).as('isSave'),
 				isOwner: isOwnerColumn(currentUserId).as('isOwner'),
+				isFollowed: isFollowColumn(currentUserId).as('isFollowed'),
 				review_count: reviewStatsColumns().review_count.as('review_count'),
 				average_rating: reviewStatsColumns().average_rating.as('average_rating'),
 			},
@@ -394,6 +405,21 @@ export const storeService = {
 	},
 
 	// ==================== FOLLOW ====================
+
+	// Mirrors `favoriteStoreService.isFavorited` — used by `getById`'s
+	// controller the same way that one feeds `isSave`, since a single-row
+	// fetch there goes through `db.query.stores.findFirst` without the
+	// `currentUserId`-aware SQL columns above.
+	async isFollowing(userId: string, storeId: number): Promise<boolean> {
+		const existing = await db.query.storeFollows.findFirst({
+			where: and(
+				eq(storeFollows.user_id, userId),
+				eq(storeFollows.store_id, storeId),
+			),
+			columns: { id: true },
+		})
+		return !!existing
+	},
 
 	async toggleFollow(userId: string, storeId: number) {
 		const store = await db.query.stores.findFirst({

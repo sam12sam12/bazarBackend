@@ -93,10 +93,16 @@ export const storeController = {
 		}
 
 		const isOwner = user ? store.owner_id === user.id : false
-		const isSave = user
-			? await favoriteStoreService.isFavorited(user.id, id)
-			: false
-		return c.json({ success: true, data: { ...store, isOwner, isSave } })
+		const [isSave, isFollowed] = user
+			? await Promise.all([
+					favoriteStoreService.isFavorited(user.id, id),
+					storeService.isFollowing(user.id, id),
+				])
+			: [false, false]
+		return c.json({
+			success: true,
+			data: { ...store, isOwner, isSave, isFollowed },
+		})
 	},
 
 	async getByOwner(c: Context) {
