@@ -6,6 +6,24 @@ import { getProductIds, getStoreIds, getUserIds } from './index'
 type ProductReviewInsert = typeof productReviews.$inferInsert
 type StoreReviewInsert = typeof storeReviews.$inferInsert
 
+// Both review photo limits (PRODUCT_REVIEW_PHOTO_LIMIT/STORE_REVIEW_PHOTO_LIMIT
+// in the frontend's Schemas/) are 3 — reviews here can have anywhere from
+// none up to that cap.
+const REVIEW_PHOTO_LIMIT = 3
+
+// A real review's `created_at` varies (faker.date.past below); an owner's
+// reply, when there is one, always comes some time after that — not before
+// it, and not all bunched at `now()` the way every row used to be.
+function maybeOwnerReply(createdAt: Date, probability: number) {
+	if (!faker.datatype.boolean({ probability })) {
+		return { owner_reply: null, owner_reply_at: null }
+	}
+	return {
+		owner_reply: faker.lorem.sentences({ min: 1, max: 2 }),
+		owner_reply_at: faker.date.between({ from: createdAt, to: new Date() }),
+	}
+}
+
 export async function generateProductReviewsFakerData(count = 20) {
 	const userIds = await getUserIds()
 	const productIds = await getProductIds()
@@ -44,10 +62,11 @@ export async function generateProductReviewsFakerData(count = 20) {
 		if (!seenPairs.has(pairKey)) {
 			seenPairs.add(pairKey)
 
-			const imageCount = faker.number.int({ min: 0, max: 3 })
+			const imageCount = faker.number.int({ min: 0, max: REVIEW_PHOTO_LIMIT })
 			const images = Array.from({ length: imageCount }, () =>
 				faker.image.urlPicsumPhotos(),
 			)
+			const created_at = faker.date.past({ years: 1 })
 
 			productReviewsFakerData.push({
 				user_id,
@@ -56,6 +75,12 @@ export async function generateProductReviewsFakerData(count = 20) {
 				comment: faker.lorem.paragraph(),
 				images,
 				is_active: true,
+				created_at,
+				// ~40% of reviews already have the selling store's reply —
+				// exercises ReplyToProductReviewScreen's edit path and
+				// ProductReviewDetailsScreen's reply block without every
+				// review needing a manual reply first.
+				...maybeOwnerReply(created_at, 0.4),
 			})
 		}
 	}
@@ -102,10 +127,11 @@ export async function generateStoreReviewsFakerData(count = 20) {
 		if (!seenPairs.has(pairKey)) {
 			seenPairs.add(pairKey)
 
-			const imageCount = faker.number.int({ min: 0, max: 2 })
+			const imageCount = faker.number.int({ min: 0, max: REVIEW_PHOTO_LIMIT })
 			const images = Array.from({ length: imageCount }, () =>
 				faker.image.urlPicsumPhotos(),
 			)
+			const created_at = faker.date.past({ years: 1 })
 
 			storeReviewsFakerData.push({
 				user_id,
@@ -114,6 +140,8 @@ export async function generateStoreReviewsFakerData(count = 20) {
 				comment: faker.lorem.paragraph(),
 				images,
 				is_active: true,
+				created_at,
+				...maybeOwnerReply(created_at, 0.4),
 			})
 		}
 	}

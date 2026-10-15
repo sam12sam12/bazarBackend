@@ -3,9 +3,12 @@ import { db } from '../src/db/db'
 import { users } from '../src/db/schema'
 import type { InsertUser } from '../src/db/validation'
 
+// E.164: `+` then 7-15 digits, no leading 0 — see backend CLAUDE.md. `93` is
+// Afghanistan's country code, `7` the real leading digit of an Afghan
+// mobile number (what used to be the local "07..." prefix minus the 0).
 export function afghanMobile() {
 	const eightDigits = faker.number.int({ min: 0, max: 99_999_999 })
-	return `07${String(eightDigits).padStart(8, '0')}`
+	return `+937${String(eightDigits).padStart(8, '0')}`
 }
 
 function createRandomUser(): InsertUser {

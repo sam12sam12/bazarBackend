@@ -2,16 +2,19 @@ import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { stores } from '../src/db/schema'
 import type { InsertStore } from '../src/db/validation'
-import { getCategoryIds, getProvinceIds, getUserIds } from '.'
+import { getLeafCategories, getProvinceIds, getUserIds } from '.'
 import { afghanMobile } from './users'
 
 export function createRandomStore(params: {
 	ownerIds: string[]
-	categoryIds: number[]
+	leafCategories: { id: number; path: string }[]
 	provinceIds: number[]
 }): InsertStore {
 	const owner_id = faker.helpers.arrayElement(params.ownerIds)
-	const categoryId = faker.helpers.arrayElement(params.categoryIds)
+	// `path` mirrors whichever category a store belongs to — same rule
+	// storeService.create applies on a real create, so the seed needs to
+	// copy it from the actually-picked category instead of inventing one.
+	const category = faker.helpers.arrayElement(params.leafCategories)
 	const provinceId = faker.helpers.arrayElement(params.provinceIds)
 	const name = faker.company.name()
 
@@ -27,27 +30,18 @@ export function createRandomStore(params: {
 	const approvedAt =
 		approval === 'approved' ? faker.date.recent({ days: 60 }) : null
 
-	// Note: postgres ltree uses dot-separated labels.
-	const pathRoot = faker.helpers.arrayElement([
-		'electronics',
-		'real-estate',
-		'clothes',
-		'services',
-		'automotive',
-	])
-	const path = faker.datatype.boolean()
-		? `${pathRoot}.${faker.helpers.arrayElement(['deals', 'new', 'local', 'top'])}`
-		: pathRoot
-
 	const productCount = faker.number.int({ min: 0, max: 200 })
 
 	return {
 		name,
 		owner_id,
-		category_id: categoryId,
-		path,
+		category_id: category.id,
+		path: category.path,
 		description: faker.company.catchPhrase(),
 		is_active: true,
+		// real estate/vehicles don't ship — matches the products side's own
+		// delivery_available roll, not every store should offer it.
+		delivery_available: faker.datatype.boolean({ probability: 0.7 }),
 		address: `${faker.location.streetAddress()}, ${faker.location.city()}, Afghanistan`,
 		province_id: provinceId,
 		latitude: lat,
@@ -55,6 +49,12 @@ export function createRandomStore(params: {
 		logo_url: faker.image.urlPicsumPhotos({ width: 200, height: 200 }),
 		banner_url: faker.image.urlPicsumPhotos({ width: 800, height: 250 }),
 		contact_phone: afghanMobile(),
+		secondary_phone: faker.datatype.boolean({ probability: 0.3 })
+			? afghanMobile()
+			: null,
+		whatsapp: faker.datatype.boolean({ probability: 0.6 })
+			? afghanMobile()
+			: null,
 		contact_email: faker.internet
 			.email({ provider: 'gmail.com' })
 			.toLowerCase(),
@@ -67,14 +67,14 @@ export function createRandomStore(params: {
 
 export async function generateStoresFakerData(count = 10) {
 	const userIds = await getUserIds()
-	const categoryIds = await getCategoryIds()
+	const leafCategories = await getLeafCategories()
 	const provinceIds = await getProvinceIds()
 
 	const storesFakerData: InsertStore[] = faker.helpers.multiple(
 		() =>
 			createRandomStore({
 				ownerIds: userIds,
-				categoryIds,
+				leafCategories,
 				provinceIds,
 			}),
 		{
