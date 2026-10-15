@@ -68,12 +68,42 @@ export const ordersService = {
 		const { shipping_address_id, payment_method, buyer_note, items } = input
 		const buyer_id = buyerId
 
-		// Merge duplicate product lines into a single requested quantity.
-		const qtyByProduct = new Map<number, number>()
+		// Merge duplicate (product_id + selected_options) lines into one
+		// quantity per distinct variant — two lines for the same product with
+		// different selected_options (e.g. two RAM choices) stay two separate
+		// order items; the exact same product+variant submitted twice merges
+		// into one. qtyByProduct separately collapses every line back down to
+		// the unique set of product ids involved (for the lock/availability
+		// check below — there's no per-product quantity to total anymore).
+		const lineKey = (productId: number, selectedOptions?: Record<string, string>) =>
+			`${productId}::${JSON.stringify(Object.entries(selectedOptions ?? {}).sort())}`
+
+		const linesByKey = new Map<
+			string,
+			{
+				product_id: number
+				quantity: number
+				selected_options: Record<string, string> | null
+			}
+		>()
 		for (const item of items) {
+			const key = lineKey(item.product_id, item.selected_options)
+			const existing = linesByKey.get(key)
+			if (existing) existing.quantity += item.quantity
+			else
+				linesByKey.set(key, {
+					product_id: item.product_id,
+					quantity: item.quantity,
+					selected_options: item.selected_options ?? null,
+				})
+		}
+		const lines = [...linesByKey.values()]
+
+		const qtyByProduct = new Map<number, number>()
+		for (const line of lines) {
 			qtyByProduct.set(
-				item.product_id,
-				(qtyByProduct.get(item.product_id) ?? 0) + item.quantity,
+				line.product_id,
+				(qtyByProduct.get(line.product_id) ?? 0) + line.quantity,
 			)
 		}
 		const productIds = [...qtyByProduct.keys()]
@@ -107,8 +137,12 @@ export const ordersService = {
 
 		const checkout_group_id = crypto.randomUUID()
 
-		// 2. Atomic: single FOR UPDATE fetches all product data, verifies stock,
-		//    creates orders, then applies one batch UPDATE for all decrements.
+		// 2. Atomic: single FOR UPDATE fetches all product data, verifies
+		//    availability, creates orders, then marks every purchased product
+		//    sold in one batch UPDATE. No stock/quantity involved — a listing
+		//    here is classifieds-style (one of a kind), not retail inventory,
+		//    so "available" is just is_active + not already sold, not a unit
+		//    count to decrement.
 		const created = await db.transaction(async (tx) => {
 			const locked = await tx
 				.select({
@@ -118,8 +152,8 @@ export const ordersService = {
 					price: products.price,
 					currency: products.currency,
 					is_active: products.is_active,
+					listing_status: products.listing_status,
 					images: products.images,
-					quantity: products.quantity,
 				})
 				.from(products)
 				.where(inArray(products.id, productIds))
@@ -129,32 +163,28 @@ export const ordersService = {
 				throw ApiError.badRequest('One or more products do not exist')
 			}
 
-			const lockedQty = new Map(locked.map((l) => [l.id, l.quantity]))
-
-			// Validate is_active and stock under lock.
+			// Validate availability under lock.
 			for (const row of locked) {
-				if (!row.is_active) {
-					throw ApiError.badRequest(`Product "${row.title}" is not available`)
+				if (!row.is_active || row.listing_status === 'sold') {
+					throw ApiError.conflict(`Product "${row.title}" is no longer available`)
 				}
 			}
 
-			for (const pid of productIds) {
-				const want = qtyByProduct.get(pid) ?? 0
-				const have = lockedQty.get(pid) ?? 0
-				if (have < want) {
-					const title = locked.find((p) => p.id === pid)?.title ?? pid
-					throw ApiError.conflict(
-						`Insufficient stock for "${title}" (available: ${have})`,
-					)
-				}
-			}
+			const productById = new Map(locked.map((p) => [p.id, p]))
 
-			// Group by store.
-			const groups = new Map<number, typeof locked>()
-			for (const p of locked) {
-				const arr = groups.get(p.store_id) ?? []
-				arr.push(p)
-				groups.set(p.store_id, arr)
+			// Group *lines* (not products) by store — a line's store comes from
+			// its product, so two variant lines of the same product always land
+			// in the same group together.
+			const groups = new Map<
+				number,
+				Array<(typeof lines)[number] & { product: (typeof locked)[number] }>
+			>()
+			for (const line of lines) {
+				const product = productById.get(line.product_id)
+				if (!product) continue // unreachable — every product_id above came from these same lines
+				const arr = groups.get(product.store_id) ?? []
+				arr.push({ ...line, product })
+				groups.set(product.store_id, arr)
 			}
 
 			const ordersOut: Array<{
@@ -167,12 +197,10 @@ export const ordersService = {
 				item_count: number
 			}> = []
 
-			const stockDecrements: Array<{ id: number; newQty: number }> = []
-
-			for (const [store_id, storeProducts] of groups) {
-				const currency = storeProducts[0]?.currency
+			for (const [store_id, storeLines] of groups) {
+				const currency = storeLines[0]?.product.currency
 				if (!currency) continue
-				if (storeProducts.some((p) => p.currency !== currency)) {
+				if (storeLines.some((l) => l.product.currency !== currency)) {
 					throw ApiError.badRequest(
 						'Mixed currencies within a single store order are not supported',
 					)
@@ -180,19 +208,19 @@ export const ordersService = {
 
 				let subtotalNum = 0
 				let itemCount = 0
-				const itemValues = storeProducts.map((p) => {
-					const qty = qtyByProduct.get(p.id) ?? 0
-					const line = round2(Number(p.price) * qty)
-					subtotalNum = round2(subtotalNum + line)
-					itemCount += qty
+				const itemValues = storeLines.map((line) => {
+					const lineTotal = round2(Number(line.product.price) * line.quantity)
+					subtotalNum = round2(subtotalNum + lineTotal)
+					itemCount += line.quantity
 					return {
-						product_id: p.id,
-						title: p.title,
-						image: firstImageUrl(p.images),
-						unit_price: p.price,
-						currency: p.currency,
-						quantity: qty,
-						subtotal: line.toFixed(2),
+						product_id: line.product.id,
+						title: line.product.title,
+						image: firstImageUrl(line.product.images),
+						unit_price: line.product.price,
+						currency: line.product.currency,
+						quantity: line.quantity,
+						subtotal: lineTotal.toFixed(2),
+						selected_options: line.selected_options,
 					}
 				})
 
@@ -233,17 +261,11 @@ export const ordersService = {
 					total: totalNum.toFixed(2),
 					item_count: itemCount,
 				})
-
-				for (const p of storeProducts) {
-					stockDecrements.push({
-						id: p.id,
-						newQty: (lockedQty.get(p.id) ?? 0) - (qtyByProduct.get(p.id) ?? 0),
-					})
-				}
 			}
 
-			// Single batch UPDATE for all stock decrements.
-			await batchDecrementStock(tx, stockDecrements)
+			// Every purchased product is sold the moment it's bought — no
+			// quantity to decrement toward zero first.
+			await markProductsSold(tx, productIds)
 
 			return ordersOut
 		})
@@ -408,7 +430,7 @@ export const ordersService = {
 						buyer: { columns: { id: true, name: true, avatar_url: true } },
 						items: {
 							with: {
-								product: { columns: { id: true, title: true, images: true } },
+								product: { columns: { id: true, title: true, images: true, category_id: true } },
 							},
 						},
 					},
@@ -477,7 +499,7 @@ export const ordersService = {
 				},
 				items: {
 					with: {
-						product: { columns: { id: true, title: true, images: true } },
+						product: { columns: { id: true, title: true, images: true, category_id: true } },
 					},
 				},
 			},
@@ -492,7 +514,7 @@ export const ordersService = {
 			where: eq(orders.id, orderId),
 			with: {
 				store: { columns: { owner_id: true } },
-				items: { columns: { product_id: true, quantity: true } },
+				items: { columns: { product_id: true } },
 			},
 		})
 		if (!order) throw ApiError.notFound('Order not found')
@@ -521,7 +543,7 @@ export const ordersService = {
 			// Restock and update status atomically.
 			await db.transaction(async (tx) => {
 				await tx.update(orders).set(patch).where(eq(orders.id, orderId))
-				await restockItems(tx, order.items)
+				await reactivateProducts(tx, order.items.map((i) => i.product_id))
 			})
 		} else {
 			await db.update(orders).set(patch).where(eq(orders.id, orderId))
@@ -557,7 +579,7 @@ export const ordersService = {
 			where: eq(orders.id, orderId),
 			with: {
 				store: { columns: { owner_id: true } },
-				items: { columns: { product_id: true, quantity: true } },
+				items: { columns: { product_id: true } },
 			},
 		})
 		if (!order) throw ApiError.notFound('Order not found')
@@ -584,7 +606,7 @@ export const ordersService = {
 					updated_at: now,
 				})
 				.where(eq(orders.id, orderId))
-			await restockItems(tx, order.items)
+			await reactivateProducts(tx, order.items.map((i) => i.product_id))
 		})
 
 		// Notify the store owner (fire-and-forget).
@@ -636,53 +658,26 @@ function paginate<T extends { created_at: Date; id: number }>(
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
-// Decrement stock for multiple products in one UPDATE ... CASE statement.
-async function batchDecrementStock(
-	tx: DbTx,
-	updates: Array<{ id: number; newQty: number }>,
-) {
-	if (updates.length === 0) return
-	const ids = updates.map((u) => u.id)
+// Marks every purchased product sold — no stock/quantity involved, see
+// checkout's own comment on why. Called once per checkout, after every
+// store group's orders have been created.
+async function markProductsSold(tx: DbTx, productIds: number[]) {
+	if (productIds.length === 0) return
 	await tx
 		.update(products)
-		.set({
-			quantity: sql`CASE ${products.id} ${sql.join(
-				updates.map((u) => sql`WHEN ${u.id} THEN ${u.newQty}`),
-				sql` `,
-			)} ELSE ${products.quantity} END`,
-			listing_status: sql`CASE ${products.id} ${sql.join(
-				updates.map((u) =>
-					u.newQty <= 0
-						? sql`WHEN ${u.id} THEN 'sold'::listing_status`
-						: sql`WHEN ${u.id} THEN ${products.listing_status}`,
-				),
-				sql` `,
-			)} ELSE ${products.listing_status} END`,
-		})
-		.where(inArray(products.id, ids))
+		.set({ listing_status: 'sold' })
+		.where(inArray(products.id, productIds))
 }
 
-// Return stock to inventory for an order's items; revert 'sold' back to 'active'.
-async function restockItems(
-	tx: DbTx,
-	items: Array<{ product_id: number | null; quantity: number }>,
-) {
-	const valid = items.filter(
-		(i): i is { product_id: number; quantity: number } => i.product_id != null,
-	)
-	if (valid.length === 0) return
-	const ids = valid.map((i) => i.product_id)
+// Reverts 'sold' back to 'active' for an order's products on cancellation —
+// the inverse of markProductsSold. Only touches rows actually still 'sold'
+// (a product the seller has since relisted some other way isn't clobbered
+// back to 'active' just because an old order against it got cancelled).
+async function reactivateProducts(tx: DbTx, productIds: Array<number | null>) {
+	const ids = productIds.filter((id): id is number => id != null)
+	if (ids.length === 0) return
 	await tx
 		.update(products)
-		.set({
-			quantity: sql`CASE ${products.id} ${sql.join(
-				valid.map(
-					(i) =>
-						sql`WHEN ${i.product_id} THEN ${products.quantity} + ${i.quantity}`,
-				),
-				sql` `,
-			)} ELSE ${products.quantity} END`,
-			listing_status: sql`CASE WHEN ${products.listing_status} = 'sold' THEN 'active'::listing_status ELSE ${products.listing_status} END`,
-		})
-		.where(inArray(products.id, ids))
+		.set({ listing_status: 'active' })
+		.where(and(inArray(products.id, ids), eq(products.listing_status, 'sold')))
 }

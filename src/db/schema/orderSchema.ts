@@ -156,6 +156,16 @@ export const orderItems = pgTable(
 		quantity: integer('quantity').notNull(),
 		subtotal: numeric('subtotal', { precision: 14, scale: 2 }).notNull(),
 
+		// The buyer's picked value per variant attribute at checkout time (e.g.
+		// { color: "navy", ram: "8GB" }), same code/value shape as
+		// products.specifications — null when the product has no variant
+		// attributes. A product+selected_options combination is what the
+		// frontend cart treats as one distinct line (two different RAM
+		// choices of the same product are two lines, not one with quantity 2),
+		// so this is what lets checkout preserve that distinction instead of
+		// collapsing every line of the same product into one row.
+		selected_options: jsonb('selected_options').$type<Record<string, string> | null>(),
+
 		...timestamps,
 	},
 	(table) => [

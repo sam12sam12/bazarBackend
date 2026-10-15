@@ -217,16 +217,15 @@ export function createRandomProduct(params: {
 
 	// listing_status mirrors productController.create, which always sets
 	// 'active' on a real publish — most seeded listings are that, with a
-	// 'sold'/'expired' slice for variety. quantity follows: this app has no
-	// bulk-stock concept (toProductInput always submits quantity: 1 on a
-	// real create), so it's binary — 0 once sold, 1 otherwise — never the
-	// old random 0-100 range that implied retail stock this app doesn't have.
+	// 'sold'/'expired' slice for variety. No quantity/stock involved —
+	// listings here are classifieds-style (one of a kind), not retail
+	// inventory; ordersService.checkout marks a product 'sold' directly on
+	// purchase rather than decrementing a unit count toward zero.
 	const listing_status = faker.helpers.weightedArrayElement([
 		{ weight: 85, value: 'active' as const },
 		{ weight: 10, value: 'sold' as const },
 		{ weight: 5, value: 'expired' as const },
 	])
-	const quantity = listing_status === 'sold' ? 0 : 1
 	const is_active = listing_status !== 'expired'
 
 	const featured = faker.datatype.boolean()
@@ -270,7 +269,6 @@ export function createRandomProduct(params: {
 		compare_at_price,
 		off_percentage,
 		currency,
-		quantity,
 		condition,
 		listing_status,
 		is_active,

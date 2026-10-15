@@ -35,12 +35,13 @@ export const products = pgTable(
 		title: varchar('title', { length: 255 }).notNull(),
 		description: text('description').notNull(),
 
-		// ── Pricing & Inventory ──
+		// ── Pricing ── (no stock/quantity tracking — Afghan Bazar listings
+		// are classifieds-style, not retail inventory; availability is just
+		// `is_active`/`listing_status`, not a unit count.)
 		price: numeric('price', { precision: 14, scale: 2 }).notNull(),
 		compare_at_price: numeric('compare_at_price', { precision: 14, scale: 2 }),
 		off_percentage: integer('off_percentage'),
 		currency: currencyEnum('currency').default('AFN').notNull(),
-		quantity: integer('quantity').default(0).notNull(),
 
 		// ── Condition & Status ──
 		condition: productConditionEnum('condition').default('new').notNull(),

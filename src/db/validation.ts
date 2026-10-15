@@ -267,7 +267,6 @@ export const insertProductSchema = createInsertSchema(products, {
 		.regex(/^\d+(\.\d{1,2})?$/, 'Invalid price format')
 		.nullable()
 		.optional(),
-	quantity: (schema) => schema.int().nonnegative(),
 	intra_city_fee: deliveryFee(),
 	inter_province_fee: deliveryFee(),
 	// Overwrite JSONB fields with structured validation
@@ -581,8 +580,9 @@ export const orderStatusValues = [
 
 /**
  * Checkout payload. The server is authoritative for pricing — it re-fetches
- * products and computes totals; only the product id and requested quantity are
- * accepted from the client. buyer_id is derived from the authenticated session.
+ * products and computes totals; only the product id, requested quantity, and
+ * which variant was picked are accepted from the client. buyer_id is derived
+ * from the authenticated session.
  */
 export const checkoutSchema = z
 	.object({
@@ -594,6 +594,12 @@ export const checkoutSchema = z
 				z.object({
 					product_id: z.number().int().positive(),
 					quantity: z.number().int().positive(),
+					// Which value the buyer picked per variant attribute (e.g.
+					// { color: "navy" }) — two lines for the same product_id with
+					// different selected_options are kept as two separate order
+					// items, not merged into one with a combined quantity (see
+					// ordersService.checkout's line-keying).
+					selected_options: z.record(z.string(), z.string()).optional(),
 				}),
 			)
 			.min(1, 'At least one item is required'),
