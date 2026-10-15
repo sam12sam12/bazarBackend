@@ -7,6 +7,8 @@ import { db } from '../db/db.ts'
 import { conversation_participants } from '../db/schema'
 import {
 	sendImageMessageSchema,
+	sendProductReferenceMessageSchema,
+	sendRequestReferenceMessageSchema,
 	sendTextMessageSchema,
 	sendVoiceMessageSchema,
 } from '../db/validation.ts'
@@ -39,6 +41,14 @@ const messageSendFrame = z
 			client_id: z.string().optional(),
 		}),
 		sendVoiceMessageSchema.extend({
+			type: z.literal('message:send'),
+			client_id: z.string().optional(),
+		}),
+		sendProductReferenceMessageSchema.extend({
+			type: z.literal('message:send'),
+			client_id: z.string().optional(),
+		}),
+		sendRequestReferenceMessageSchema.extend({
 			type: z.literal('message:send'),
 			client_id: z.string().optional(),
 		}),

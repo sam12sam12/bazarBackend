@@ -5,6 +5,8 @@ import {
 	conversations,
 	type MessageKind,
 	messages,
+	productRequests,
+	products,
 } from '../db/schema'
 import type { SendMessage } from '../db/validation'
 import { ApiError } from '../utils/ApiError'

@@ -492,7 +492,13 @@ export const ordersService = {
 			where: eq(orders.id, id),
 			with: {
 				store: {
-					columns: { id: true, name: true, logo_url: true, owner_id: true },
+					columns: {
+						id: true,
+						name: true,
+						logo_url: true,
+						owner_id: true,
+						contact_phone: true,
+					},
 				},
 				buyer: {
 					columns: { id: true, name: true, phone: true, avatar_url: true },

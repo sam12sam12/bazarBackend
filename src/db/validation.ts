@@ -553,11 +553,31 @@ export const sendVoiceMessageSchema = baseSendMessageSchema
 	})
 	.strict()
 
+// "Share this product/request into the chat" — see chatSchema's own comment
+// on `reference_product_id`/`reference_request_id`. chatService.sendMessage
+// verifies the referenced row actually exists (same spirit as
+// validateAttachments for image/voice) before inserting.
+export const sendProductReferenceMessageSchema = baseSendMessageSchema
+	.extend({
+		kind: z.literal('product_reference'),
+		reference_product_id: z.number().int().positive(),
+	})
+	.strict()
+
+export const sendRequestReferenceMessageSchema = baseSendMessageSchema
+	.extend({
+		kind: z.literal('request_reference'),
+		reference_request_id: z.number().int().positive(),
+	})
+	.strict()
+
 export const sendMessageSchema = z
 	.discriminatedUnion('kind', [
 		sendTextMessageSchema,
 		sendImageMessageSchema,
 		sendVoiceMessageSchema,
+		sendProductReferenceMessageSchema,
+		sendRequestReferenceMessageSchema,
 	])
 	.refine((data) => data.recipient_id != null || data.conversation_id != null, {
 		message: 'Either recipient_id or conversation_id is required',

@@ -12,9 +12,23 @@ import {
 	uuid,
 } from 'drizzle-orm/pg-core'
 import { timestamps } from './_shared'
+import { products } from './productSchema'
+import { productRequests } from './productRequestSchema'
 import { users } from './userSchema'
 
-export const MESSAGE_KINDS = ['text', 'image', 'voice'] as const
+// "Share this product/request into the chat" — e.g. ProductDetailsScreen's
+// chat button sends one of these as the conversation's opening message so
+// the seller immediately sees which listing the buyer means, instead of a
+// blank chat. Two kinds (not one generic "reference" kind with a type
+// discriminator column) to match this table's existing one-concept-per-kind
+// convention — see `reference_product_id`/`reference_request_id` below.
+export const MESSAGE_KINDS = [
+	'text',
+	'image',
+	'voice',
+	'product_reference',
+	'request_reference',
+] as const
 export type MessageKind = (typeof MESSAGE_KINDS)[number]
 
 // One row per 1:1 chat. `direct_key` is a canonical, order-independent key
@@ -120,6 +134,14 @@ export const messages = pgTable(
 		audio_duration_seconds: bigint('audio_duration_seconds', {
 			mode: 'number',
 		}),
+		// `product_reference`/`request_reference` only — which listing got
+		// shared. Nullable + `onDelete('set null')` rather than a snapshot:
+		// neither products nor requests are ever hard-deleted in this app
+		// (both just flip to an inactive/closed state), so a live join
+		// (chatService.getMessages) is enough; no history to protect against
+		// a row disappearing out from under it.
+		reference_product_id: bigint('reference_product_id', { mode: 'number' }),
+		reference_request_id: bigint('reference_request_id', { mode: 'number' }),
 
 		// Edited text messages only (see chatService.editMessage) — `content`
 		// is overwritten in place and this is set, so there's no separate
@@ -147,6 +169,18 @@ export const messages = pgTable(
 			name: 'messages_sender_id_fkey',
 		}).onDelete('cascade'),
 
+		foreignKey({
+			columns: [table.reference_product_id],
+			foreignColumns: [products.id],
+			name: 'messages_reference_product_id_fkey',
+		}).onDelete('set null'),
+
+		foreignKey({
+			columns: [table.reference_request_id],
+			foreignColumns: [productRequests.id],
+			name: 'messages_reference_request_id_fkey',
+		}).onDelete('set null'),
+
 		index('messages_conversation_pagination_idx').on(
 			table.conversation_id,
 			table.created_at.desc(),
@@ -156,7 +190,7 @@ export const messages = pgTable(
 
 		check(
 			'messages_kind_valid',
-			sql`${table.kind} in ('text', 'image', 'voice')`,
+			sql`${table.kind} in ('text', 'image', 'voice', 'product_reference', 'request_reference')`,
 		),
 		// `deleted_at is not null or` escapes every kind-specific rule below —
 		// a deleted message's content is deliberately nulled out regardless
@@ -178,6 +212,14 @@ export const messages = pgTable(
 		check(
 			'messages_voice_content_valid',
 			sql`${table.deleted_at} is not null or ${table.kind} <> 'voice' or (${table.audio_url} is not null and ${table.audio_duration_seconds} between 1 and 600)`,
+		),
+		check(
+			'messages_product_reference_valid',
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'product_reference' or ${table.reference_product_id} is not null`,
+		),
+		check(
+			'messages_request_reference_valid',
+			sql`${table.deleted_at} is not null or ${table.kind} <> 'request_reference' or ${table.reference_request_id} is not null`,
 		),
 	],
 )

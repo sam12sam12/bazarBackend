@@ -442,6 +442,14 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 		fields: [messages.sender_id],
 		references: [users.id],
 	}),
+	referenceProduct: one(products, {
+		fields: [messages.reference_product_id],
+		references: [products.id],
+	}),
+	referenceRequest: one(productRequests, {
+		fields: [messages.reference_request_id],
+		references: [productRequests.id],
+	}),
 }))
 
 // ==================== ORDER RELATIONS ====================

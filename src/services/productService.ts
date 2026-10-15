@@ -310,7 +310,13 @@ export const productService = {
 			where: eq(products.id, id),
 			with: {
 				store: {
-					columns: { id: true, name: true, logo_url: true, owner_id: true },
+					columns: {
+						id: true,
+						name: true,
+						logo_url: true,
+						owner_id: true,
+						contact_phone: true,
+					},
 					with: {
 						province: {
 							columns: { name: true },
