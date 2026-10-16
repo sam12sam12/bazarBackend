@@ -15,6 +15,7 @@ import {
 import { timestamps } from './_shared'
 import { products } from './productSchema'
 import { productRequests } from './productRequestSchema'
+import { stores } from './storeSchema'
 import { users } from './userSchema'
 
 // "Share this product/request into the chat" — e.g. ProductDetailsScreen's
@@ -42,6 +43,16 @@ export const conversations = pgTable(
 	{
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
 		direct_key: text('direct_key'),
+		// Set once at creation (see chatService.sendMessage) when the chat was
+		// opened from a product/store entry point (ProductStickyBar,
+		// StoreFollowAndMessageSection) — `null` for a conversation started
+		// from a request or any other non-store context. Never reassigned
+		// after creation, even if the owner later opens another store — this
+		// conversation is permanently "about" whichever store it started
+		// from. `set null` (not `cascade`) on store deletion: the
+		// conversation and its messages are still real history even if the
+		// store itself is gone.
+		store_id: bigint('store_id', { mode: 'number' }),
 
 		last_message_at: timestamp('last_message_at', { withTimezone: true })
 			.defaultNow()
@@ -76,6 +87,12 @@ export const conversations = pgTable(
 			foreignColumns: [users.id],
 			name: 'conversations_last_message_sender_id_fkey',
 		}).onDelete('cascade'),
+
+		foreignKey({
+			columns: [table.store_id],
+			foreignColumns: [stores.id],
+			name: 'conversations_store_id_fkey',
+		}).onDelete('set null'),
 
 		uniqueIndex('conversations_direct_key_key')
 			.on(table.direct_key)

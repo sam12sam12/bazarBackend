@@ -414,6 +414,15 @@ export const conversationsRelations = relations(
 			fields: [conversations.last_message_sender_id],
 			references: [users.id],
 		}),
+		// Set once at creation (see chatService.sendMessage) when the chat was
+		// opened from a product/store entry point — `null` for a conversation
+		// started from a request or any other non-store context. Lets the
+		// chat list/header show the store's own name/logo consistently
+		// instead of the owner's personal profile, even on a revisit.
+		store: one(stores, {
+			fields: [conversations.store_id],
+			references: [stores.id],
+		}),
 		participants: many(conversation_participants),
 		messages: many(messages),
 	}),

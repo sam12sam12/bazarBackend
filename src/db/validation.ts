@@ -528,6 +528,15 @@ export const updateRequestStatusSchema = z
 const baseSendMessageSchema = z.object({
 	recipient_id: z.string().uuid().optional(),
 	conversation_id: z.number().int().positive().optional(),
+	// Only meaningful when this is the first message of a brand-new
+	// conversation (no conversation_id yet) — see chatService.sendMessage,
+	// which only ever reads this on the create-conversation branch and
+	// ignores it once a conversation already exists. Tags which store this
+	// chat is "about" (ProductStickyBar/StoreFollowAndMessageSection pass
+	// it), so the chat list/header can show the store's branding instead of
+	// the owner's personal profile — permanent for the life of the
+	// conversation, never reassigned on a later message.
+	store_id: z.number().int().positive().optional(),
 })
 
 export const sendTextMessageSchema = baseSendMessageSchema
