@@ -28,14 +28,41 @@ function directKey(userA: UserId, userB: UserId): string {
 	return [userA, userB].sort().join(':')
 }
 
+// Shared projection for enriching a `product_reference`/`request_reference`
+// message with its live listing — used both by sendMessage (right after
+// insert, so the WS broadcast carries the full card) and getMessages (via
+// the `with` relation join for history). Kept as one constant so the two
+// call sites can't drift apart on which columns the client gets.
+const REFERENCE_PRODUCT_COLUMNS = {
+	id: true,
+	title: true,
+	images: true,
+	price: true,
+	currency: true,
+} as const
+const REFERENCE_REQUEST_COLUMNS = {
+	id: true,
+	title: true,
+	images: true,
+	budget_min: true,
+	budget_max: true,
+	currency: true,
+} as const
+
 // Kind-specific fallback copy (no caption to show) is the client's job —
 // see Bazar56's ChatUserCard, which renders an icon + a localized "Photo"/
-// "Voice" label for a blank image/voice preview. This only ever carries
-// real caption text (or '' when there isn't one); voice never has a
-// caption at all (sendVoiceMessageSchema has no `content` field).
+// "Voice"/"Shared product"/"Shared request" label for a blank preview. This
+// only ever carries real caption text (or '' when there isn't one); voice
+// never has a caption at all (sendVoiceMessageSchema has no `content` field).
 function buildPreview(data: SendMessage): string {
 	if (data.kind === 'text') return data.content.slice(0, 200)
-	if (data.kind === 'image') return (data.content ?? '').slice(0, 200)
+	if (
+		data.kind === 'image' ||
+		data.kind === 'product_reference' ||
+		data.kind === 'request_reference'
+	) {
+		return (data.content ?? '').slice(0, 200)
+	}
 	return ''
 }
 
@@ -116,6 +143,18 @@ async function validateAttachments(data: SendMessage, senderId: UserId) {
 	} else if (data.kind === 'voice') {
 		assertOwnsAttachment(data.audio_url, senderId, 'voices')
 		await storage.validateNewVoice(data.audio_url)
+	} else if (data.kind === 'product_reference') {
+		const product = await db.query.products.findFirst({
+			where: eq(products.id, data.reference_product_id),
+			columns: { id: true },
+		})
+		if (!product) throw ApiError.notFound('Product not found')
+	} else if (data.kind === 'request_reference') {
+		const request = await db.query.productRequests.findFirst({
+			where: eq(productRequests.id, data.reference_request_id),
+			columns: { id: true },
+		})
+		if (!request) throw ApiError.notFound('Request not found')
 	}
 }
 
@@ -260,16 +299,42 @@ export const chatService = {
 					content:
 						data.kind === 'text'
 							? data.content
-							: data.kind === 'image'
+							: data.kind === 'image' ||
+									data.kind === 'product_reference' ||
+									data.kind === 'request_reference'
 								? (data.content ?? null)
 								: null,
 					images: data.kind === 'image' ? data.images : null,
 					audio_url: data.kind === 'voice' ? data.audio_url : null,
 					audio_duration_seconds:
 						data.kind === 'voice' ? data.audio_duration_seconds : null,
+					reference_product_id:
+						data.kind === 'product_reference' ? data.reference_product_id : null,
+					reference_request_id:
+						data.kind === 'request_reference' ? data.reference_request_id : null,
 				})
 				.returning()
 			if (!message) throw ApiError.internal('Failed to insert message')
+
+			// `.returning()` only gives back `messages`' own columns — fetch the
+			// live listing here too so the WS `message:new` broadcast carries the
+			// full reference card, not just the bare FK id the recipient would
+			// otherwise have to resolve with a separate fetch. `null` for every
+			// other kind, matching the shape getMessages' relation join returns.
+			const referenceProduct =
+				data.kind === 'product_reference'
+					? ((await tx.query.products.findFirst({
+							where: eq(products.id, data.reference_product_id),
+							columns: REFERENCE_PRODUCT_COLUMNS,
+						})) ?? null)
+					: null
+			const referenceRequest =
+				data.kind === 'request_reference'
+					? ((await tx.query.productRequests.findFirst({
+							where: eq(productRequests.id, data.reference_request_id),
+							columns: REFERENCE_REQUEST_COLUMNS,
+						})) ?? null)
+					: null
 
 			const preview = buildPreview(data)
 
@@ -289,7 +354,7 @@ export const chatService = {
 				.where(eq(conversation_participants.conversation_id, conversationId))
 
 			return {
-				message,
+				message: { ...message, reference_product: referenceProduct, reference_request: referenceRequest },
 				conversationId,
 				created,
 				preview,
@@ -434,6 +499,15 @@ export const chatService = {
 			where: whereCondition,
 			orderBy: [...cursorOrderBy(messages)],
 			limit: limit + 1,
+			// Enriches `product_reference`/`request_reference` messages with the
+			// live listing so the client can render a shared-listing card
+			// without a second round trip — a live join, not a snapshot, since
+			// neither products nor requests are ever hard-deleted (see
+			// chatSchema's comment on these columns).
+			with: {
+				referenceProduct: { columns: REFERENCE_PRODUCT_COLUMNS },
+				referenceRequest: { columns: REFERENCE_REQUEST_COLUMNS },
+			},
 		})
 
 		const { list, nextCursor, hasMore } = paginateResults(results, limit)
@@ -444,10 +518,19 @@ export const chatService = {
 		// Computed server-side against the requesting session — callers
 		// (ChatMessagesScreen) should never re-derive this by comparing
 		// `sender_id` to their own id client-side.
-		const messagesWithIsMine = list.map((m) => ({
-			...m,
-			is_mine: m.sender_id === userId,
-		}))
+		// `referenceProduct`/`referenceRequest` are Drizzle's relation-key
+		// casing (camelCase, like every other relation name in relations.ts) —
+		// renamed to snake_case here so the wire response stays consistent
+		// with every other field this API returns.
+		const messagesWithIsMine = list.map((m) => {
+			const { referenceProduct, referenceRequest, ...rest } = m
+			return {
+				...rest,
+				is_mine: m.sender_id === userId,
+				reference_product: referenceProduct,
+				reference_request: referenceRequest,
+			}
+		})
 		return {
 			messages: messagesWithIsMine,
 			nextCursor,
@@ -532,9 +615,17 @@ export const chatService = {
 		// Text: always editable. Image: only if it already carries a caption —
 		// WhatsApp-style, this amends the existing caption, it doesn't add one
 		// to a photo that never had text (that's a different feature). Voice
-		// has no text field of its own to amend at all.
-		if (current.kind === 'voice') {
-			throw ApiError.badRequest('Voice messages cannot be edited')
+		// and the two reference kinds have no text field of their own to amend
+		// at all — without this, a reference message's `content` (always null
+		// at insert) could still be set here, which the CHECK constraint
+		// wouldn't catch since it only guards `reference_product_id`/
+		// `reference_request_id`, not `content`.
+		if (
+			current.kind === 'voice' ||
+			current.kind === 'product_reference' ||
+			current.kind === 'request_reference'
+		) {
+			throw ApiError.badRequest('This message type cannot be edited')
 		}
 		if (current.kind === 'image' && !current.content) {
 			throw ApiError.badRequest('This message has no caption to edit')

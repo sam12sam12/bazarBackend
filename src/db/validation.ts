@@ -556,11 +556,15 @@ export const sendVoiceMessageSchema = baseSendMessageSchema
 // "Share this product/request into the chat" — see chatSchema's own comment
 // on `reference_product_id`/`reference_request_id`. chatService.sendMessage
 // verifies the referenced row actually exists (same spirit as
-// validateAttachments for image/voice) before inserting.
+// validateAttachments for image/voice) before inserting. `content` is an
+// optional caption typed alongside the staged reference (see Bazar56's
+// ComposerReferenceSection) — same "optional caption on a non-text kind" as
+// sendImageMessageSchema's own `content`.
 export const sendProductReferenceMessageSchema = baseSendMessageSchema
 	.extend({
 		kind: z.literal('product_reference'),
 		reference_product_id: z.number().int().positive(),
+		content: z.string().trim().max(4000).optional(),
 	})
 	.strict()
 
@@ -568,6 +572,7 @@ export const sendRequestReferenceMessageSchema = baseSendMessageSchema
 	.extend({
 		kind: z.literal('request_reference'),
 		reference_request_id: z.number().int().positive(),
+		content: z.string().trim().max(4000).optional(),
 	})
 	.strict()
 
