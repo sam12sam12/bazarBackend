@@ -304,7 +304,6 @@ export const chatService = {
 						direct_key: key,
 						last_message_sender_id: senderId,
 						last_message_preview: '',
-						store_id: data.store_id ?? null,
 					})
 					// The `where` here must mirror `conversations_direct_key_key`'s
 					// partial predicate exactly — Postgres only infers a partial
@@ -437,7 +436,6 @@ export const chatService = {
 						user: { columns: { id: true, name: true, avatar_url: true } },
 					},
 				},
-				store: { columns: { id: true, name: true, logo_url: true } },
 			},
 		})
 
@@ -499,13 +497,6 @@ export const chatService = {
 				is_mine: c.last_message_sender_id === userId,
 				created_at: c.last_message_at,
 				other_user: other ?? { id: '', name: 'Unknown', avatar_url: null },
-				// Set once at creation when this chat started from a product/
-				// store entry point — `null` for a request-originated or any
-				// other non-store chat. Callers (ChatUserCard) should prefer
-				// this over `other_user` for display name/avatar whenever it's
-				// present, so a store-branded conversation stays branded on
-				// every revisit, not just the first open.
-				store: c.store ?? null,
 				unread_count: unreadCounts[i] ?? 0,
 			}
 		})
