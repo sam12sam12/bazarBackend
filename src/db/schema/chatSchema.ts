@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
 	bigint,
 	bigserial,
+	boolean,
 	check,
 	foreignKey,
 	index,
@@ -57,6 +58,15 @@ export const conversations = pgTable(
 			.$type<MessageKind>()
 			.notNull()
 			.default('text'),
+		// So the list screen can show a translated "This message was deleted"
+		// placeholder instead of literal preview text — kept in sync alongside
+		// `last_message_preview` above. Not baked into `last_message_preview`
+		// itself as an English string, since that column's value is rendered
+		// as-is by the client (see Bazar56's ChatUserCard) and would otherwise
+		// never be translated for a Pashto/Dari user.
+		last_message_deleted: boolean('last_message_deleted')
+			.notNull()
+			.default(false),
 
 		...timestamps,
 	},

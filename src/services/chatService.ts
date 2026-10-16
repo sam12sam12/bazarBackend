@@ -49,6 +49,39 @@ const REFERENCE_REQUEST_COLUMNS = {
 	currency: true,
 } as const
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+// Shared by sendMessage (inside its transaction) and editMessage (a plain
+// update, no transaction needed there) — see `Tx | typeof db` so the same
+// function works in both. Editing only ever amends `content`, never which
+// listing a reference message points at, but the *echoed* message still
+// needs this attached every time — without it, a `message:updated` frame
+// would carry `reference_product`/`reference_request` as `undefined`
+// (not even `null`), and Bazar56's MessageBubble would read that as "no
+// card to show" and drop it after every edit.
+async function fetchReferenceData(
+	executor: Tx | typeof db,
+	kind: MessageKind,
+	referenceProductId: number | null,
+	referenceRequestId: number | null,
+) {
+	const referenceProduct =
+		kind === 'product_reference' && referenceProductId != null
+			? ((await executor.query.products.findFirst({
+					where: eq(products.id, referenceProductId),
+					columns: REFERENCE_PRODUCT_COLUMNS,
+				})) ?? null)
+			: null
+	const referenceRequest =
+		kind === 'request_reference' && referenceRequestId != null
+			? ((await executor.query.productRequests.findFirst({
+					where: eq(productRequests.id, referenceRequestId),
+					columns: REFERENCE_REQUEST_COLUMNS,
+				})) ?? null)
+			: null
+	return { referenceProduct, referenceRequest }
+}
+
 // Kind-specific fallback copy (no caption to show) is the client's job —
 // see Bazar56's ChatUserCard, which renders an icon + a localized "Photo"/
 // "Voice"/"Shared product"/"Shared request" label for a blank preview. This
@@ -68,18 +101,27 @@ function buildPreview(data: SendMessage): string {
 
 // Sibling of buildPreview for recomputing a conversation's list preview
 // from an already-stored row (editMessage/deleteMessage), rather than from
-// the pre-insert data sendMessage has. "Deleted" overrides every kind — the
-// conversation list should read "This message was deleted," not whatever
-// the original content/photo preview was.
+// the pre-insert data sendMessage has. Deleted is '' here, never a literal
+// English string — "deleted" is carried as its own
+// `conversations.last_message_deleted` flag (see refreshPreviewIfLatest)
+// so the client can render it through its own translated copy instead of
+// a hardcoded sentence that would never be translated for a Pashto/Dari
+// user.
 function previewForMessage(message: {
 	kind: MessageKind
 	content: string | null
 	images: string[] | null
 	deleted_at: Date | null
 }): string {
-	if (message.deleted_at) return 'This message was deleted'
-	if (message.kind === 'text') return (message.content ?? '').slice(0, 200)
-	if (message.kind === 'image') return (message.content ?? '').slice(0, 200)
+	if (message.deleted_at) return ''
+	if (
+		message.kind === 'text' ||
+		message.kind === 'image' ||
+		message.kind === 'product_reference' ||
+		message.kind === 'request_reference'
+	) {
+		return (message.content ?? '').slice(0, 200)
+	}
 	return ''
 }
 
@@ -113,6 +155,7 @@ async function refreshPreviewIfLatest(
 		.update(conversations)
 		.set({
 			last_message_preview: preview,
+			last_message_deleted: !!message.deleted_at,
 			last_message_sender_id: message.sender_id,
 			last_message_kind: message.kind,
 		})
@@ -321,20 +364,12 @@ export const chatService = {
 			// full reference card, not just the bare FK id the recipient would
 			// otherwise have to resolve with a separate fetch. `null` for every
 			// other kind, matching the shape getMessages' relation join returns.
-			const referenceProduct =
-				data.kind === 'product_reference'
-					? ((await tx.query.products.findFirst({
-							where: eq(products.id, data.reference_product_id),
-							columns: REFERENCE_PRODUCT_COLUMNS,
-						})) ?? null)
-					: null
-			const referenceRequest =
-				data.kind === 'request_reference'
-					? ((await tx.query.productRequests.findFirst({
-							where: eq(productRequests.id, data.reference_request_id),
-							columns: REFERENCE_REQUEST_COLUMNS,
-						})) ?? null)
-					: null
+			const { referenceProduct, referenceRequest } = await fetchReferenceData(
+				tx,
+				message.kind,
+				message.reference_product_id,
+				message.reference_request_id,
+			)
 
 			const preview = buildPreview(data)
 
@@ -345,6 +380,7 @@ export const chatService = {
 					last_message_preview: preview,
 					last_message_sender_id: senderId,
 					last_message_kind: data.kind,
+					last_message_deleted: false,
 				})
 				.where(eq(conversations.id, conversationId))
 
@@ -453,6 +489,7 @@ export const chatService = {
 				id: c.id,
 				last_message_preview: c.last_message_preview,
 				last_message_kind: c.last_message_kind,
+				last_message_deleted: c.last_message_deleted,
 				last_message_sender_id: c.last_message_sender_id,
 				// Computed server-side against the requesting session — callers
 				// (ChatUserCard) should never re-derive this by comparing
@@ -612,22 +649,20 @@ export const chatService = {
 		if (current.deleted_at) {
 			throw ApiError.forbidden('Cannot edit a deleted message')
 		}
-		// Text: always editable. Image: only if it already carries a caption —
-		// WhatsApp-style, this amends the existing caption, it doesn't add one
-		// to a photo that never had text (that's a different feature). Voice
-		// and the two reference kinds have no text field of their own to amend
-		// at all — without this, a reference message's `content` (always null
-		// at insert) could still be set here, which the CHECK constraint
-		// wouldn't catch since it only guards `reference_product_id`/
-		// `reference_request_id`, not `content`.
-		if (
-			current.kind === 'voice' ||
-			current.kind === 'product_reference' ||
-			current.kind === 'request_reference'
-		) {
-			throw ApiError.badRequest('This message type cannot be edited')
+		// Text: always editable. Image/product_reference/request_reference:
+		// only if they already carry a caption — WhatsApp-style, this amends
+		// the existing caption, it doesn't add one to a photo/listing that
+		// never had text (that's a different feature). Voice has no text
+		// field of its own to amend at all.
+		if (current.kind === 'voice') {
+			throw ApiError.badRequest('Voice messages cannot be edited')
 		}
-		if (current.kind === 'image' && !current.content) {
+		if (
+			(current.kind === 'image' ||
+				current.kind === 'product_reference' ||
+				current.kind === 'request_reference') &&
+			!current.content
+		) {
 			throw ApiError.badRequest('This message has no caption to edit')
 		}
 
@@ -638,9 +673,28 @@ export const chatService = {
 			.returning()
 		if (!updated) throw ApiError.internal('Failed to edit message')
 
+		// Editing only ever amends `content` — never which listing a reference
+		// message points at — but `.returning()` still only gives back
+		// `messages`' own columns, so the echoed row needs this re-attached
+		// every time, same reasoning as sendMessage's own fetch.
+		const { referenceProduct, referenceRequest } = await fetchReferenceData(
+			db,
+			updated.kind,
+			updated.reference_product_id,
+			updated.reference_request_id,
+		)
+
 		const preview = await refreshPreviewIfLatest(conversationId, updated)
 		const participantIds = await chatService.getParticipantIds(conversationId)
-		return { message: updated, participantIds, preview }
+		return {
+			message: {
+				...updated,
+				reference_product: referenceProduct,
+				reference_request: referenceRequest,
+			},
+			participantIds,
+			preview,
+		}
 	},
 
 	// Soft delete — WhatsApp-style "delete for everyone," not a hide-for-me.
