@@ -192,6 +192,33 @@ router.get(
 				raw.subscribe(userTopic(user.id))
 				for (const id of conversationIds) raw.subscribe(conversationTopic(id))
 
+				// Catch-up delivery — anything sent to this user while they were
+				// offline is, as of right now, actually on its way to their
+				// client. Without this, a message that only ever got "sent"
+				// (recipient wasn't online at send time) would stay stuck there
+				// forever, even though the recipient has since read the whole
+				// thread — see chatSchema's comment on `last_delivered_at` for why
+				// this can't just be re-derived live from presence alone.
+				// `fanoutBroadcast`, not `fanoutFromConnection`: there's no single
+				// "triggering connection to exclude" here the way a reader/sender
+				// action has — whoever sent the now-delivered messages needs this
+				// regardless of which of their own devices is open.
+				const deliveredAt = await chatService.markDeliveredForConversations(
+					user.id,
+					conversationIds,
+				)
+				for (const id of conversationIds) {
+					fanoutBroadcast(
+						conversationTopic(id),
+						JSON.stringify({
+							type: 'delivered',
+							conversation_id: id,
+							user_id: user.id,
+							delivered_at: deliveredAt,
+						}),
+					)
+				}
+
 				const contacts = await contactsFor(conversationIds, user.id)
 
 				// Tell this client who's already online immediately — presence
@@ -313,6 +340,33 @@ router.get(
 							const offlineRecipients = participantIds.filter(
 								(id) => id !== user.id && !onlineIds.includes(id),
 							)
+
+							// Recipients online right now have this message on their own
+							// open connection the instant it's fanned out above — persist
+							// that as a real delivery, not just a live "they're connected"
+							// presence check, so the tick doesn't revert to "sent" if they
+							// go offline again before reconnecting (see chatSchema's
+							// `last_delivered_at` comment). `fanoutBroadcast`, not
+							// `fanoutFromConnection`: the sender (`raw`) is exactly who
+							// needs this, not who should be excluded from it.
+							const onlineRecipients = participantIds.filter(
+								(id) => id !== user.id && onlineIds.includes(id),
+							)
+							for (const recipientId of onlineRecipients) {
+								const deliveredAt = await chatService.markDelivered(
+									conversationId,
+									recipientId,
+								)
+								fanoutBroadcast(
+									conversationTopic(conversationId),
+									JSON.stringify({
+										type: 'delivered',
+										conversation_id: conversationId,
+										user_id: recipientId,
+										delivered_at: deliveredAt,
+									}),
+								)
+							}
 							// `preview` is blank for an image/voice message with no
 							// caption (the conversation list renders its own icon +
 							// localized "Photo"/"Voice" label for that case instead —

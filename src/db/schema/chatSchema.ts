@@ -100,6 +100,17 @@ export const conversation_participants = pgTable(
 		conversation_id: bigint('conversation_id', { mode: 'number' }).notNull(),
 		user_id: uuid('user_id').notNull(),
 		last_read_at: timestamp('last_read_at', { withTimezone: true }),
+		// High-water mark, same shape as `last_read_at` — bumped to `now()`
+		// whenever this participant's connection actually has the message
+		// (see chatService.markDelivered/markDeliveredForConversations):
+		// live, the instant a message is sent while they're online, and as a
+		// catch-up for everything missed while offline, the instant they
+		// reconnect. Persisting this (rather than deriving "delivered" purely
+		// from live presence, as this app used to) is what keeps a message's
+		// ticks from reverting to "sent" after the recipient goes offline
+		// again — `read` always implies `delivered`, so markRead bumps both
+		// together.
+		last_delivered_at: timestamp('last_delivered_at', { withTimezone: true }),
 
 		...timestamps,
 	},

@@ -515,6 +515,20 @@ export const chatService = {
 		return row?.last_read_at ?? null
 	},
 
+	async getOtherParticipantLastDeliveredAt(
+		conversationId: number,
+		userId: UserId,
+	) {
+		const row = await db.query.conversation_participants.findFirst({
+			where: and(
+				eq(conversation_participants.conversation_id, conversationId),
+				sql`${conversation_participants.user_id} <> ${userId}`,
+			),
+			columns: { last_delivered_at: true },
+		})
+		return row?.last_delivered_at ?? null
+	},
+
 	async getMessages(
 		conversationId: number,
 		userId: UserId,
@@ -552,6 +566,11 @@ export const chatService = {
 			conversationId,
 			userId,
 		)
+		const otherLastDeliveredAt =
+			await chatService.getOtherParticipantLastDeliveredAt(
+				conversationId,
+				userId,
+			)
 		// Computed server-side against the requesting session — callers
 		// (ChatMessagesScreen) should never re-derive this by comparing
 		// `sender_id` to their own id client-side.
@@ -573,6 +592,7 @@ export const chatService = {
 			nextCursor,
 			hasMore,
 			other_last_read_at: otherLastReadAt,
+			other_last_delivered_at: otherLastDeliveredAt,
 		}
 	},
 
@@ -592,6 +612,7 @@ export const chatService = {
 				nextCursor: null,
 				hasMore: false,
 				other_last_read_at: null,
+				other_last_delivered_at: null,
 				conversation_id: null,
 			}
 		}
@@ -612,9 +633,13 @@ export const chatService = {
 		if (!isParticipant) throw ApiError.forbidden()
 
 		const readAt = new Date()
+		// Reading something always implies it was delivered — bumping both
+		// together guarantees that invariant even if the live delivered-mark
+		// at send time (wsRouter.ts's `message:send`) or the reconnect catch-up
+		// (`markDeliveredForConversations`) was somehow missed.
 		await db
 			.update(conversation_participants)
-			.set({ last_read_at: readAt })
+			.set({ last_read_at: readAt, last_delivered_at: readAt })
 			.where(
 				and(
 					eq(conversation_participants.conversation_id, conversationId),
@@ -622,6 +647,49 @@ export const chatService = {
 				),
 			)
 		return readAt
+	},
+
+	// High-water mark for "this participant's connection has this message" —
+	// see chatSchema's comment on `last_delivered_at`. Called from
+	// wsRouter.ts's `message:send` handler for any *other* participant who's
+	// online right when a message goes out (their connection has it live, no
+	// reconnect needed to catch up).
+	async markDelivered(conversationId: number, userId: UserId) {
+		const deliveredAt = new Date()
+		await db
+			.update(conversation_participants)
+			.set({ last_delivered_at: deliveredAt })
+			.where(
+				and(
+					eq(conversation_participants.conversation_id, conversationId),
+					eq(conversation_participants.user_id, userId),
+				),
+			)
+		return deliveredAt
+	},
+
+	// Bulk sibling of markDelivered for the reconnect catch-up path
+	// (wsRouter.ts's `onOpen`) — one UPDATE across every conversation this
+	// user participates in, rather than one per conversation. Covers
+	// whatever was sent to them while they were offline: reconnecting means
+	// their client is about to fetch/receive all of it, so it's delivered
+	// as of right now.
+	async markDeliveredForConversations(
+		userId: UserId,
+		conversationIds: number[],
+	) {
+		const deliveredAt = new Date()
+		if (conversationIds.length === 0) return deliveredAt
+		await db
+			.update(conversation_participants)
+			.set({ last_delivered_at: deliveredAt })
+			.where(
+				and(
+					inArray(conversation_participants.conversation_id, conversationIds),
+					eq(conversation_participants.user_id, userId),
+				),
+			)
+		return deliveredAt
 	},
 
 	// Only the sender may edit their own message, only while it isn't
