@@ -298,6 +298,9 @@ export const storeService = {
 		return results.map((store) => ({ ...store, isOwner: true }))
 	},
 
+	// Returns the fully hydrated row (same shape as getById) instead of a
+	// bare id — the frontend writes this straight into its caches (the
+	// owner's "mine" list + the detail cache) instead of refetching.
 	async create(data: CreateStore & { owner_id: string }) {
 		// A store's ltree `path` mirrors the category it belongs to.
 		const category = await db.query.categories.findFirst({
@@ -316,9 +319,10 @@ export const storeService = {
 			.values({ ...data, path: category.path })
 			.returning({ id: stores.id })
 
-		return created
+		return created ? this.getById(created.id) : undefined
 	},
 
+	// Same reasoning as create.
 	async update(id: number, data: UpdateStore) {
 		const previous =
 			data.logo_url !== undefined || data.banner_url !== undefined
@@ -344,7 +348,7 @@ export const storeService = {
 			storage.reconcileImage(previous?.logo_url, data.logo_url),
 			storage.reconcileImage(previous?.banner_url, data.banner_url),
 		])
-		return updated
+		return this.getById(updated.id)
 	},
 
 	// Deleting the row cascades (at the DB level — `products.store_id` and

@@ -118,7 +118,17 @@ export const storeController = {
 			...data,
 			owner_id: currentUser.id,
 		})
-		return c.json({ success: true, data: store }, 201)
+		if (!store) throw ApiError.notFound('Store not found')
+		// Brand new — nobody could have favorited/followed it before it
+		// existed, and the creator always owns it, so none of these need a
+		// query.
+		return c.json(
+			{
+				success: true,
+				data: { ...store, isOwner: true, isSave: false, isFollowed: false },
+			},
+			201,
+		)
 	},
 
 	async update(c: Context) {
@@ -128,7 +138,15 @@ export const storeController = {
 
 		const data = c.get('validated')
 		const updated = await storeService.update(id, data)
-		return c.json({ success: true, data: updated })
+		if (!updated) throw ApiError.notFound('Store not found')
+		const [isSave, isFollowed] = await Promise.all([
+			favoriteStoreService.isFavorited(currentUser.id, id),
+			storeService.isFollowing(currentUser.id, id),
+		])
+		return c.json({
+			success: true,
+			data: { ...updated, isOwner: true, isSave, isFollowed },
+		})
 	},
 
 	// Owner-only: store identity + all-time order aggregates in one request.

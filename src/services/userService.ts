@@ -96,6 +96,9 @@ export const userService = {
 		return 'User created successfully'
 	},
 
+	// Returns the fully hydrated profile (same shape as getMe) instead of a
+	// bare id — the frontend writes this straight into its `/users/me`
+	// cache instead of refetching.
 	async update(userId: string, data: UpdateUser) {
 		const previous =
 			data.avatar_url !== undefined
@@ -115,7 +118,7 @@ export const userService = {
 		if (!updated) return null
 
 		await storage.reconcileImage(previous?.avatar_url, data.avatar_url)
-		return updated
+		return this.getMe(updated.id)
 	},
 
 	async delete(userId: string) {

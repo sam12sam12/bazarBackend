@@ -46,6 +46,9 @@ export const addressService = {
 		})
 	},
 
+	// Returns the fully hydrated row (same shape as getById) instead of a
+	// bare boolean — the frontend writes this straight into its caches
+	// instead of refetching.
 	async create(data: InsertAddress) {
 		// Count existing addresses for the user to decide if this should be default
 		const existing = await db.query.addresses.findMany({
@@ -59,10 +62,14 @@ export const addressService = {
 			await addressHelpingFunctions.unsetOtherDefaults(data.user_id)
 		}
 
-		await db.insert(addresses).values(data)
-		return true
+		const [created] = await db
+			.insert(addresses)
+			.values(data)
+			.returning({ id: addresses.id })
+		return created ? this.getById(created.id) : undefined
 	},
 
+	// Same reasoning as create.
 	async update(id: number, data: UpdateAddress) {
 		const current = await this.getById(id)
 		if (!current) return null
@@ -72,7 +79,7 @@ export const addressService = {
 		}
 
 		await db.update(addresses).set(data).where(eq(addresses.id, id))
-		return true
+		return this.getById(id)
 	},
 
 	async delete(id: number) {
@@ -80,6 +87,7 @@ export const addressService = {
 		return true
 	},
 
+	// Same reasoning as create/update.
 	async setDefault(addressId: number, userId: UserId) {
 		await addressHelpingFunctions.unsetOtherDefaults(userId)
 
@@ -88,7 +96,7 @@ export const addressService = {
 			.set({ is_default: true })
 			.where(eq(addresses.id, addressId))
 
-		return true
+		return this.getById(addressId)
 	},
 }
 

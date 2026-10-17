@@ -81,6 +81,9 @@ export const productRequestService = {
 		return results
 	},
 
+	// Returns the fully hydrated row (same shape as getById, joined with
+	// category/province) instead of the raw insert row — the frontend
+	// writes this straight into its caches instead of refetching.
 	async create(userId: string, data: InsertProductRequest) {
 		await storage.validateNewImages(
 			(data.images as RequestImage[] | undefined ?? []).map((i) => i.url),
@@ -89,8 +92,8 @@ export const productRequestService = {
 		const [request] = await db
 			.insert(productRequests)
 			.values({ ...data, user_id: userId })
-			.returning()
-		return request
+			.returning({ id: productRequests.id })
+		return request ? this.getById(request.id) : undefined
 	},
 
 	// Public browse — only open requests, optionally filtered/sorted.
@@ -227,6 +230,7 @@ export const productRequestService = {
 		return request
 	},
 
+	// Same reasoning as create.
 	async update(
 		id: number,
 		userId: string,
@@ -256,7 +260,7 @@ export const productRequestService = {
 			.update(productRequests)
 			.set(data)
 			.where(eq(productRequests.id, id))
-			.returning()
+			.returning({ id: productRequests.id })
 		if (!updated) return null
 
 		if (data.images) {
@@ -265,7 +269,7 @@ export const productRequestService = {
 				(data.images as RequestImage[]).map((i) => i.url),
 			)
 		}
-		return updated
+		return this.getById(updated.id)
 	},
 
 	async setStatus(

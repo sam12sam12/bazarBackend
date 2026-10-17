@@ -204,12 +204,18 @@ export const productController = {
 		// A product's province is always its store's — never taken from the
 		// client (see createProductSchema's comment). New listings go live
 		// immediately; there's no draft-saving step in the create flow.
-		await productService.create({
+		const product = await productService.create({
 			...data,
 			province_id: store.province_id,
 			listing_status: 'active',
 		})
-		return c.json({ success: true, data: 'Product created successfully' }, 201)
+		if (!product) throw ApiError.notFound('Product not found')
+		// Brand new — nobody could have favorited it before it existed, and
+		// the creator always owns it, so both are known without a query.
+		return c.json(
+			{ success: true, data: { ...product, isOwner: true, isSave: false } },
+			201,
+		)
 	},
 
 	async update(c: Context) {
@@ -235,7 +241,12 @@ export const productController = {
 
 		const product = await productService.update(id, { ...data, province_id })
 		if (!product) throw ApiError.notFound('Product not found')
-		return c.json({ success: true, data: product })
+		const isOwner = product.store.owner_id === currentUser.id
+		const isSave = await favoriteProductService.isFavorited(
+			currentUser.id,
+			product.id,
+		)
+		return c.json({ success: true, data: { ...product, isOwner, isSave } })
 	},
 
 	async delete(c: Context) {

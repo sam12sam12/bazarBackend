@@ -30,7 +30,12 @@ export const productRequestController = {
 		const currentUser = c.get('user')
 		const data = c.get('validated')
 		const request = await productRequestService.create(currentUser.id, data)
-		return c.json({ success: true, data: request }, 201)
+		// Brand new — nobody could have favorited it before it existed, and
+		// the creator always owns it, so both are known without a query.
+		return c.json(
+			{ success: true, data: { ...request, isOwner: true, isSave: false } },
+			201,
+		)
 	},
 
 	async getPublic(c: Context) {
@@ -98,7 +103,11 @@ export const productRequestController = {
 			currentUser.role === 'admin',
 			data,
 		)
-		return c.json({ success: true, data: request })
+		const isOwner = request ? request.user_id === currentUser.id : false
+		const isSave = request
+			? await favoriteRequestService.isFavorited(currentUser.id, id)
+			: false
+		return c.json({ success: true, data: { ...request, isOwner, isSave } })
 	},
 
 	async setStatus(c: Context) {

@@ -163,11 +163,19 @@ export const productReviewService = {
 		return review ? withMyReaction(review, currentUserId) : undefined
 	},
 
+	// Returns the fully hydrated review (same shape as getById, with
+	// reviewer name/avatar + my_reaction/isOwner) instead of a bare message
+	// — the frontend writes this straight into its caches instead of
+	// refetching. Same pattern `react()` below already uses.
 	async create(userId: string, data: InsertProductReview) {
 		await storage.validateNewImages(data.images ?? [])
 
+		let inserted: { id: number } | undefined
 		try {
-			await db.insert(productReviews).values({ ...data, user_id: userId })
+			;[inserted] = await db
+				.insert(productReviews)
+				.values({ ...data, user_id: userId })
+				.returning({ id: productReviews.id })
 		} catch (error) {
 			// unique_violation — this user already reviewed this product
 			if ((error as { code?: string }).code === '23505') {
@@ -175,9 +183,10 @@ export const productReviewService = {
 			}
 			throw error
 		}
-		return 'Review created successfully'
+		return inserted ? this.getById(inserted.id, userId) : undefined
 	},
 
+	// Same reasoning as create.
 	async update(
 		id: number,
 		userId: string,
@@ -203,7 +212,7 @@ export const productReviewService = {
 		if (data.images) {
 			await storage.reconcileImages(previousUrls, data.images)
 		}
-		return 'Review updated successfully'
+		return this.getById(id, userId)
 	},
 
 	async delete(id: number, userId: string, isAdmin: boolean) {
@@ -242,12 +251,15 @@ export const productReviewService = {
 			throw ApiError.forbidden()
 		}
 
-		const [updated] = await db
+		await db
 			.update(productReviews)
 			.set({ owner_reply: ownerReply, owner_reply_at: new Date() })
 			.where(eq(productReviews.id, id))
-			.returning()
-		return updated
+		// Same reasoning as create/update — fully hydrated instead of the
+		// raw row `.returning()` would give (no reviewer name/avatar, no
+		// my_reaction/isOwner). `userId` here is the replying store owner,
+		// so `isOwner`/`my_reaction` correctly reflect their own viewpoint.
+		return this.getById(id, userId)
 	},
 
 	// Toggle the signed-in user's like/dislike on a review — sending the same

@@ -365,6 +365,9 @@ export const productService = {
 	},
 
 	// ── Create product ──
+	// Returns the fully hydrated row (same shape as getById) instead of a
+	// bare id/message — the frontend writes this straight into its caches
+	// (list + detail) instead of refetching after a create.
 	async create(data: CreateProduct & { province_id: number }) {
 		await storage.validateNewImages(
 			(data.images as ProductImage[]).map((i) => i.url),
@@ -379,13 +382,13 @@ export const productService = {
 			.set({ product_count: sql`${stores.product_count} + 1` })
 			.where(eq(stores.id, data.store_id))
 
-		if (product) {
-			this.notifyFollowers(data.store_id, product.id, product.title).catch(
-				(err) => console.error('[products] failed to notify followers:', err),
-			)
-		}
+		if (!product) return undefined
 
-		return 'Product created successfully'
+		this.notifyFollowers(data.store_id, product.id, product.title).catch(
+			(err) => console.error('[products] failed to notify followers:', err),
+		)
+
+		return this.getById(product.id)
 	},
 
 	// ── Background: notify a store's followers of a new product ──
@@ -415,6 +418,8 @@ export const productService = {
 	},
 
 	// ── Update product (partial) ──
+	// Same reasoning as create: returns the fully hydrated row so the
+	// frontend can patch its caches directly instead of refetching.
 	async update(id: number, data: UpdateProductClient & { province_id?: number }) {
 		const previous = data.images
 			? await db.query.products.findFirst({
@@ -446,7 +451,7 @@ export const productService = {
 				data.images.map((i) => i.url),
 			)
 		}
-		return updated
+		return this.getById(updated.id)
 	},
 
 	// ── Delete product ──
