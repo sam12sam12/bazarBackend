@@ -15,6 +15,7 @@ const router = new Hono()
 // ── Public reads ──
 // optionalAuth (not authMiddleware) on both: the reads stay public, but each
 // needs to know the caller's id (if any) to compute `isOwner`/`isSave`.
+router.get('/suggestions', productRequestController.getSuggestions)
 router.get('/', optionalAuth, productRequestController.getPublic)
 router.get('/my', authMiddleware, productRequestController.getMyRequests)
 router.get('/:id', optionalAuth, productRequestController.getById)

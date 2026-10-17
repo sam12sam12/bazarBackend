@@ -60,6 +60,27 @@ function isOwnerColumn(currentUserId?: string) {
 }
 
 export const productRequestService = {
+	// ── Search Suggestions (Minimal data) ── mirrors productService's own,
+	// same shape so Bazar56's SearchSuggestions component can render either.
+	async getSuggestions(search: string, limit: number = 10) {
+		if (search.length < 2) return []
+		const whereCondition = and(
+			eq(productRequests.status, 'open'),
+			sql`to_tsvector('simple', coalesce(${productRequests.title}, '')) @@ plainto_tsquery('simple', ${search})`,
+		)
+		const results = await db
+			.select({
+				id: productRequests.id,
+				title: productRequests.title,
+				image: sql<string>`images->0->>'url'`,
+			})
+			.from(productRequests)
+			.where(whereCondition)
+			.limit(limit)
+
+		return results
+	},
+
 	async create(userId: string, data: InsertProductRequest) {
 		await storage.validateNewImages(
 			(data.images as RequestImage[] | undefined ?? []).map((i) => i.url),

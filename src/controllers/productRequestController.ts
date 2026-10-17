@@ -18,6 +18,14 @@ function parseIdList(raw: string | undefined): number[] | undefined {
 }
 
 export const productRequestController = {
+	async getSuggestions(c: Context) {
+		const search = c.req.query('q') as string
+		if (!search) return c.json({ success: true, data: [] })
+
+		const results = await productRequestService.getSuggestions(search)
+		return c.json({ success: true, data: results })
+	},
+
 	async create(c: Context) {
 		const currentUser = c.get('user')
 		const data = c.get('validated')
