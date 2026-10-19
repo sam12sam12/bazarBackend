@@ -27,4 +27,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 # Set entrypoint to run the app
-CMD ["bun", "src/index.ts"]
+CMD ["bun", "src/server.ts"]
