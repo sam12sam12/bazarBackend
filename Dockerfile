@@ -16,15 +16,22 @@ COPY src ./src
 FROM oven/bun:alpine AS runner
 WORKDIR /app
 
-# Copy dependencies and application code from the builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src ./src
-COPY package.json ./
-
-
-# Assuming default Hono port is 7426
+ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
+
+# Run as a non-root user
+RUN addgroup -S bun && adduser -S bun -G bun
+
+# Copy dependencies and application code from the builder stage
+COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
+COPY --from=builder --chown=bun:bun /app/src ./src
+COPY --chown=bun:bun package.json ./
+
+USER bun
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ || exit 1
 
 # Set entrypoint to run the app
 CMD ["bun", "src/server.ts"]

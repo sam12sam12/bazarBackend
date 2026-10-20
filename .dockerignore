@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.*
+.git
+.gitignore
+.claude
+.agents
+drizzle
+seedData
+seed.ts
+test.json
+todo.txt
+*.md
