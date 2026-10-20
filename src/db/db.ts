@@ -1,14 +1,14 @@
+import { SQL } from 'bun'
 import { sql } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import { drizzle } from 'drizzle-orm/bun-sql'
 import * as schema from './schema'
 
-export const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
+export const pool = new SQL({
+	url: process.env.DATABASE_URL,
 	max: 10,
-	idleTimeoutMillis: 30_000,
-	connectionTimeoutMillis: 5_000,
-	ssl:
+	idleTimeout: 30,
+	connectionTimeout: 5,
+	tls:
 		process.env.NODE_ENV === 'production'
 			? { rejectUnauthorized: true }
 			: false,
