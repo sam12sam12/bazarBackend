@@ -8,10 +8,10 @@ export const pool = new SQL({
 	max: 10,
 	idleTimeout: 30,
 	connectionTimeout: 5,
-	tls:
-		process.env.NODE_ENV === 'production'
-			? { rejectUnauthorized: true }
-			: false,
+	// Whether Postgres needs TLS depends on the host, not on NODE_ENV — a
+	// production DB on an internal/private network (e.g. same docker
+	// network) commonly has no TLS listener at all. Opt in explicitly.
+	tls: process.env.DATABASE_SSL === 'true',
 })
 
 export const db = drizzle({ client: pool, schema })
