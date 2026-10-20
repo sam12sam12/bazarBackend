@@ -28,11 +28,13 @@
 		"expo-server-sdk": "^7.2.0",
 		"hono": "^4.13.12",
 		"ioredis": "^6.0.0",
+		"pg": "^8.23.1",
 		"zod": "^4.6.5"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",
 		"@types/bun": "latest",
+		"@types/pg": "^8.23.1",
 		"drizzle-kit": "^0.31.11",
 		"tsx": "^4.23.15"
 	},

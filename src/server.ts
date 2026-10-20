@@ -28,6 +28,7 @@ import productRouter from './routes/productRouter.ts'
 import productViewRouter from './routes/productViewRouter.ts'
 import pushTokenRouter from './routes/pushTokenRouter.ts'
 import reportRouter from './routes/reportRouter.ts'
+import shareRouter from './routes/shareRouter.ts'
 import storeReviewRouter from './routes/storeReviewRouter.ts'
 import storeRouter from './routes/storeRouter.ts'
 import storeViewRouter from './routes/storeViewRouter.ts'
@@ -127,6 +128,10 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 })
 
 app.get('/', (c) => c.json({ status: 'ok', timestamp: Date.now() }))
+
+// Shared product/store/request links land here — see shareRouter.ts for
+// why this sits outside /api/v1.
+app.route('/s', shareRouter)
 
 // ✅ Public reads, authenticated writes for every /api/v1 resource.
 // (User-scoped GETs opt back in with `authMiddleware` on their own route.)

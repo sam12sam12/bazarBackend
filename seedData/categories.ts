@@ -201,7 +201,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -213,7 +213,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1567690187548-f07b1d7bf5a9?w=800',
 		delivery: true,
 		is_popular: true,
 	},
@@ -229,7 +229,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1557376382-e96b6778ffdc?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -241,7 +241,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -253,7 +253,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -265,7 +265,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 8,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -277,7 +277,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 9,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -289,7 +289,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 10,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -301,7 +301,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 11,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1788458490181-6ff75ee9f3a0?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -313,7 +313,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 12,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1607853202273-797f1c22a38e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -329,7 +329,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 13,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1774103249154-32adc0bf71a7?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -345,7 +345,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 14,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1652850494316-3d30b01debca?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -357,7 +357,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 15,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -369,7 +369,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 16,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -381,7 +381,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 17,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1775163035702-06e47ba88857?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -393,7 +393,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 18,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1566554738544-d962991c3fee?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -405,7 +405,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 19,
 		icon_url:
-			'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800',
+			'https://images.unsplash.com/photo-1587037542794-6ca5f4772330?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -421,7 +421,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.house',
 		depth: 1,
 		sort_order: 1,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800',
 		delivery: false,
 		is_popular: true,
 	},
@@ -432,7 +433,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.apartment',
 		depth: 1,
 		sort_order: 2,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1784853879843-f3c5aacf2569?w=800',
 		delivery: false,
 		is_popular: true,
 	},
@@ -443,7 +445,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.land-plots',
 		depth: 1,
 		sort_order: 3,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1777268209440-296c2bb6facf?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -458,7 +461,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.commercial-property',
 		depth: 1,
 		sort_order: 4,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1621831337128-35676ca30868?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -469,7 +473,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.shops',
 		depth: 1,
 		sort_order: 5,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1564419965579-5da68ffdf3af?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -480,7 +485,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.offices',
 		depth: 1,
 		sort_order: 6,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -491,7 +497,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'real-estate.guest-houses',
 		depth: 1,
 		sort_order: 7,
-		icon_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1772365833604-850c93d327cb?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -505,7 +512,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1561053720-76cd73ff22c3?w=800',
 		delivery: true,
 		is_popular: true,
 	},
@@ -517,7 +524,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1495121605193-b116b5b9c5fe?w=800',
 		delivery: true,
 		is_popular: true,
 	},
@@ -529,7 +536,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1768383235583-99e9d8c836b0?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -545,7 +552,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1597983073540-684a10b15ab1?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -557,7 +564,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -569,7 +576,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -581,7 +588,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1579014134953-1580d7f123f3?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -593,7 +600,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 8,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -605,7 +612,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 9,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1614715838608-dd527c46231d?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -617,7 +624,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 10,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1664286074176-5206ee5dc878?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -629,7 +636,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 11,
 		icon_url:
-			'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800',
+			'https://images.unsplash.com/photo-1586878341340-1971696a9b71?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -643,7 +650,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1546614042-7df3c24c9e5d?w=800',
 		delivery: false,
 		is_popular: true,
 	},
@@ -655,7 +662,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -667,7 +674,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1554223789-df81106a45ed?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -679,7 +686,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1527383418406-f85a3b146499?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -691,7 +698,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1592570714618-15e2d4719c6c?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -703,7 +710,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1571335746824-742511d49bce?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -715,7 +722,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1594500067480-fedcbb960b73?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -727,7 +734,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 8,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -739,7 +746,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 9,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1580901369227-308f6f40bdeb?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -751,7 +758,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 10,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -763,7 +770,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 11,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800',
 		delivery: false,
 		is_popular: false,
 	},
@@ -775,7 +782,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 12,
 		icon_url:
-			'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
+			'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -792,7 +799,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.living-room',
 		depth: 1,
 		sort_order: 1,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -807,7 +815,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.bedroom',
 		depth: 1,
 		sort_order: 2,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1635594202056-9ea3b497e5c0?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -822,7 +831,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.office',
 		depth: 1,
 		sort_order: 3,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1563253746-350a0a877afa?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -837,7 +847,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.dining',
 		depth: 1,
 		sort_order: 4,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1547062200-f195b1c77e30?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -852,7 +863,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.outdoor',
 		depth: 1,
 		sort_order: 5,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1623625434531-d130448273c1?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -867,7 +879,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.storage-organization',
 		depth: 1,
 		sort_order: 6,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1788448093731-6f7db7164ef3?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -878,7 +891,8 @@ export const categorySeedData: InsertCategory[] = [
 		path: 'furniture.mattresses',
 		depth: 1,
 		sort_order: 7,
-		icon_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+		icon_url:
+			'https://images.unsplash.com/photo-1759176170553-7c078c66c514?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -892,7 +906,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1721613877687-c9099b698faa?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -904,7 +918,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1643705314142-6f072c3d48fa?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -920,7 +934,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -932,7 +946,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1718203862467-c33159fdc504?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -944,7 +958,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1790193718629-d5ca10f12415?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -956,7 +970,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1547186577-a3f4fa07c2ef?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -968,7 +982,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1780445392462-b7761551820c?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -992,7 +1006,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 9,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1623114112815-74a4b9fe505d?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1008,7 +1022,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 10,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1618506408870-64d8bec48248?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1020,7 +1034,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 11,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1780445392484-38a4852a1fd8?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1032,7 +1046,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 12,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1044,7 +1058,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 13,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1565151443833-29bf2ba5dd8d?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1056,7 +1070,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 14,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1780590107737-9381035b8265?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1068,7 +1082,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 15,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1662647343432-a8710bfd6162?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1084,7 +1098,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 16,
 		icon_url:
-			'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=800',
+			'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1098,7 +1112,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1110,7 +1124,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1122,7 +1136,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1747858989102-cca0f4dc4a11?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1134,7 +1148,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1727364438136-6edc10ef0a52?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1146,7 +1160,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1158,7 +1172,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1174,7 +1188,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1190,7 +1204,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 8,
 		icon_url:
-			'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+			'https://images.unsplash.com/photo-1781633445990-6d6265cc8882?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1204,7 +1218,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1216,7 +1230,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1228,7 +1242,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1240,7 +1254,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1252,7 +1266,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1264,7 +1278,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1584304474795-74fb0b42e66a?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1276,7 +1290,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+			'https://images.unsplash.com/photo-1763771522867-c26bf75f12bc?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1290,7 +1304,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1553447977-754f9430685c?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1302,7 +1316,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1314,7 +1328,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1508169351866-777fc0047ac5?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1330,7 +1344,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1542216172-f356fdd22653?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1342,7 +1356,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1761322572550-967ea8c0bfd9?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1354,7 +1368,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1672256019300-9589d730bedd?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1366,7 +1380,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800',
+			'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1380,7 +1394,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1559135141-2bea6465fccf?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1392,7 +1406,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1567169866456-a0759b6bb0c8?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1408,7 +1422,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1420,7 +1434,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1789976869577-487ae39a331d?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1432,7 +1446,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1592082906158-ea8a8c0f3e27?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1448,7 +1462,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1623707430616-d9f956bcac2b?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1464,7 +1478,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=800',
+			'https://images.unsplash.com/photo-1791188212265-f276f58d3856?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1478,7 +1492,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1490,7 +1504,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1590736969955-71cc94801759?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1502,7 +1516,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1631982690223-8aa4be0a2497?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1518,7 +1532,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1530,7 +1544,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1546,7 +1560,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800',
+			'https://images.unsplash.com/photo-1622398925373-3f91b1e275f5?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1560,7 +1574,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 1,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1739972864564-b1800ffdfd14?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1572,7 +1586,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 2,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1690541478715-898f26cbc28d?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1584,7 +1598,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 3,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1660394585016-508f949df960?w=800',
 		delivery: true,
 		// Afghan carpets/rugs are a globally recognized specialty — genuinely
 		// popular, not a generic filler pick.
@@ -1598,7 +1612,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 4,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1572123979839-3749e9973aba?w=800',
 		delivery: true,
 		is_popular: true,
 	},
@@ -1614,7 +1628,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 5,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1776893597594-2f16d4151849?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1630,7 +1644,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 6,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1604095879468-03fd4a4afaf2?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1642,7 +1656,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 7,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1597696929736-6d13bed8e6a8?w=800',
 		delivery: true,
 		is_popular: false,
 	},
@@ -1654,7 +1668,7 @@ export const categorySeedData: InsertCategory[] = [
 		depth: 1,
 		sort_order: 8,
 		icon_url:
-			'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800',
+			'https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?w=800',
 		delivery: true,
 		is_popular: false,
 	},
