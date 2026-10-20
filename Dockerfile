@@ -20,8 +20,8 @@ ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
 
-# Run as a non-root user
-RUN addgroup -S bun && adduser -S bun -G bun
+# oven/bun images already ship a non-root "bun" user — reuse it instead of
+# creating a new one (adduser/addgroup would fail: it already exists).
 
 # Copy dependencies and application code from the builder stage
 COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
