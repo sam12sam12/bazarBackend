@@ -53,8 +53,7 @@ export function createRandomNotification(params: {
 	}
 }
 
-export async function generateNotificationsFakerData() {
-	const count = 20
+export async function generateNotificationsFakerData(count = 20) {
 	const userIds = await getUserIds()
 	const productIds = await getProductIds()
 

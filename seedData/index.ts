@@ -15,7 +15,6 @@ export async function getUserIds(): Promise<string[]> {
 		.select({ id: users.id })
 		.from(users)
 		.orderBy(sql`random()`)
-		.limit(100)
 
 	const userIds = getUserIdsData.map((u) => u.id)
 	return userIds
@@ -26,7 +25,6 @@ export async function getStoreIds(): Promise<number[]> {
 		.select({ id: stores.id })
 		.from(stores)
 		.orderBy(sql`random()`)
-		.limit(100)
 
 	const storeIds = getStoreIdsData.map((store) => store.id)
 	return storeIds
@@ -134,7 +132,6 @@ export async function getProductIds(): Promise<number[]> {
 		.select({ id: products.id })
 		.from(products)
 		.orderBy(sql`random()`)
-		.limit(100)
 
 	const productIds = getProductIdsData.map((product) => product.id)
 	return productIds

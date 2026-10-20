@@ -287,24 +287,33 @@ export function createRandomProduct(params: {
 	}
 }
 
+// Postgres caps a single query at 65535 bind params; a product row binds
+// ~24 columns, so batching at 1000 rows/insert (24k params) stays well
+// clear of that limit no matter how large `count` gets.
+const INSERT_BATCH_SIZE = 1000
+
 export async function generateProductsFakerData(count = 10) {
 	const storeIds = await getStoreIds()
 	const leafCategories = await getLeafCategories()
 	const provinceIds = await getProvinceIds()
 	const attributesByCategory = await getCategoryAttributesByCategory()
 
-	const productsFakerData: InsertProductRow[] = faker.helpers.multiple(
-		() =>
-			createRandomProduct({
-				storeIds,
-				leafCategories,
-				provinceIds,
-				attributesByCategory,
-			}),
-		{
-			count,
-		},
-	)
+	let inserted = 0
+	while (inserted < count) {
+		const batchSize = Math.min(INSERT_BATCH_SIZE, count - inserted)
+		const batch: InsertProductRow[] = faker.helpers.multiple(
+			() =>
+				createRandomProduct({
+					storeIds,
+					leafCategories,
+					provinceIds,
+					attributesByCategory,
+				}),
+			{ count: batchSize },
+		)
 
-	await db.insert(products).values(productsFakerData)
+		await db.insert(products).values(batch)
+		inserted += batchSize
+		console.log(`   …${inserted}/${count} products inserted`)
+	}
 }
