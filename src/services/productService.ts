@@ -163,7 +163,7 @@ async function listProducts(
 export const productService = {
 	// ── Search Suggestions (Minimal data) ──
 	async getSuggestions(search: string, limit: number = 10) {
-		if (search.length < 2) return []
+		if (search.length < 1) return []
 		const { condition, rank } = buildFuzzySearch(search)
 		const whereCondition = and(eq(products.is_active, true), condition)
 		const results = await db
