@@ -104,14 +104,14 @@ async function main() {
   );
 
   // 2. Users — no dependencies.
-  await runStep("users", users, () => seedUsersFakerData(500));
+  await runStep("users", users, () => seedUsersFakerData(1_000));
 
   // 3. Depends on users (+provinces/categories).
   await runStep("addresses", addresses, () => generateAddressesFakerData());
-  await runStep("stores", stores, () => generateStoresFakerData(300));
+  await runStep("stores", stores, () => generateStoresFakerData(1_000));
 
   // 4. Depends on stores.
-  await runStep("products", products, () => generateProductsFakerData(10_000));
+  await runStep("products", products, () => generateProductsFakerData(12_000));
 
   // 5. Depends on users + products/stores — view generators have no count
   // param and self-dedupe on (user, target) pairs, but still only run once.
@@ -119,24 +119,24 @@ async function main() {
   await runStep("store views", storeViews, generateStoreViewsFakerData);
 
   await runStep("product requests", productRequests, () =>
-    generateProductRequestsFakerData(300)
+    generateProductRequestsFakerData(600)
   );
 
   // 6. Orders depend on products + addresses; the generator inserts orders
   // and their items itself (parent/child), so it isn't wrapped in db.insert().
-  await runStep("orders", orders, () => generateOrdersFakerData(800));
+  await runStep("orders", orders, () => generateOrdersFakerData(2_000));
 
   await runStep("notifications", notifications, () =>
-    generateNotificationsFakerData(300)
+    generateNotificationsFakerData(600)
   );
   await runStep("product reviews", productReviews, () =>
-    generateProductReviewsFakerData(2000)
+    generateProductReviewsFakerData(4_500)
   );
   await runStep("store reviews", storeReviews, () =>
-    generateStoreReviewsFakerData(600)
+    generateStoreReviewsFakerData(1_500)
   );
   await runStep("banners", banners, generateBannersFakerData);
-  await runStep("reports", reports, () => generateReportsFakerData(150));
+  await runStep("reports", reports, () => generateReportsFakerData(300));
 
   console.log("🎉 ALL SEEDING COMPLETED SUCCESSFULLY!");
 }
