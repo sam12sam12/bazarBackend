@@ -59,7 +59,10 @@ export const products = pgTable(
 		// delivery step collects (see ProductDeliveryStep.tsx).
 		intra_city_fee: numeric('intra_city_fee', { precision: 12, scale: 2 }),
 		intra_city_days: varchar('intra_city_days', { length: 50 }),
-		inter_province_fee: numeric('inter_province_fee', { precision: 12, scale: 2 }),
+		inter_province_fee: numeric('inter_province_fee', {
+			precision: 12,
+			scale: 2,
+		}),
 		inter_province_days: varchar('inter_province_days', { length: 50 }),
 		latitude: numeric('latitude', { precision: 10, scale: 7 }),
 		longitude: numeric('longitude', { precision: 10, scale: 7 }),
@@ -128,15 +131,19 @@ export const products = pgTable(
 			sql`to_tsvector('simple', coalesce(${table.title}, '') || ' ' || coalesce(${table.description}, ''))`,
 		),
 
-		// Trigram index backing `similarity(title, ...)` — the typo-tolerant
-		// half of productService's hybrid search (the tsvector index above
-		// only ever matches whole/prefix words, never a misspelling). Needs
+		// Trigram index backing `lower(title) % lower(search)` — the
+		// typo-tolerant half of productService's hybrid search (the tsvector
+		// index above only ever matches whole/prefix words, never a
+		// misspelling). `lower(...)`, not bare `title` — trigram similarity is
+		// case-sensitive, and the query always compares lowercased, so the
+		// index has to be built on the exact same expression to actually get
+		// used instead of falling back to a sequential scan. Needs
 		// `CREATE EXTENSION IF NOT EXISTS pg_trgm;` run once against the
 		// database before this migration — drizzle-kit has no extension
 		// primitive of its own, so it can't generate that statement itself.
 		index('products_title_trgm_idx').using(
 			'gin',
-			sql`${table.title} gin_trgm_ops`,
+			sql`lower(${table.title}) gin_trgm_ops`,
 		),
 
 		index('products_specifications_gin_idx').using('gin', table.specifications),

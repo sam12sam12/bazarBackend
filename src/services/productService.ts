@@ -18,6 +18,7 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
+import { buildFuzzySearch } from '../utils/search'
 import { storage } from '../utils/storage/instance'
 import type { ProductFilters, ProductImage } from '../utils/types'
 import { notificationDispatchService } from './notificationDispatchService'
@@ -84,51 +85,20 @@ async function flushViews() {
 
 setInterval(flushViews, 30_000)
 
-// ── Search ──
-// `pg_trgm`'s sane default (also what its own `%` operator uses internally
-// via `pg_trgm.similarity_threshold`) — a title has to be at least this
-// close to the typed text to count as a fuzzy/typo match, not just "shares
-// a few letters."
-const TRIGRAM_SIMILARITY_THRESHOLD = 0.3
-
-// Turns free-typed search text into a safe `to_tsquery` operand: every word
-// OR'd together (any one matching is enough — `plainto_tsquery`'s default
-// AND-every-word was the actual cause of search feeling "too limited," not
-// a missing index) with the last word treated as a prefix (`:*`) so results
-// start appearing before the user finishes typing it. Tokenized/escaped
-// here in JS rather than handed to Postgres as-is — `to_tsquery` treats
-// `&|!():*` as real operators, so raw user input isn't safe to interpolate
-// directly.
-function buildSearchTsQuery(search: string): string {
-	const tokens = search
-		.split(/\s+/)
-		.map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
-		.filter(Boolean)
-	if (tokens.length === 0) return ''
-	return tokens
-		.map((word, i) => (i === tokens.length - 1 ? `${word}:*` : word))
-		.join(' | ')
-}
-
-// Hybrid match, against the exact expression `products_fts_idx` (GIN) is
-// built on: a real word/prefix hit via tsvector, OR the title alone being
-// close enough by trigram similarity (`products_title_trgm_idx`) — the half
-// that makes a misspelling like "iphon" still find "iPhone". `rank`
-// combines both into one score so 'relevance' ordering surfaces the best
-// match of either kind first, not just whichever path happened to match.
-function buildFuzzySearch(search: string) {
-	const tsvectorExpr = sql`to_tsvector('simple', coalesce(${products.title}, '') || ' ' || coalesce(${products.description}, ''))`
-	const similarityExpr = sql`similarity(${products.title}, ${search})`
-	const tsQuery = buildSearchTsQuery(search)
-
-	const condition = tsQuery
-		? sql`(${tsvectorExpr} @@ to_tsquery('simple', ${tsQuery}) OR ${similarityExpr} > ${TRIGRAM_SIMILARITY_THRESHOLD})`
-		: sql`${similarityExpr} > ${TRIGRAM_SIMILARITY_THRESHOLD}`
-	const rank = tsQuery
-		? sql`GREATEST(ts_rank(${tsvectorExpr}, to_tsquery('simple', ${tsQuery})), ${similarityExpr})`
-		: similarityExpr
-
-	return { condition, rank }
+// The combined tsvector-source (title+description) and the single
+// similarity column (title only — see `buildFuzzySearch`'s own comment),
+// exactly matching `products_fts_idx`/`products_title_trgm_idx` so both
+// stay index-accelerated. Any other entity with a title/description pair
+// wanting the same hybrid search builds its own version of this and passes
+// it to the shared `buildFuzzySearch` — see `utils/search.ts`.
+function productFuzzySearchTarget() {
+	return {
+		textColumns: [
+			sql`coalesce(${products.title}, '')`,
+			sql`coalesce(${products.description}, '')`,
+		],
+		similarityColumn: sql`${products.title}`,
+	}
 }
 
 async function listProducts(
@@ -164,7 +134,10 @@ export const productService = {
 	// ── Search Suggestions (Minimal data) ──
 	async getSuggestions(search: string, limit: number = 10) {
 		if (search.length < 1) return []
-		const { condition, rank } = buildFuzzySearch(search)
+		const { condition, rank } = buildFuzzySearch(
+			search,
+			productFuzzySearchTarget(),
+		)
 		const whereCondition = and(eq(products.is_active, true), condition)
 		const results = await db
 			.select({
@@ -225,7 +198,9 @@ export const productService = {
 		// narrowing by what was typed.
 		const searchTerm = filters?.search ?? ''
 		const hasSearchTerm = searchTerm.length >= 1
-		const fuzzySearch = hasSearchTerm ? buildFuzzySearch(searchTerm) : undefined
+		const fuzzySearch = hasSearchTerm
+			? buildFuzzySearch(searchTerm, productFuzzySearchTarget())
+			: undefined
 		if (fuzzySearch) conditions.push(fuzzySearch.condition)
 
 		const limit = filters?.limit || 12
@@ -469,7 +444,10 @@ export const productService = {
 	// ── Update product (partial) ──
 	// Same reasoning as create: returns the fully hydrated row so the
 	// frontend can patch its caches directly instead of refetching.
-	async update(id: number, data: UpdateProductClient & { province_id?: number }) {
+	async update(
+		id: number,
+		data: UpdateProductClient & { province_id?: number },
+	) {
 		const previous = data.images
 			? await db.query.products.findFirst({
 					where: eq(products.id, id),
