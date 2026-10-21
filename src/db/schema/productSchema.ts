@@ -126,24 +126,28 @@ export const products = pgTable(
 			.on(table.created_at.desc(), table.id.desc())
 			.where(sql`${table.is_active} = true AND ${table.is_global} = true`),
 
+		// Both search indexes route every column through
+		// `normalize_farsi_text(lower(...))` — a one-time custom SQL function
+		// (see migration notes) that canonicalizes the Arabic/Persian
+		// codepoint variants Dari/Pashto text commonly mixes (e.g. Arabic Yeh
+		// U+064A vs Farsi Yeh U+06CC depending on which keyboard typed it),
+		// strips optional diacritics (tashkeel), and strips the decorative
+		// tatweel elongation character. `productService`'s queries must wrap
+		// identically or these indexes silently stop being used (expression
+		// indexes require an exact expression match) and Dari/Pashto fuzzy
+		// matching quietly gets worse. Needs
+		// `CREATE EXTENSION IF NOT EXISTS pg_trgm;` and
+		// `CREATE FUNCTION normalize_farsi_text(...)` run once against the
+		// database before this migration — drizzle-kit has no primitive of
+		// its own for either, so it can't generate those statements itself.
 		index('products_fts_idx').using(
 			'gin',
-			sql`to_tsvector('simple', coalesce(${table.title}, '') || ' ' || coalesce(${table.description}, ''))`,
+			sql`to_tsvector('simple', normalize_farsi_text(lower(coalesce(${table.title}, ''))) || ' ' || normalize_farsi_text(lower(coalesce(${table.description}, ''))))`,
 		),
 
-		// Trigram index backing `lower(title) % lower(search)` — the
-		// typo-tolerant half of productService's hybrid search (the tsvector
-		// index above only ever matches whole/prefix words, never a
-		// misspelling). `lower(...)`, not bare `title` — trigram similarity is
-		// case-sensitive, and the query always compares lowercased, so the
-		// index has to be built on the exact same expression to actually get
-		// used instead of falling back to a sequential scan. Needs
-		// `CREATE EXTENSION IF NOT EXISTS pg_trgm;` run once against the
-		// database before this migration — drizzle-kit has no extension
-		// primitive of its own, so it can't generate that statement itself.
 		index('products_title_trgm_idx').using(
 			'gin',
-			sql`lower(${table.title}) gin_trgm_ops`,
+			sql`normalize_farsi_text(lower(${table.title})) gin_trgm_ops`,
 		),
 
 		index('products_specifications_gin_idx').using('gin', table.specifications),

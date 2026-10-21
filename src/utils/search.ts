@@ -34,16 +34,34 @@ export function buildSearchTsQuery(search: string): string {
 		.join(' | ')
 }
 
+// Wraps a column/expression in the one-time `normalize_farsi_text(...)` SQL
+// function (see migration notes) before lowercasing — Dari/Pashto text
+// commonly mixes Arabic- and Persian-form codepoints for the same visual
+// letter (e.g. Arabic Yeh U+064A vs Farsi Yeh U+06CC) depending on which
+// keyboard/OS typed it, plus optional diacritics (tashkeel) and the
+// decorative tatweel elongation character — all of which trigram similarity
+// and even plain tsvector word-matching treat as genuinely different
+// characters unless both the indexed column and the typed query are
+// canonicalized through the same normalization first. Every expression
+// here (and the matching GIN index expressions in productSchema.ts) must
+// call this identically, or matching silently gets worse for Dari/Pashto
+// titles without erroring.
+function normalized(expr: SQL): SQL {
+	return sql`normalize_farsi_text(lower(${expr}))`
+}
+
 export interface FuzzySearchTarget {
 	/** every tsvector-searched column, already wrapped in `coalesce` by the
 	 * caller if nullable — concatenated with a space so a hit in any one
 	 * column counts as a match. Must exactly match the expression a GIN
-	 * `to_tsvector('simple', ...)` index was built on for this to stay
-	 * index-accelerated instead of a sequential scan. */
+	 * `to_tsvector('simple', normalize_farsi_text(lower(...)))` index was
+	 * built on for this to stay index-accelerated instead of a sequential
+	 * scan. */
 	textColumns: SQL[]
 	/** the single column trigram similarity (typo tolerance) runs against —
-	 * needs a matching `lower(col) gin_trgm_ops` GIN index (not a plain
-	 * `col gin_trgm_ops` one) since this always compares lowercased. */
+	 * needs a matching `normalize_farsi_text(lower(col)) gin_trgm_ops` GIN
+	 * index (not a plain `col gin_trgm_ops` one) since this always compares
+	 * normalized+lowercased. */
 	similarityColumn: SQL
 }
 
@@ -62,17 +80,18 @@ export interface FuzzySearchTarget {
  * narrowed down to.
  */
 export function buildFuzzySearch(search: string, target: FuzzySearchTarget) {
-	const tsvectorExpr = sql`to_tsvector('simple', ${sql.join(target.textColumns, sql` || ' ' || `)})`
-	const lowerColumn = sql`lower(${target.similarityColumn})`
-	const lowerSearch = sql`lower(${search})`
+	const normalizedColumns = target.textColumns.map(normalized)
+	const tsvectorExpr = sql`to_tsvector('simple', ${sql.join(normalizedColumns, sql` || ' ' || `)})`
+	const similarityExpr = normalized(target.similarityColumn)
+	const searchExpr = normalized(sql`${search}`)
 	const tsQuery = buildSearchTsQuery(search)
 
 	const condition = tsQuery
-		? sql`(${tsvectorExpr} @@ to_tsquery('simple', ${tsQuery}) OR ${lowerColumn} % ${lowerSearch})`
-		: sql`${lowerColumn} % ${lowerSearch}`
+		? sql`(${tsvectorExpr} @@ to_tsquery('simple', ${tsQuery}) OR ${similarityExpr} % ${searchExpr})`
+		: sql`${similarityExpr} % ${searchExpr}`
 	const rank = tsQuery
-		? sql`GREATEST(ts_rank(${tsvectorExpr}, to_tsquery('simple', ${tsQuery})), similarity(${lowerColumn}, ${lowerSearch}))`
-		: sql`similarity(${lowerColumn}, ${lowerSearch})`
+		? sql`GREATEST(ts_rank(${tsvectorExpr}, to_tsquery('simple', ${tsQuery})), similarity(${similarityExpr}, ${searchExpr}))`
+		: sql`similarity(${similarityExpr}, ${searchExpr})`
 
 	return { condition, rank }
 }
