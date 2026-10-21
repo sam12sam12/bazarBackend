@@ -132,14 +132,6 @@ async function listProducts(
 
 export const productService = {
 	// ── Search Suggestions (Minimal data) ──
-	// Multiple sellers can list the exact same product name — without
-	// deduping, the same title (different ids/images) could fill the whole
-	// suggestion list instead of showing variety, which no real autocomplete
-	// (Google/Amazon/Facebook included) does. `DISTINCT ON (lower(title))`
-	// keeps only the single best-ranked row per distinct title; its own
-	// `ORDER BY` has to start with that same expression (a `DISTINCT ON`
-	// requirement), so the inner query's ordering is title-then-rank and the
-	// outer query re-sorts the already-deduped set by rank for real.
 	async getSuggestions(search: string, limit: number = 10) {
 		if (search.length < 1) return []
 		const { condition, rank } = buildFuzzySearch(
@@ -147,25 +139,18 @@ export const productService = {
 			productFuzzySearchTarget(),
 		)
 		const whereCondition = and(eq(products.is_active, true), condition)
-		const lowerTitle = sql`lower(${products.title})`
-
-		const deduped = db
-			.selectDistinctOn([lowerTitle], {
+		const results = await db
+			.select({
 				id: products.id,
 				title: products.title,
 				image: sql<string>`images->0->>'url'`,
-				rank: rank.as('rank'),
 			})
 			.from(products)
 			.where(whereCondition)
-			.orderBy(lowerTitle, desc(rank))
-			.as('deduped')
-
-		return db
-			.select({ id: deduped.id, title: deduped.title, image: deduped.image })
-			.from(deduped)
-			.orderBy(desc(deduped.rank))
+			.orderBy(desc(rank))
 			.limit(limit)
+
+		return results
 	},
 
 	// ── List with filters ──
