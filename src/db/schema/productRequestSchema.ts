@@ -88,5 +88,21 @@ export const productRequests = pgTable(
 		index('product_requests_category_pagination_idx')
 			.on(table.category_id, table.created_at.desc(), table.id.desc())
 			.where(sql`${table.status} = 'open'`),
+
+		// Hybrid tsvector+trigram search (productRequestService's
+		// `buildFuzzySearch`) — same shape as products_fts_idx/
+		// products_title_trgm_idx.
+		index('product_requests_fts_idx').using(
+			'gin',
+			sql`to_tsvector('simple', coalesce(${table.title}, '') || ' ' || coalesce(${table.description}, ''))`,
+		),
+
+		// Needs `CREATE EXTENSION IF NOT EXISTS pg_trgm;` run once against the
+		// database first (see productSchema.ts's own trigram index for the
+		// same note).
+		index('product_requests_title_trgm_idx').using(
+			'gin',
+			sql`lower(${table.title}) gin_trgm_ops`,
+		),
 	],
 )

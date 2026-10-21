@@ -11,8 +11,23 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
+import { buildFuzzySearch } from '../utils/search'
 import { storage } from '../utils/storage/instance'
 import type { PublicRequestFilters } from '../utils/types'
+
+// The combined tsvector-source (title+description) and the single
+// similarity column (title only) — same hybrid-search shape
+// `productFuzzySearchTarget` builds for products, just this entity's own
+// columns.
+function requestFuzzySearchTarget() {
+	return {
+		textColumns: [
+			sql`coalesce(${productRequests.title}, '')`,
+			sql`coalesce(${productRequests.description}, '')`,
+		],
+		similarityColumn: sql`${productRequests.title}`,
+	}
+}
 
 interface RequestImage {
 	url: string
@@ -63,11 +78,12 @@ export const productRequestService = {
 	// ── Search Suggestions (Minimal data) ── mirrors productService's own,
 	// same shape so Bazar56's SearchSuggestions component can render either.
 	async getSuggestions(search: string, limit: number = 10) {
-		if (search.length < 2) return []
-		const whereCondition = and(
-			eq(productRequests.status, 'open'),
-			sql`to_tsvector('simple', coalesce(${productRequests.title}, '')) @@ plainto_tsquery('simple', ${search})`,
+		if (search.length < 1) return []
+		const { condition, rank } = buildFuzzySearch(
+			search,
+			requestFuzzySearchTarget(),
 		)
+		const whereCondition = and(eq(productRequests.status, 'open'), condition)
 		const results = await db
 			.select({
 				id: productRequests.id,
@@ -76,6 +92,7 @@ export const productRequestService = {
 			})
 			.from(productRequests)
 			.where(whereCondition)
+			.orderBy(desc(rank))
 			.limit(limit)
 
 		return results
@@ -86,7 +103,7 @@ export const productRequestService = {
 	// writes this straight into its caches instead of refetching.
 	async create(userId: string, data: InsertProductRequest) {
 		await storage.validateNewImages(
-			(data.images as RequestImage[] | undefined ?? []).map((i) => i.url),
+			((data.images as RequestImage[] | undefined) ?? []).map((i) => i.url),
 		)
 
 		const [request] = await db
@@ -123,8 +140,8 @@ export const productRequestService = {
 			? lte(productRequests.budget_max, filters.maxBudget)
 			: undefined
 		const searchFilter =
-			filters?.search && filters.search.length >= 2
-				? sql`to_tsvector('simple', coalesce(${productRequests.title}, '') || ' ' || coalesce(${productRequests.description}, '')) @@ plainto_tsquery('simple', ${filters.search})`
+			filters?.search && filters.search.length >= 1
+				? buildFuzzySearch(filters.search, requestFuzzySearchTarget()).condition
 				: undefined
 
 		const sortBy = filters?.sortBy ?? 'newest'

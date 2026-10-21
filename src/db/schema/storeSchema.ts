@@ -107,10 +107,20 @@ export const stores = pgTable(
 			.on(table.owner_id!, table.created_at!.desc(), table.id!.desc())
 			.where(sql`${table.is_active} = true`),
 
-		// Name search for suggestions
+		// Hybrid tsvector+trigram search (storeService's `buildFuzzySearch`) —
+		// name+description tsvector match, same shape as products_fts_idx.
 		index('stores_name_fts_idx').using(
 			'gin',
-			sql`to_tsvector('simple', coalesce(${table.name}, ''))`,
+			sql`to_tsvector('simple', coalesce(${table.name}, '') || ' ' || coalesce(${table.description}, ''))`,
+		),
+
+		// Trigram index backing `lower(name) % lower(search)` — the
+		// typo-tolerant half; needs `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
+		// run once against the database first (see productSchema.ts's own
+		// trigram index for the same note).
+		index('stores_name_trgm_idx').using(
+			'gin',
+			sql`lower(${table.name}) gin_trgm_ops`,
 		),
 
 		// Tree operations

@@ -18,9 +18,23 @@ import {
 	type CursorData,
 	paginateResults,
 } from '../utils/pagination'
+import { buildFuzzySearch } from '../utils/search'
 import { storage } from '../utils/storage/instance'
 import type { ProductImage, StoreFilters } from '../utils/types'
 import { favoriteStoreService } from './favoriteStoreService'
+
+// The combined tsvector-source (name+description) and the single similarity
+// column (name only) — same hybrid-search shape `productFuzzySearchTarget`
+// builds for products, just this entity's own columns.
+function storeFuzzySearchTarget() {
+	return {
+		textColumns: [
+			sql`coalesce(${stores.name}, '')`,
+			sql`coalesce(${stores.description}, '')`,
+		],
+		similarityColumn: sql`${stores.name}`,
+	}
+}
 
 // Whether `currentUserId` has favorited this row — `false` with no SQL cost
 // when there's no signed-in caller. Mirrors `isOwner`'s controller-level
@@ -71,11 +85,12 @@ function reviewStatsColumns() {
 
 export const storeService = {
 	async getSuggestions(search: string, limit: number = 10) {
-		if (search.length < 2) return []
-		const whereCondition = and(
-			eq(stores.is_active, true),
-			sql`to_tsvector('simple', coalesce(${stores.name}, '')) @@ plainto_tsquery('simple', ${search})`,
+		if (search.length < 1) return []
+		const { condition, rank } = buildFuzzySearch(
+			search,
+			storeFuzzySearchTarget(),
 		)
+		const whereCondition = and(eq(stores.is_active, true), condition)
 
 		const results = await db
 			.select({
@@ -85,6 +100,7 @@ export const storeService = {
 			})
 			.from(stores)
 			.where(whereCondition)
+			.orderBy(desc(rank))
 			.limit(limit)
 
 		return results
@@ -125,12 +141,12 @@ export const storeService = {
 			conditions.push(eq(stores.approval_status, 'approved'))
 		}
 
-		const hasSearchTerm = !!(filters?.search && filters.search.length >= 2)
-		if (hasSearchTerm) {
-			conditions.push(
-				sql`to_tsvector('simple', coalesce(${stores.name}, '') || ' ' || coalesce(${stores.description}, '')) @@ plainto_tsquery('simple', ${filters?.search})`,
-			)
-		}
+		const searchTerm = filters?.search ?? ''
+		const hasSearchTerm = searchTerm.length >= 1
+		const fuzzySearch = hasSearchTerm
+			? buildFuzzySearch(searchTerm, storeFuzzySearchTarget())
+			: undefined
+		if (fuzzySearch) conditions.push(fuzzySearch.condition)
 
 		const limit = filters?.limit || 12
 		const sortBy = filters?.sort ?? 'relevance'
@@ -142,7 +158,7 @@ export const storeService = {
 
 		if (!usesDefaultCursorOrder) {
 			const offset = filters?.cursor ? Number(filters.cursor.id) : 0
-			const relevanceRank = sql`ts_rank(to_tsvector('simple', coalesce(${stores.name}, '') || ' ' || coalesce(${stores.description}, '')), plainto_tsquery('simple', ${filters?.search}))`
+			const relevanceRank = fuzzySearch ? fuzzySearch.rank : sql`0`
 			const followerCount = sql`(SELECT COUNT(*) FROM store_follows WHERE store_follows.store_id = ${stores.id})`
 			const avgRating = sql`(SELECT COALESCE(AVG(rating), 0) FROM store_reviews WHERE store_id = ${stores.id})`
 			const orderBy =
@@ -219,7 +235,8 @@ export const storeService = {
 				isOwner: isOwnerColumn(currentUserId).as('isOwner'),
 				isFollowed: isFollowColumn(currentUserId).as('isFollowed'),
 				review_count: reviewStatsColumns().review_count.as('review_count'),
-				average_rating: reviewStatsColumns().average_rating.as('average_rating'),
+				average_rating:
+					reviewStatsColumns().average_rating.as('average_rating'),
 			},
 			orderBy: [desc(stores.created_at), desc(stores.id)],
 			limit: limit + 1,
