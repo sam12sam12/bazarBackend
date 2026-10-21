@@ -128,6 +128,17 @@ export const products = pgTable(
 			sql`to_tsvector('simple', coalesce(${table.title}, '') || ' ' || coalesce(${table.description}, ''))`,
 		),
 
+		// Trigram index backing `similarity(title, ...)` — the typo-tolerant
+		// half of productService's hybrid search (the tsvector index above
+		// only ever matches whole/prefix words, never a misspelling). Needs
+		// `CREATE EXTENSION IF NOT EXISTS pg_trgm;` run once against the
+		// database before this migration — drizzle-kit has no extension
+		// primitive of its own, so it can't generate that statement itself.
+		index('products_title_trgm_idx').using(
+			'gin',
+			sql`${table.title} gin_trgm_ops`,
+		),
+
 		index('products_specifications_gin_idx').using('gin', table.specifications),
 		index('products_images_gin_idx').using('gin', table.images),
 
