@@ -217,11 +217,14 @@ export const productService = {
 		if (filters?.featured !== undefined)
 			conditions.push(eq(products.featured, filters.featured))
 
-		// Hybrid tsvector+trigram match (min 2 chars to avoid a trivial query) —
-		// see buildFuzzySearch's own comment for why this replaced a strict
-		// AND-every-word `plainto_tsquery` match.
+		// Hybrid tsvector+trigram match — see buildFuzzySearch's own comment
+		// for why this replaced a strict AND-every-word `plainto_tsquery`
+		// match. Any non-empty term applies it (matching getSuggestions'
+		// threshold) — skipping the filter below 2 chars used to silently
+		// fall through to the unfiltered/default list instead of actually
+		// narrowing by what was typed.
 		const searchTerm = filters?.search ?? ''
-		const hasSearchTerm = searchTerm.length >= 2
+		const hasSearchTerm = searchTerm.length >= 1
 		const fuzzySearch = hasSearchTerm ? buildFuzzySearch(searchTerm) : undefined
 		if (fuzzySearch) conditions.push(fuzzySearch.condition)
 
