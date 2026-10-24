@@ -1,6 +1,6 @@
 import { and, desc, eq, type SQL, sql } from 'drizzle-orm'
 import { db } from '../db/db'
-import { productReviewReactions, productReviews } from '../db/schema'
+import { productReviewReactions, productReviews, products } from '../db/schema'
 import type { InsertProductReview, UpdateProductReview } from '../db/validation'
 import { ApiError } from '../utils/ApiError'
 import {
@@ -10,6 +10,7 @@ import {
 } from '../utils/pagination'
 import { storage } from '../utils/storage/instance'
 import type { ReviewFilters, ReviewReaction } from '../utils/types'
+import { notificationDispatchService } from './notificationDispatchService'
 
 async function recalculateReactionCounts(reviewId: number) {
 	await db
@@ -167,7 +168,11 @@ export const productReviewService = {
 	// reviewer name/avatar + my_reaction/isOwner) instead of a bare message
 	// — the frontend writes this straight into its caches instead of
 	// refetching. Same pattern `react()` below already uses.
-	async create(userId: string, data: InsertProductReview) {
+	async create(
+		userId: string,
+		data: InsertProductReview,
+		reviewerName: string,
+	) {
 		await storage.validateNewImages(data.images ?? [])
 
 		let inserted: { id: number } | undefined
@@ -183,7 +188,40 @@ export const productReviewService = {
 			}
 			throw error
 		}
-		return inserted ? this.getById(inserted.id, userId) : undefined
+		if (!inserted) return undefined
+
+		// Notify the product's store owner in the background — never blocks
+		// the response.
+		const product = await db.query.products.findFirst({
+			where: eq(products.id, data.product_id),
+			columns: { title: true, store_id: true },
+			with: { store: { columns: { owner_id: true } } },
+		})
+		if (product && product.store.owner_id !== userId) {
+			const body = `${reviewerName} left a ${data.rating}-star review on "${product.title}"`
+			notificationDispatchService
+				.notifyUsers({
+					type: 'review_received',
+					recipients: [product.store.owner_id],
+					actorId: userId,
+					productId: data.product_id,
+					data: {
+						title: 'New Review',
+						body,
+						product_title: product.title,
+						rating: data.rating,
+					},
+					push: { title: 'New Review', body },
+				})
+				.catch((err) =>
+					console.error(
+						'[notification] failed to notify product owner of review:',
+						err,
+					),
+				)
+		}
+
+		return this.getById(inserted.id, userId)
 	},
 
 	// Same reasoning as create.

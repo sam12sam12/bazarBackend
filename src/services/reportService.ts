@@ -8,10 +8,38 @@ import {
 	paginateResults,
 } from '../utils/pagination'
 import type { ReportType } from '../utils/types'
+import { notificationDispatchService } from './notificationDispatchService'
+import { userService } from './userService'
 
 export const reportService = {
-	async createReport(userId: string, data: InsertReport) {
+	async createReport(userId: string, data: InsertReport, reporterName: string) {
 		await db.insert(reports).values({ ...data, user_id: userId })
+
+		// Notify every admin in the background — never blocks the response.
+		const adminIds = await userService.getAdminIds()
+		if (adminIds.length > 0) {
+			const body = `${reporterName} reported a ${data.type} for ${data.reason}`
+			notificationDispatchService
+				.notifyUsers({
+					type: 'report_received',
+					recipients: adminIds,
+					actorId: userId,
+					data: {
+						title: 'New Report',
+						body,
+						report_type: data.type,
+						reason: data.reason,
+					},
+					push: { title: 'New Report', body },
+				})
+				.catch((err) =>
+					console.error(
+						'[notification] failed to notify admins of report:',
+						err,
+					),
+				)
+		}
+
 		return 'Report submitted successfully'
 	},
 

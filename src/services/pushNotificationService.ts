@@ -20,6 +20,7 @@ const PREFERENCE_COLUMN = {
 	new_store_product: notificationPreferences.new_store_product,
 	new_message: notificationPreferences.new_message,
 	order_status_changed: notificationPreferences.order_status_changed,
+	review_received: notificationPreferences.review_received,
 } as const
 
 export type PushCategory = keyof typeof PREFERENCE_COLUMN

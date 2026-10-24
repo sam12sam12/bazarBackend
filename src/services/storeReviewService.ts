@@ -1,6 +1,6 @@
 import { and, desc, eq, type SQL, sql } from 'drizzle-orm'
 import { db } from '../db/db'
-import { storeReviewReactions, storeReviews } from '../db/schema'
+import { storeReviewReactions, storeReviews, stores } from '../db/schema'
 import type { InsertStoreReview, UpdateStoreReview } from '../db/validation'
 import { ApiError } from '../utils/ApiError'
 import {
@@ -10,6 +10,7 @@ import {
 } from '../utils/pagination'
 import { storage } from '../utils/storage/instance'
 import type { ReviewFilters, ReviewReaction } from '../utils/types'
+import { notificationDispatchService } from './notificationDispatchService'
 
 async function recalculateReactionCounts(reviewId: number) {
 	await db
@@ -167,7 +168,7 @@ export const storeReviewService = {
 	// reviewer name/avatar + my_reaction/isOwner) instead of a bare message
 	// — the frontend writes this straight into its caches instead of
 	// refetching. Same pattern `react()` below already uses.
-	async create(userId: string, data: InsertStoreReview) {
+	async create(userId: string, data: InsertStoreReview, reviewerName: string) {
 		await storage.validateNewImages(data.images ?? [])
 
 		let inserted: { id: number } | undefined
@@ -183,7 +184,37 @@ export const storeReviewService = {
 			}
 			throw error
 		}
-		return inserted ? this.getById(inserted.id, userId) : undefined
+		if (!inserted) return undefined
+
+		// Notify the store owner in the background — never blocks the response.
+		const store = await db.query.stores.findFirst({
+			where: eq(stores.id, data.store_id),
+			columns: { owner_id: true, name: true },
+		})
+		if (store && store.owner_id !== userId) {
+			const body = `${reviewerName} left a ${data.rating}-star review on "${store.name}"`
+			notificationDispatchService
+				.notifyUsers({
+					type: 'review_received',
+					recipients: [store.owner_id],
+					actorId: userId,
+					data: {
+						title: 'New Review',
+						body,
+						store_name: store.name,
+						rating: data.rating,
+					},
+					push: { title: 'New Review', body },
+				})
+				.catch((err) =>
+					console.error(
+						'[notification] failed to notify store owner of review:',
+						err,
+					),
+				)
+		}
+
+		return this.getById(inserted.id, userId)
 	},
 
 	// Same reasoning as create.

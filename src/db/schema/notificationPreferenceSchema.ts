@@ -18,6 +18,7 @@ export const notificationPreferences = pgTable(
 		order_status_changed: boolean('order_status_changed')
 			.default(true)
 			.notNull(),
+		review_received: boolean('review_received').default(true).notNull(),
 
 		...timestamps,
 	},

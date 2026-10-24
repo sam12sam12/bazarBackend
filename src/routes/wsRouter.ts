@@ -407,7 +407,11 @@ router.get(
 										: '📷 Photo'
 									: data.kind === 'voice'
 										? '🎤 Voice message'
-										: preview)
+										: data.kind === 'product_reference'
+											? `🛍️ Shared a product: "${message.reference_product?.title}"`
+											: data.kind === 'request_reference'
+												? `📨 Shared a request: "${message.reference_request?.title}"`
+												: preview)
 							// Skip notifying whoever currently has *this* conversation
 							// open — they're already seeing the message live via the WS
 							// event above (see activeConversation.ts). Anyone else — a

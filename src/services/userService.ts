@@ -144,4 +144,14 @@ export const userService = {
 			.where(whereCondition)
 		return rows.map((r) => r.id)
 	},
+
+	// Every active admin — used to fan out admin-facing notifications
+	// (e.g. report_received) to all of them, not just one.
+	async getAdminIds(): Promise<string[]> {
+		const rows = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(and(eq(users.is_active, true), eq(users.role, 'admin')))
+		return rows.map((r) => r.id)
+	},
 }

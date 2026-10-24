@@ -486,6 +486,7 @@ export const storeService = {
 					actorId: userId,
 					data: {
 						title: 'New Follower',
+						body: `${followerName} started following your store "${store.name}"`,
 						store_name: store.name,
 						actor_name: followerName,
 					},

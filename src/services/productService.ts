@@ -434,6 +434,7 @@ export const productService = {
 			productId,
 			data: {
 				title: 'New Product',
+				body: `New listing: ${title}`,
 				store_name: store.name,
 				product_title: title,
 			},

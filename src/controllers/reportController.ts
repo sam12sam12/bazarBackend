@@ -7,7 +7,11 @@ export const reportController = {
 	async createReport(c: Context) {
 		const currentUser = c.get('user')
 		const data = c.get('validated')
-		const report = await reportService.createReport(currentUser.id, data)
+		const report = await reportService.createReport(
+			currentUser.id,
+			data,
+			currentUser.name,
+		)
 		return c.json({ success: true, data: report })
 	},
 

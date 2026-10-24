@@ -75,7 +75,10 @@ export const ordersService = {
 		// into one. qtyByProduct separately collapses every line back down to
 		// the unique set of product ids involved (for the lock/availability
 		// check below — there's no per-product quantity to total anymore).
-		const lineKey = (productId: number, selectedOptions?: Record<string, string>) =>
+		const lineKey = (
+			productId: number,
+			selectedOptions?: Record<string, string>,
+		) =>
 			`${productId}::${JSON.stringify(Object.entries(selectedOptions ?? {}).sort())}`
 
 		const linesByKey = new Map<
@@ -166,7 +169,9 @@ export const ordersService = {
 			// Validate availability under lock.
 			for (const row of locked) {
 				if (!row.is_active || row.listing_status === 'sold') {
-					throw ApiError.conflict(`Product "${row.title}" is no longer available`)
+					throw ApiError.conflict(
+						`Product "${row.title}" is no longer available`,
+					)
 				}
 			}
 
@@ -270,9 +275,13 @@ export const ordersService = {
 			return ordersOut
 		})
 
-		// 5. Notify each store owner (fire-and-forget; never block the response).
+		// 5. Notify each store owner and the buyer themselves (fire-and-forget;
+		//    never block the response).
 		this.notifyStoreOwners(created, buyer_id, buyer.name).catch((err) =>
 			console.error('[orders] failed to notify store owners:', err),
+		)
+		this.notifyBuyer(created, buyer_id).catch((err) =>
+			console.error('[orders] failed to notify buyer:', err),
 		)
 
 		return { checkout_group_id, orders: created }
@@ -309,6 +318,33 @@ export const ordersService = {
 				})
 			}),
 		)
+	},
+
+	// ── Background: confirm to the buyer that their own order(s) went
+	//    through — one consolidated notification per checkout, not one per
+	//    store order (a buyer who ordered from 3 stores at once shouldn't get
+	//    3 separate "order placed" rows). In-app only, same as the store
+	//    owner's own new_order notification above. ──
+	async notifyBuyer(
+		created: Array<{ id: number; order_number: string }>,
+		buyerId: string,
+	) {
+		if (created.length === 0) return
+		const body =
+			created.length === 1
+				? `Order #${created[0]?.order_number} has been placed`
+				: `${created.length} orders have been placed`
+		await notificationDispatchService.notifyUsers({
+			type: 'new_order',
+			recipients: [buyerId],
+			actorId: buyerId,
+			data: {
+				title: 'Order Placed',
+				body,
+				order_ids: created.map((o) => o.id),
+			},
+			// In-app only, matching notifyStoreOwners above.
+		})
 	},
 
 	// ==================== READS ====================
@@ -430,7 +466,14 @@ export const ordersService = {
 						buyer: { columns: { id: true, name: true, avatar_url: true } },
 						items: {
 							with: {
-								product: { columns: { id: true, title: true, images: true, category_id: true } },
+								product: {
+									columns: {
+										id: true,
+										title: true,
+										images: true,
+										category_id: true,
+									},
+								},
 							},
 						},
 					},
@@ -505,7 +548,14 @@ export const ordersService = {
 				},
 				items: {
 					with: {
-						product: { columns: { id: true, title: true, images: true, category_id: true } },
+						product: {
+							columns: {
+								id: true,
+								title: true,
+								images: true,
+								category_id: true,
+							},
+						},
 					},
 				},
 			},
@@ -549,7 +599,10 @@ export const ordersService = {
 			// Restock and update status atomically.
 			await db.transaction(async (tx) => {
 				await tx.update(orders).set(patch).where(eq(orders.id, orderId))
-				await reactivateProducts(tx, order.items.map((i) => i.product_id))
+				await reactivateProducts(
+					tx,
+					order.items.map((i) => i.product_id),
+				)
 			})
 		} else {
 			await db.update(orders).set(patch).where(eq(orders.id, orderId))
@@ -563,6 +616,7 @@ export const ordersService = {
 				actorId,
 				data: {
 					title: 'Order Update',
+					body: `Order #${order.order_number} is now ${newStatus}`,
 					order_id: orderId,
 					order_number: order.order_number,
 					status: newStatus,
@@ -612,7 +666,10 @@ export const ordersService = {
 					updated_at: now,
 				})
 				.where(eq(orders.id, orderId))
-			await reactivateProducts(tx, order.items.map((i) => i.product_id))
+			await reactivateProducts(
+				tx,
+				order.items.map((i) => i.product_id),
+			)
 		})
 
 		// Notify the store owner (fire-and-forget).
@@ -624,6 +681,7 @@ export const ordersService = {
 					actorId: buyerId,
 					data: {
 						title: 'Order Cancelled',
+						body: `Order #${order.order_number} was cancelled`,
 						order_id: orderId,
 						order_number: order.order_number,
 						status: 'cancelled',

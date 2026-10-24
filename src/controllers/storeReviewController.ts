@@ -52,7 +52,11 @@ export const storeReviewController = {
 	async create(c: Context) {
 		const currentUser = c.get('user')
 		const data = c.get('validated')
-		const result = await storeReviewService.create(currentUser.id, data)
+		const result = await storeReviewService.create(
+			currentUser.id,
+			data,
+			currentUser.name,
+		)
 		return c.json({ success: true, data: result }, 201)
 	},
 
