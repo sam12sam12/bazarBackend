@@ -175,19 +175,10 @@ export const productReviewService = {
 	) {
 		await storage.validateNewImages(data.images ?? [])
 
-		let inserted: { id: number } | undefined
-		try {
-			;[inserted] = await db
-				.insert(productReviews)
-				.values({ ...data, user_id: userId })
-				.returning({ id: productReviews.id })
-		} catch (error) {
-			// unique_violation — this user already reviewed this product
-			if ((error as { code?: string }).code === '23505') {
-				throw ApiError.conflict('You have already reviewed this product')
-			}
-			throw error
-		}
+		const [inserted] = await db
+			.insert(productReviews)
+			.values({ ...data, user_id: userId })
+			.returning({ id: productReviews.id })
 		if (!inserted) return undefined
 
 		// Notify the product's store owner in the background — never blocks
@@ -267,12 +258,15 @@ export const productReviewService = {
 	},
 
 	// The reviewed product's store owner replying to a review — only that
-	// store's owner (or an admin) may do this.
+	// store's owner (or an admin) may do this. `ownerReply: null` removes an
+	// existing reply (the dedicated "Remove reply" menu action), clearing
+	// the timestamp alongside it so a removed reply doesn't linger with a
+	// stale `owner_reply_at`.
 	async reply(
 		id: number,
 		userId: string,
 		isAdmin: boolean,
-		ownerReply: string,
+		ownerReply: string | null,
 	) {
 		const review = await db.query.productReviews.findFirst({
 			where: eq(productReviews.id, id),
@@ -291,7 +285,10 @@ export const productReviewService = {
 
 		await db
 			.update(productReviews)
-			.set({ owner_reply: ownerReply, owner_reply_at: new Date() })
+			.set({
+				owner_reply: ownerReply,
+				owner_reply_at: ownerReply ? new Date() : null,
+			})
 			.where(eq(productReviews.id, id))
 		// Same reasoning as create/update — fully hydrated instead of the
 		// raw row `.returning()` would give (no reviewer name/avatar, no

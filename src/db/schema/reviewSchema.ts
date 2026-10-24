@@ -61,12 +61,6 @@ export const productReviews = pgTable(
 			.onDelete('cascade')
 			.onUpdate('cascade'),
 
-		// Unique review per user/product
-		uniqueIndex('product_reviews_user_product_idx').on(
-			table.product_id,
-			table.user_id,
-		),
-
 		// Product reviews pagination
 		index('product_reviews_pagination_idx').on(
 			table.product_id,
@@ -158,11 +152,6 @@ export const storeReviews = pgTable(
 		})
 			.onDelete('cascade')
 			.onUpdate('cascade'),
-
-		uniqueIndex('store_reviews_user_store_idx').on(
-			table.store_id,
-			table.user_id,
-		),
 
 		index('store_reviews_pagination_idx').on(
 			table.store_id,

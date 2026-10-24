@@ -52,13 +52,7 @@ export const presignUploadSchema = z
  */
 export const productSpecificationsSchema = z.record(
 	z.string(),
-	z.union([
-		z.string(),
-		z.number(),
-		z.boolean(),
-		z.null(),
-		z.array(z.string()),
-	]),
+	z.union([z.string(), z.number(), z.boolean(), z.null(), z.array(z.string())]),
 )
 
 // ==================== USER VALIDATION ====================
@@ -199,15 +193,24 @@ export const insertStoreSchema = createInsertSchema(stores, {
 
 	contact_phone: (schema) =>
 		schema
-			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
+			.regex(
+				/^\+[1-9]\d{6,14}$/,
+				'Invalid phone number (expected E.164 format)',
+			)
 			.optional(),
 	secondary_phone: (schema) =>
 		schema
-			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
+			.regex(
+				/^\+[1-9]\d{6,14}$/,
+				'Invalid phone number (expected E.164 format)',
+			)
 			.optional(),
 	whatsapp: (schema) =>
 		schema
-			.regex(/^\+[1-9]\d{6,14}$/, 'Invalid phone number (expected E.164 format)')
+			.regex(
+				/^\+[1-9]\d{6,14}$/,
+				'Invalid phone number (expected E.164 format)',
+			)
 			.optional(),
 	latitude: z
 		.union([
@@ -389,8 +392,9 @@ export const updateProductReviewSchema = insertProductReviewSchema
 	.partial()
 	.strict()
 
+// `null` removes an existing reply (the "Remove reply" menu action).
 export const replyProductReviewSchema = z
-	.object({ owner_reply: z.string().trim().min(1).max(1000) })
+	.object({ owner_reply: z.string().trim().min(1).max(1000).nullable() })
 	.strict()
 
 export const reactToProductReviewSchema = z
@@ -426,8 +430,9 @@ export const updateStoreReviewSchema = insertStoreReviewSchema
 	.partial()
 	.strict()
 
+// `null` removes an existing reply (the "Remove reply" menu action).
 export const replyStoreReviewSchema = z
-	.object({ owner_reply: z.string().trim().min(1).max(1000) })
+	.object({ owner_reply: z.string().trim().min(1).max(1000).nullable() })
 	.strict()
 
 export const reactToStoreReviewSchema = z
