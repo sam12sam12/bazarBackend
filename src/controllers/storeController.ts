@@ -173,7 +173,11 @@ export const storeController = {
 	async toggleFollow(c: Context) {
 		const currentUser = c.get('user')
 		const storeId = parseId(c, 'storeId')
-		const result = await storeService.toggleFollow(currentUser.id, storeId)
+		const result = await storeService.toggleFollow(
+			currentUser.id,
+			storeId,
+			currentUser.name,
+		)
 		if (!result) throw ApiError.notFound('Store not found')
 		return c.json({ success: true, data: result })
 	},

@@ -389,8 +389,9 @@ router.get(
 									messageId: message.id,
 									data: {
 										title: 'New Message',
-										preview: notificationBody,
+										body: notificationBody,
 										conversation_id: conversationId,
+										actor_name: user.name,
 									},
 									push: { title: user.name, body: notificationBody },
 								})

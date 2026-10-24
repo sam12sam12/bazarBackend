@@ -2,7 +2,6 @@ import { and, desc, eq, gte, inArray, type SQL, sql } from 'drizzle-orm'
 import { db } from '../db/db'
 import {
 	categories,
-	notifications,
 	productReviews,
 	products,
 	provinces,
@@ -22,6 +21,7 @@ import { buildFuzzySearch } from '../utils/search'
 import { storage } from '../utils/storage/instance'
 import type { ProductImage, StoreFilters } from '../utils/types'
 import { favoriteStoreService } from './favoriteStoreService'
+import { notificationDispatchService } from './notificationDispatchService'
 
 // The combined tsvector-source (name+description) and the single similarity
 // column (name only) — same hybrid-search shape `productFuzzySearchTarget`
@@ -442,7 +442,7 @@ export const storeService = {
 		return !!existing
 	},
 
-	async toggleFollow(userId: string, storeId: number) {
+	async toggleFollow(userId: string, storeId: number, followerName: string) {
 		const store = await db.query.stores.findFirst({
 			where: eq(stores.id, storeId),
 			columns: { id: true, owner_id: true, name: true },
@@ -475,14 +475,24 @@ export const storeService = {
 			.values({ user_id: userId, store_id: storeId })
 			.onConflictDoNothing()
 
-		// Notify the store owner in the background — don't block the response
+		// Notify the store owner in the background — don't block the response.
+		// Always pushes (see notificationDispatchService's new_follower special
+		// case), not gated by a preference column.
 		if (store.owner_id !== userId) {
-			db.insert(notifications)
-				.values({
-					user_id: store.owner_id,
-					actor_id: userId,
+			notificationDispatchService
+				.notifyUsers({
 					type: 'new_follower',
-					data: { title: 'New Follower', actor_name: store.name },
+					recipients: [store.owner_id],
+					actorId: userId,
+					data: {
+						title: 'New Follower',
+						store_name: store.name,
+						actor_name: followerName,
+					},
+					push: {
+						title: 'New Follower',
+						body: `${followerName} started following your store "${store.name}"`,
+					},
 				})
 				.catch((err) =>
 					console.error('[notification] failed to notify store owner:', err),

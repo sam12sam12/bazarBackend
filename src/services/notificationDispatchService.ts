@@ -8,9 +8,11 @@ import {
 
 type NotificationType = (typeof notificationTypeEnum.enumValues)[number]
 
-// Types not listed here (new_follower, new_order, new_similar_product,
-// bid_received, offer_accepted, review_received, report_received) stay
-// in-app-only in v1 — callers simply omit `push` for those.
+// Types not listed here (new_order, new_similar_product, bid_received,
+// offer_accepted, review_received, report_received) stay in-app-only in
+// v1 — callers simply omit `push` for those. `new_follower` isn't listed
+// here either, but unlike those it still always pushes — see the
+// `admin_broadcast`-style special case below.
 const PUSH_CATEGORY: Partial<Record<NotificationType, PushCategory>> = {
 	new_store_product: 'new_store_product',
 	new_message: 'new_message',
@@ -49,8 +51,14 @@ export const notificationDispatchService = {
 
 		if (!input.push) return
 
+		// `admin_broadcast` and `new_follower` both always push — neither is
+		// gated by a `notification_preferences` column, so both resolve to a
+		// `null` category (sendToUsers skips the preference lookup entirely
+		// for a `null` category, see pushNotificationService).
 		const category =
-			input.type === 'admin_broadcast' ? null : PUSH_CATEGORY[input.type]
+			input.type === 'admin_broadcast' || input.type === 'new_follower'
+				? null
+				: PUSH_CATEGORY[input.type]
 		if (category === undefined) return // this type never pushes
 
 		await pushNotificationService.sendToUsers(input.recipients, category, {
@@ -58,6 +66,7 @@ export const notificationDispatchService = {
 			body: input.push.body,
 			data: {
 				type: input.type,
+				actor_id: input.actorId,
 				product_id: input.productId,
 				message_id: input.messageId,
 				...input.data,
