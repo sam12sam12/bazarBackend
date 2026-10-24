@@ -12,6 +12,12 @@ import {
 	sendTextMessageSchema,
 	sendVoiceMessageSchema,
 } from '../db/validation.ts'
+import {
+	clearActiveConversation,
+	getActiveConversations,
+	refreshActiveConversation,
+	setActiveConversation,
+} from '../lib/activeConversation.ts'
 import { fanoutBroadcast, fanoutFromConnection } from '../lib/fanout.ts'
 import {
 	getOnlineUserIds,
@@ -61,6 +67,14 @@ const messageSendFrame = z
 const clientMessageSchema = z.union([
 	z.object({
 		type: z.literal('join'),
+		conversation_id: z.number().int().positive(),
+	}),
+	// Sent when a chat screen unmounts/loses focus — clears the
+	// active-conversation marker `join` set, so message:send's notification
+	// gating stops treating this user as "currently looking at it" (see
+	// activeConversation.ts).
+	z.object({
+		type: z.literal('leave'),
 		conversation_id: z.number().int().positive(),
 	}),
 	messageSendFrame,
@@ -184,6 +198,14 @@ router.get(
 		const typingIn = new Set<number>()
 		const recordingIn = new Set<number>()
 
+		// Which conversation `join` most recently marked this connection as
+		// actively viewing — tracked locally too (not just in Redis) so
+		// `onClose`/`leave` can pass the exact id to `clearActiveConversation`'s
+		// compare-and-delete without an extra round trip, and so a stray
+		// `leave` for a conversation this connection was never actually
+		// marked active in is a no-op.
+		let activeConversationId: number | null = null
+
 		return {
 			async onOpen(_evt, ws) {
 				const raw = ws.raw as ServerWebSocket<unknown>
@@ -272,6 +294,16 @@ router.get(
 							if (!conversationIds.includes(parsed.conversation_id)) {
 								conversationIds.push(parsed.conversation_id)
 							}
+							activeConversationId = parsed.conversation_id
+							await setActiveConversation(user.id, parsed.conversation_id)
+							return
+						}
+
+						case 'leave': {
+							if (activeConversationId === parsed.conversation_id) {
+								activeConversationId = null
+							}
+							await clearActiveConversation(user.id, parsed.conversation_id)
 							return
 						}
 
@@ -334,12 +366,7 @@ router.get(
 								)
 							}
 
-							// Push only to recipients with no live connection at all —
-							// anyone online will see the WS events above instead.
 							const onlineIds = await getOnlineUserIds(participantIds)
-							const offlineRecipients = participantIds.filter(
-								(id) => id !== user.id && !onlineIds.includes(id),
-							)
 
 							// Recipients online right now have this message on their own
 							// open connection the instant it's fanned out above — persist
@@ -381,10 +408,23 @@ router.get(
 									: data.kind === 'voice'
 										? '🎤 Voice message'
 										: preview)
+							// Skip notifying whoever currently has *this* conversation
+							// open — they're already seeing the message live via the WS
+							// event above (see activeConversation.ts). Anyone else — a
+							// different screen, or no connection at all — gets the
+							// in-app row and a push.
+							const otherParticipants = participantIds.filter(
+								(id) => id !== user.id,
+							)
+							const activeConversations =
+								await getActiveConversations(otherParticipants)
+							const recipientsToNotify = otherParticipants.filter(
+								(id) => activeConversations[id] !== conversationId,
+							)
 							notificationDispatchService
 								.notifyUsers({
 									type: 'new_message',
-									recipients: offlineRecipients,
+									recipients: recipientsToNotify,
 									actorId: user.id,
 									messageId: message.id,
 									data: {
@@ -566,6 +606,9 @@ router.get(
 
 						case 'presence:heartbeat': {
 							await refreshConnection(user.id)
+							if (activeConversationId != null) {
+								await refreshActiveConversation(user.id)
+							}
 							return
 						}
 
@@ -635,6 +678,10 @@ router.get(
 							is_recording: false,
 						}),
 					)
+				}
+
+				if (activeConversationId != null) {
+					await clearActiveConversation(user.id, activeConversationId)
 				}
 
 				const justWentOffline = await unregisterConnection(user.id)
