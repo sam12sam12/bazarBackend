@@ -1,15 +1,24 @@
-import { eq } from 'drizzle-orm'
 import { db } from '../db/db'
 import { categories, categoryAttribute } from '../db/schema'
 import { contentVersionService } from './contentVersionService'
 
 export const categoryService = {
 	/**
-	 * The entire catalogue in one payload: every active category (flat, with
-	 * `parent_id`/`path`/`depth` so the client can build the tree) plus every
-	 * attribute grouped by category, plus the current version so the client can
-	 * store tree + version atomically. `name` stays as raw `{ en, ps, fa }` so a
-	 * single cached payload serves all languages.
+	 * The entire catalogue in one payload: *every* category — active or not
+	 * — (flat, with `parent_id`/`path`/`depth` so the client can build the
+	 * tree) plus every attribute grouped by category, plus the current
+	 * version so the client can store tree + version atomically. `name`
+	 * stays as raw `{ en, ps, fa }` so a single cached payload serves all
+	 * languages.
+	 *
+	 * Deliberately NOT filtered to `is_active` here: an existing product can
+	 * still reference a category an admin has since deactivated (hidden
+	 * from new selection, not deleted — nothing reassigns or blocks the
+	 * products already under it), and that product's own edit flow still
+	 * needs this category's row + attributes to resolve its specs step.
+	 * `is_active` ships as a column instead so the client can filter it out
+	 * specifically where *new* selection happens (the category picker) while
+	 * still resolving by id everywhere else (edit flows, breadcrumbs).
 	 */
 	async getTree() {
 		const [cats, attrs, version] = await Promise.all([
@@ -24,9 +33,9 @@ export const categoryService = {
 					sort_order: categories.sort_order,
 					is_popular: categories.is_popular,
 					delivery: categories.delivery,
+					is_active: categories.is_active,
 				})
 				.from(categories)
-				.where(eq(categories.is_active, true))
 				.orderBy(categories.depth, categories.sort_order),
 			db
 				.select({
@@ -42,8 +51,6 @@ export const categoryService = {
 					sort_order: categoryAttribute.sort_order,
 				})
 				.from(categoryAttribute)
-				.innerJoin(categories, eq(categoryAttribute.category_id, categories.id))
-				.where(eq(categories.is_active, true))
 				.orderBy(categoryAttribute.category_id, categoryAttribute.sort_order),
 			contentVersionService.getVersion(),
 		])
