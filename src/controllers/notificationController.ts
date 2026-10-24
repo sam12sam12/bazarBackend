@@ -1,8 +1,18 @@
 import type { Context } from 'hono'
-import { notificationService } from '../services/notificationService.ts'
+import {
+	type NotificationCategory,
+	notificationService,
+} from '../services/notificationService.ts'
 import { ApiError } from '../utils/ApiError'
 import { parseCursor, parseId } from '../utils/pagination.ts'
 import type { UserId } from '../utils/types.ts'
+
+const VALID_CATEGORIES: NotificationCategory[] = [
+	'order',
+	'promo',
+	'message',
+	'system',
+]
 
 export const notificationController = {
 	async getByUser(c: Context) {
@@ -15,9 +25,20 @@ export const notificationController = {
 		const limit = 12
 		const cursor = c.req.query('cursor')
 		const parsedCursor = parseCursor(cursor)
+		const categoryParam = c.req.query('category')
+		const category = VALID_CATEGORIES.includes(
+			categoryParam as NotificationCategory,
+		)
+			? (categoryParam as NotificationCategory)
+			: undefined
 
 		const { notifications, nextCursor, hasMore } =
-			await notificationService.getByUserId(userId, limit, parsedCursor)
+			await notificationService.getByUserId(
+				userId,
+				limit,
+				parsedCursor,
+				category,
+			)
 		return c.json({
 			success: true,
 			data: { notifications, nextCursor, hasMore },
