@@ -312,6 +312,7 @@ export const ordersService = {
 					data: {
 						title: 'New Order',
 						body,
+						order_role: 'seller',
 						order_id: o.id,
 						order_number: o.order_number,
 						buyer_name: buyerName,
@@ -340,9 +341,14 @@ export const ordersService = {
 			type: 'new_order',
 			recipients: [buyerId],
 			actorId: buyerId,
+			// `order_id` only when there's exactly one — a multi-store checkout
+			// has no single order to deep-link to, so the frontend falls back
+			// to the orders list for that case (see notificationRouting.ts).
 			data: {
 				title: 'Order Placed',
 				body,
+				order_role: 'buyer',
+				...(created.length === 1 ? { order_id: created[0]?.id } : {}),
 				order_ids: created.map((o) => o.id),
 			},
 			// In-app only, matching notifyStoreOwners above.
@@ -619,6 +625,7 @@ export const ordersService = {
 				data: {
 					title: 'Order Update',
 					body: `Order #${order.order_number} is now ${newStatus}`,
+					order_role: 'buyer',
 					order_id: orderId,
 					order_number: order.order_number,
 					status: newStatus,
@@ -684,6 +691,7 @@ export const ordersService = {
 					data: {
 						title: 'Order Cancelled',
 						body: `Order #${order.order_number} was cancelled`,
+						order_role: 'seller',
 						order_id: orderId,
 						order_number: order.order_number,
 						status: 'cancelled',
