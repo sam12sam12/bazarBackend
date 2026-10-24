@@ -19,6 +19,7 @@ const BROADCAST_DB_BATCH_SIZE = 500
 const PREFERENCE_COLUMN = {
 	new_store_product: notificationPreferences.new_store_product,
 	new_message: notificationPreferences.new_message,
+	new_order: notificationPreferences.new_order,
 	order_status_changed: notificationPreferences.order_status_changed,
 	review_received: notificationPreferences.review_received,
 } as const

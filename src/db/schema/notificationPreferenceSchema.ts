@@ -15,6 +15,7 @@ export const notificationPreferences = pgTable(
 
 		new_store_product: boolean('new_store_product').default(true).notNull(),
 		new_message: boolean('new_message').default(true).notNull(),
+		new_order: boolean('new_order').default(true).notNull(),
 		order_status_changed: boolean('order_status_changed')
 			.default(true)
 			.notNull(),

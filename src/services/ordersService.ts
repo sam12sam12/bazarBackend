@@ -304,17 +304,19 @@ export const ordersService = {
 			created.map((o) => {
 				const store = ownerByStore.get(o.store_id)
 				if (!store || store.owner_id === buyerId) return undefined
+				const body = `${buyerName} placed an order #${o.order_number}`
 				return notificationDispatchService.notifyUsers({
 					type: 'new_order',
 					recipients: [store.owner_id],
 					actorId: buyerId,
 					data: {
 						title: 'New Order',
+						body,
 						order_id: o.id,
 						order_number: o.order_number,
 						buyer_name: buyerName,
 					},
-					// In-app only for v1 — no push category for new_order yet.
+					push: { title: 'New Order', body },
 				})
 			}),
 		)

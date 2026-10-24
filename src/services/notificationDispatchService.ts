@@ -8,14 +8,18 @@ import {
 
 type NotificationType = (typeof notificationTypeEnum.enumValues)[number]
 
-// Types not listed here (new_order, new_similar_product, bid_received,
-// offer_accepted) stay in-app-only in v1 — callers simply omit `push` for
-// those. `new_follower` and `report_received` aren't listed here either,
-// but unlike those they still always push — see the `admin_broadcast`-style
+// Types not listed here (new_similar_product, bid_received, offer_accepted)
+// stay in-app-only in v1 — callers simply omit `push` for those. `new_order`
+// is listed here, but the buyer's own "Order Placed" confirmation (same
+// type, see ordersService.notifyBuyer) stays in-app-only too since it never
+// passes `push` — this map only matters for calls that do.
+// `new_follower` and `report_received` aren't listed here either, but
+// unlike those they still always push — see the `admin_broadcast`-style
 // special case below.
 const PUSH_CATEGORY: Partial<Record<NotificationType, PushCategory>> = {
 	new_store_product: 'new_store_product',
 	new_message: 'new_message',
+	new_order: 'new_order',
 	order_status_changed: 'order_status_changed',
 	review_received: 'review_received',
 }
