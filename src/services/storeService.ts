@@ -572,6 +572,11 @@ export const storeService = {
 						...store,
 						isOwner: owner_id === userId,
 						isSave: favoriteIds.has(store.id),
+						// Every row here is already filtered to `userId`'s own
+						// follows (`whereCondition` above) — trivially true for
+						// all of them, same reasoning as `isSave: true` in
+						// `favoriteStoreService.getFavorites`.
+						isFollowed: true,
 					}
 				}),
 			nextCursor,
