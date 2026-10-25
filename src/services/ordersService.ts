@@ -141,11 +141,9 @@ export const ordersService = {
 		const checkout_group_id = crypto.randomUUID()
 
 		// 2. Atomic: single FOR UPDATE fetches all product data, verifies
-		//    availability, creates orders, then marks every purchased product
-		//    sold in one batch UPDATE. No stock/quantity involved — a listing
-		//    here is classifieds-style (one of a kind), not retail inventory,
-		//    so "available" is just is_active + not already sold, not a unit
-		//    count to decrement.
+		//    availability, then creates orders. No stock/quantity tracking —
+		//    a listing stays orderable indefinitely; "available" is just
+		//    whether the seller still has it active.
 		const created = await db.transaction(async (tx) => {
 			const locked = await tx
 				.select({
@@ -155,7 +153,6 @@ export const ordersService = {
 					price: products.price,
 					currency: products.currency,
 					is_active: products.is_active,
-					listing_status: products.listing_status,
 					images: products.images,
 				})
 				.from(products)
@@ -166,9 +163,12 @@ export const ordersService = {
 				throw ApiError.badRequest('One or more products do not exist')
 			}
 
-			// Validate availability under lock.
+			// Validate availability under lock. Listings are reorderable — no
+			// "sold" concept here, a buyer can check out the same product as
+			// many times as they want. Only an inactive (paused/removed)
+			// listing blocks checkout.
 			for (const row of locked) {
-				if (!row.is_active || row.listing_status === 'sold') {
+				if (!row.is_active) {
 					throw ApiError.conflict(
 						`Product "${row.title}" is no longer available`,
 					)
@@ -267,10 +267,6 @@ export const ordersService = {
 					item_count: itemCount,
 				})
 			}
-
-			// Every purchased product is sold the moment it's bought — no
-			// quantity to decrement toward zero first.
-			await markProductsSold(tx, productIds)
 
 			return ordersOut
 		})
@@ -578,7 +574,6 @@ export const ordersService = {
 			where: eq(orders.id, orderId),
 			with: {
 				store: { columns: { owner_id: true } },
-				items: { columns: { product_id: true } },
 			},
 		})
 		if (!order) throw ApiError.notFound('Order not found')
@@ -603,18 +598,7 @@ export const ordersService = {
 		}
 		if (stamp) patch[stamp] = now
 
-		if (newStatus === 'cancelled') {
-			// Restock and update status atomically.
-			await db.transaction(async (tx) => {
-				await tx.update(orders).set(patch).where(eq(orders.id, orderId))
-				await reactivateProducts(
-					tx,
-					order.items.map((i) => i.product_id),
-				)
-			})
-		} else {
-			await db.update(orders).set(patch).where(eq(orders.id, orderId))
-		}
+		await db.update(orders).set(patch).where(eq(orders.id, orderId))
 
 		// Notify the buyer (fire-and-forget).
 		notificationDispatchService
@@ -648,7 +632,6 @@ export const ordersService = {
 			where: eq(orders.id, orderId),
 			with: {
 				store: { columns: { owner_id: true } },
-				items: { columns: { product_id: true } },
 			},
 		})
 		if (!order) throw ApiError.notFound('Order not found')
@@ -665,21 +648,15 @@ export const ordersService = {
 		}
 
 		const now = new Date()
-		await db.transaction(async (tx) => {
-			await tx
-				.update(orders)
-				.set({
-					status: 'cancelled',
-					cancelled_at: now,
-					cancel_reason: reason ?? null,
-					updated_at: now,
-				})
-				.where(eq(orders.id, orderId))
-			await reactivateProducts(
-				tx,
-				order.items.map((i) => i.product_id),
-			)
-		})
+		await db
+			.update(orders)
+			.set({
+				status: 'cancelled',
+				cancelled_at: now,
+				cancel_reason: reason ?? null,
+				updated_at: now,
+			})
+			.where(eq(orders.id, orderId))
 
 		// Notify the store owner (fire-and-forget).
 		if (order.store.owner_id !== buyerId) {
@@ -728,30 +705,4 @@ function paginate<T extends { created_at: Date; id: number }>(
 			? { created_at: last.created_at.toISOString(), id: last.id }
 			: null
 	return { orders: list, nextCursor, hasMore }
-}
-
-type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0]
-
-// Marks every purchased product sold — no stock/quantity involved, see
-// checkout's own comment on why. Called once per checkout, after every
-// store group's orders have been created.
-async function markProductsSold(tx: DbTx, productIds: number[]) {
-	if (productIds.length === 0) return
-	await tx
-		.update(products)
-		.set({ listing_status: 'sold' })
-		.where(inArray(products.id, productIds))
-}
-
-// Reverts 'sold' back to 'active' for an order's products on cancellation —
-// the inverse of markProductsSold. Only touches rows actually still 'sold'
-// (a product the seller has since relisted some other way isn't clobbered
-// back to 'active' just because an old order against it got cancelled).
-async function reactivateProducts(tx: DbTx, productIds: Array<number | null>) {
-	const ids = productIds.filter((id): id is number => id != null)
-	if (ids.length === 0) return
-	await tx
-		.update(products)
-		.set({ listing_status: 'active' })
-		.where(and(inArray(products.id, ids), eq(products.listing_status, 'sold')))
 }
