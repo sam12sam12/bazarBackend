@@ -60,6 +60,12 @@ export function handleDatabaseError(
 		const conflictingField = match?.[1]?.toLowerCase() ?? ''
 
 		// 3. Identification logic - prioritize the extracted field
+		if (constraint.includes('product_reviews_user_product_idx')) {
+			return { status: 409, message: 'You have already reviewed this product.' }
+		}
+		if (constraint.includes('store_reviews_user_store_idx')) {
+			return { status: 409, message: 'You have already reviewed this store.' }
+		}
 		if (conflictingField.includes('email') || constraint.includes('email')) {
 			return { status: 409, message: 'Email address already exists.' }
 		}
