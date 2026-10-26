@@ -22,6 +22,12 @@ const PUSH_CATEGORY: Partial<Record<NotificationType, PushCategory>> = {
 	new_order: 'new_order',
 	order_status_changed: 'order_status_changed',
 	review_received: 'review_received',
+	// Shares `review_received`'s own preference column rather than getting
+	// a `review_reply` column of its own — both are "review activity", and
+	// a dedicated toggle would mean a `notification_preferences` migration
+	// for one more narrow case. A user who's muted review notifications
+	// muting reply notifications too is the right default anyway.
+	review_reply: 'review_received',
 }
 
 type NotifyUsersInput = {

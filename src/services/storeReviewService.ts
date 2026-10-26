@@ -282,9 +282,9 @@ export const storeReviewService = {
 		// for an actual new/edited reply, not the "remove reply" action, and
 		// never self-notify if the store owner reviewed their own store. No
 		// `productId` here (this is a store review) — `store_id` rides in
-		// `data` instead, for the mobile client to route with. In-app only
-		// for now, same v1 posture as new_similar_product/bid_received/
-		// offer_accepted (no push category wired up yet).
+		// `data` instead, for the mobile client to route with. Pushes too —
+		// see PUSH_CATEGORY's own comment for why it rides on
+		// review_received's preference column.
 		if (ownerReply && review.user_id !== userId) {
 			notificationDispatchService
 				.notifyUsers({
@@ -296,6 +296,10 @@ export const storeReviewService = {
 						body: `The seller replied to your review on "${review.store.name}"`,
 						store_name: review.store.name,
 						store_id: review.store.id,
+					},
+					push: {
+						title: 'New Reply',
+						body: `The seller replied to your review on "${review.store.name}"`,
 					},
 				})
 				.catch((err) =>
