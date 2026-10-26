@@ -270,10 +270,10 @@ export const productReviewService = {
 	) {
 		const review = await db.query.productReviews.findFirst({
 			where: eq(productReviews.id, id),
-			columns: { id: true },
+			columns: { id: true, user_id: true },
 			with: {
 				product: {
-					columns: { id: true },
+					columns: { id: true, title: true },
 					with: { store: { columns: { owner_id: true } } },
 				},
 			},
@@ -290,6 +290,33 @@ export const productReviewService = {
 				owner_reply_at: ownerReply ? new Date() : null,
 			})
 			.where(eq(productReviews.id, id))
+
+		// Notify the original reviewer that their review got a reply — only
+		// for an actual new/edited reply, not the "remove reply" action, and
+		// never self-notify if the store owner reviewed their own product.
+		// In-app only for now, same v1 posture as new_similar_product/
+		// bid_received/offer_accepted (no push category wired up yet).
+		if (ownerReply && review.user_id !== userId) {
+			notificationDispatchService
+				.notifyUsers({
+					type: 'review_reply',
+					recipients: [review.user_id],
+					actorId: userId,
+					productId: review.product.id,
+					data: {
+						title: 'New Reply',
+						body: `The seller replied to your review on "${review.product.title}"`,
+						product_title: review.product.title,
+					},
+				})
+				.catch((err) =>
+					console.error(
+						'[notification] failed to notify reviewer of reply:',
+						err,
+					),
+				)
+		}
+
 		// Same reasoning as create/update — fully hydrated instead of the
 		// raw row `.returning()` would give (no reviewer name/avatar, no
 		// my_reaction/isOwner). `userId` here is the replying store owner,

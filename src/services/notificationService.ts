@@ -31,6 +31,7 @@ const CATEGORY_TYPES: Record<NotificationCategory, NotificationType[]> = {
 	system: [
 		'new_follower',
 		'review_received',
+		'review_reply',
 		'report_received',
 		'admin_broadcast',
 	],

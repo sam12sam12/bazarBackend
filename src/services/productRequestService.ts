@@ -35,7 +35,7 @@ interface RequestImage {
 	is_primary: boolean
 }
 
-type RequestStatus = 'resolved' | 'closed'
+type RequestStatus = 'open' | 'resolved' | 'closed'
 
 // Relations returned to clients when listing/reading a request.
 export const requestWith = {

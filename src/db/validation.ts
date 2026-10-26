@@ -524,7 +524,7 @@ export const updateProductRequestSchema = baseProductRequestSchema
 
 export const updateRequestStatusSchema = z
 	.object({
-		status: z.enum(['resolved', 'closed']),
+		status: z.enum(['open', 'resolved', 'closed']),
 	})
 	.strict()
 

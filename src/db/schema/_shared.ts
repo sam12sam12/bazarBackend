@@ -130,6 +130,7 @@ export const notificationTypeEnum = pgEnum('notification_type', [
 	'new_order', // a buyer placed an order in your store
 	'order_status_changed', // shipped, delivered, cancelled…
 	'review_received',
+	'review_reply', // store owner replied to your review
 	'report_received', // Admin notification for reports
 	'admin_broadcast', // Admin announcement to all users or a segment
 ])

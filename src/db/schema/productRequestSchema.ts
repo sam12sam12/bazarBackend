@@ -12,7 +12,12 @@ import {
 	uuid,
 	varchar,
 } from 'drizzle-orm/pg-core'
-import { currencyEnum, productRequestStatusEnum, timestamps } from './_shared'
+import {
+	currencyEnum,
+	productConditionEnum,
+	productRequestStatusEnum,
+	timestamps,
+} from './_shared'
 import { categories } from './categorySchema'
 import { provinces } from './provinceSchema'
 import { users } from './userSchema'
@@ -36,6 +41,13 @@ export const productRequests = pgTable(
 		budget_min: numeric('budget_min', { precision: 14, scale: 2 }),
 		budget_max: numeric('budget_max', { precision: 14, scale: 2 }),
 		currency: currencyEnum('currency').default('AFN').notNull(),
+
+		// Nullable, unlike products' own `condition` — "any condition is fine"
+		// is a genuinely common, valid state for a wanted-ad (no default
+		// pushing it toward "new" the way a real listing's own condition
+		// does). Same enum as `products.condition` — it's the same concept,
+		// just expressing what the requester wants instead of what's for sale.
+		condition: productConditionEnum('condition'),
 
 		// ── Reference images (same shape as products) ──
 		// Format: [{ url: string, sort_order: number, is_primary: boolean }, ...]

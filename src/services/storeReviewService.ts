@@ -262,8 +262,8 @@ export const storeReviewService = {
 	) {
 		const review = await db.query.storeReviews.findFirst({
 			where: eq(storeReviews.id, id),
-			columns: { id: true },
-			with: { store: { columns: { owner_id: true } } },
+			columns: { id: true, user_id: true },
+			with: { store: { columns: { id: true, owner_id: true, name: true } } },
 		})
 		if (!review) throw ApiError.notFound('Review not found')
 		if (!isAdmin && review.store.owner_id !== userId) {
@@ -277,6 +277,35 @@ export const storeReviewService = {
 				owner_reply_at: ownerReply ? new Date() : null,
 			})
 			.where(eq(storeReviews.id, id))
+
+		// Notify the original reviewer that their review got a reply — only
+		// for an actual new/edited reply, not the "remove reply" action, and
+		// never self-notify if the store owner reviewed their own store. No
+		// `productId` here (this is a store review) — `store_id` rides in
+		// `data` instead, for the mobile client to route with. In-app only
+		// for now, same v1 posture as new_similar_product/bid_received/
+		// offer_accepted (no push category wired up yet).
+		if (ownerReply && review.user_id !== userId) {
+			notificationDispatchService
+				.notifyUsers({
+					type: 'review_reply',
+					recipients: [review.user_id],
+					actorId: userId,
+					data: {
+						title: 'New Reply',
+						body: `The seller replied to your review on "${review.store.name}"`,
+						store_name: review.store.name,
+						store_id: review.store.id,
+					},
+				})
+				.catch((err) =>
+					console.error(
+						'[notification] failed to notify reviewer of reply:',
+						err,
+					),
+				)
+		}
+
 		// Same reasoning as create/update — fully hydrated instead of the
 		// raw row `.returning()` would give. `userId` here is the replying
 		// store owner, so `isOwner`/`my_reaction` correctly reflect theirs.
