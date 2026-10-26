@@ -503,6 +503,10 @@ const baseProductRequestSchema = createInsertSchema(productRequests, {
 	// there's no image upload endpoint yet, so images stays optional and
 	// falls back to the column's own '[]' default
 	images: productImagesArraySchema.optional(),
+	// Required on create (RequestForm's picker has no "any condition"
+	// option anymore) — `.partial()` below still makes it optional on
+	// update, same as every other field there.
+	condition: z.enum(['new', 'like_new', 'used', 'refurbished']),
 })
 	.omit({ user_id: true, status: true })
 	.strict()
