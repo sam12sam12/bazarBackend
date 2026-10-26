@@ -107,7 +107,8 @@ export const storeController = {
 
 	async getByOwner(c: Context) {
 		const userId = c.req.param('userId') as string
-		const stores = await storeService.getByOwnerId(userId)
+		const viewer = c.get('user')
+		const stores = await storeService.getByOwnerId(userId, viewer?.id)
 		return c.json({ success: true, data: stores })
 	},
 

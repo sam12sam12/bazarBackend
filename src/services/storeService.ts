@@ -288,13 +288,20 @@ export const storeService = {
 		}
 	},
 
-	async getByOwnerId(userId: string) {
+	// `userId` picks whose stores to list; `viewerId` (the signed-in
+	// caller, separately — this route also backs a stranger's public
+	// profile, not just the owner's own "my stores" screen) drives
+	// `isOwner`/`isSave`/`isFollowed`. They're the same person on the "my
+	// stores" dashboard, but must not be conflated on someone else's
+	// profile — that's what previously left `isOwner` hardcoded `true` for
+	// every viewer and `isSave`/`isFollowed` missing entirely.
+	async getByOwnerId(userId: string, viewerId?: string) {
 		const whereCondition = and(
 			eq(stores.is_active, true),
 			eq(stores.owner_id, userId),
 		)
 
-		const results = await db.query.stores.findMany({
+		return db.query.stores.findMany({
 			where: whereCondition,
 			with: {
 				owner: {
@@ -304,15 +311,16 @@ export const storeService = {
 					columns: { name: true, code: true },
 				},
 			},
-			extras: { isSave: isSaveColumn(userId).as('isSave') },
+			extras: {
+				isOwner: isOwnerColumn(viewerId).as('isOwner'),
+				isSave: isSaveColumn(viewerId).as('isSave'),
+				isFollowed: isFollowColumn(viewerId).as('isFollowed'),
+				review_count: reviewStatsColumns().review_count.as('review_count'),
+				average_rating:
+					reviewStatsColumns().average_rating.as('average_rating'),
+			},
 			orderBy: [desc(stores.created_at), desc(stores.id)],
 		})
-
-		// Every row here is already filtered to `userId`'s own stores — no
-		// per-row SQL needed, `isOwner` is trivially true for all of them.
-		// `isSave` still needs the real check — favoriting your own store is
-		// an edge case, but a real one.
-		return results.map((store) => ({ ...store, isOwner: true }))
 	},
 
 	// Returns the fully hydrated row (same shape as getById) instead of a
