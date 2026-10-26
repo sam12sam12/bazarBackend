@@ -17,22 +17,22 @@
 		"format": "biome format --write ."
 	},
 	"dependencies": {
-		"@better-auth/expo": "^1.7.7",
+		"@better-auth/expo": "^1.7.13",
 		"@faker-js/faker": "^10.6.0",
-		"@sentry/bun": "^10.76.0",
-		"@sentry/hono": "^10.76.0",
+		"@sentry/bun": "^10.76.2",
+		"@sentry/hono": "^10.76.2",
 		"aws4fetch": "^1.0.20",
-		"better-auth": "^1.7.7",
-		"drizzle-orm": "^0.45.3",
+		"better-auth": "^1.7.13",
+		"drizzle-orm": "^0.45.4",
 		"drizzle-zod": "^0.8.3",
 		"expo-server-sdk": "^7.2.0",
-		"hono": "^4.13.12",
+		"hono": "^4.13.14",
 		"ioredis": "^6.0.0",
 		"pg": "^8.23.1",
-		"zod": "^4.6.5"
+		"zod": "^4.6.7"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.15",
+		"@biomejs/biome": "^2.6.3",
 		"@types/bun": "latest",
 		"@types/pg": "^8.23.1",
 		"drizzle-kit": "^0.31.11",
