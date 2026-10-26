@@ -1,4 +1,14 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
+import {
+	and,
+	arrayOverlaps,
+	asc,
+	desc,
+	eq,
+	gte,
+	inArray,
+	lte,
+	sql,
+} from 'drizzle-orm'
 import { db } from '../db/db'
 import { productRequests } from '../db/schema'
 import type {
@@ -127,8 +137,11 @@ export const productRequestService = {
 		const provinceFilter = filters?.provinceIds?.length
 			? inArray(productRequests.province_id, filters.provinceIds)
 			: undefined
+		// `condition` is an array column now (a request can accept more than
+		// one) — "matches the filter" means the two arrays share at least one
+		// value, not that the column equals one of the filter's values.
 		const conditionFilter = filters?.conditions?.length
-			? inArray(productRequests.condition, filters.conditions)
+			? arrayOverlaps(productRequests.condition, filters.conditions)
 			: undefined
 		// Both bounds compare against the request's own ceiling (budget_max) —
 		// the amount the buyer is actually willing to pay, and the figure a

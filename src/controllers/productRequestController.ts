@@ -2,7 +2,11 @@ import type { Context } from 'hono'
 import { favoriteRequestService } from '../services/favoriteRequestService'
 import { productRequestService } from '../services/productRequestService'
 import { parseCursor, parseId } from '../utils/pagination'
-import { PRODUCT_CONDITION_VALUES, type ProductCondition, type PublicRequestSort } from '../utils/types'
+import {
+	PRODUCT_CONDITION_VALUES,
+	type ProductCondition,
+	type PublicRequestSort,
+} from '../utils/types'
 
 const LIMIT = 12
 const SORT_VALUES: PublicRequestSort[] = ['newest', 'budget_asc', 'budget_desc']
@@ -19,7 +23,9 @@ function parseIdList(raw: string | undefined): number[] | undefined {
 
 // "new,used" -> ["new", "used"]; drops anything not in the real enum (so a
 // stray/old query param can't sneak an arbitrary string into the SQL `IN`).
-function parseConditionList(raw: string | undefined): ProductCondition[] | undefined {
+function parseConditionList(
+	raw: string | undefined,
+): ProductCondition[] | undefined {
 	if (!raw) return undefined
 	const conditions = raw
 		.split(',')
@@ -76,7 +82,15 @@ export const productRequestController = {
 		const { requests, nextCursor } = await productRequestService.getPublic(
 			LIMIT,
 			parsedCursor,
-			{ categoryIds, provinceIds, conditions, minBudget, maxBudget, search, sortBy },
+			{
+				categoryIds,
+				provinceIds,
+				conditions,
+				minBudget,
+				maxBudget,
+				search,
+				sortBy,
+			},
 			user?.id,
 		)
 		return c.json({ success: true, data: { requests, nextCursor } })
