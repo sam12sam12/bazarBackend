@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import { favoriteRequestService } from '../services/favoriteRequestService'
 import { productRequestService } from '../services/productRequestService'
 import { parseCursor, parseId } from '../utils/pagination'
-import type { PublicRequestSort } from '../utils/types'
+import { PRODUCT_CONDITION_VALUES, type ProductCondition, type PublicRequestSort } from '../utils/types'
 
 const LIMIT = 12
 const SORT_VALUES: PublicRequestSort[] = ['newest', 'budget_asc', 'budget_desc']
@@ -15,6 +15,19 @@ function parseIdList(raw: string | undefined): number[] | undefined {
 		.map((part) => Number(part.trim()))
 		.filter((id) => Number.isFinite(id) && id > 0)
 	return ids.length > 0 ? ids : undefined
+}
+
+// "new,used" -> ["new", "used"]; drops anything not in the real enum (so a
+// stray/old query param can't sneak an arbitrary string into the SQL `IN`).
+function parseConditionList(raw: string | undefined): ProductCondition[] | undefined {
+	if (!raw) return undefined
+	const conditions = raw
+		.split(',')
+		.map((part) => part.trim())
+		.filter((part): part is ProductCondition =>
+			PRODUCT_CONDITION_VALUES.includes(part as ProductCondition),
+		)
+	return conditions.length > 0 ? conditions : undefined
 }
 
 export const productRequestController = {
@@ -51,6 +64,7 @@ export const productRequestController = {
 			(categoryId && categoryId > 0 ? [categoryId] : undefined)
 
 		const provinceIds = parseIdList(c.req.query('provinceIds'))
+		const conditions = parseConditionList(c.req.query('conditions'))
 		const minBudget = c.req.query('minBudget')
 		const maxBudget = c.req.query('maxBudget')
 		const search = c.req.query('search')
@@ -62,7 +76,7 @@ export const productRequestController = {
 		const { requests, nextCursor } = await productRequestService.getPublic(
 			LIMIT,
 			parsedCursor,
-			{ categoryIds, provinceIds, minBudget, maxBudget, search, sortBy },
+			{ categoryIds, provinceIds, conditions, minBudget, maxBudget, search, sortBy },
 			user?.id,
 		)
 		return c.json({ success: true, data: { requests, nextCursor } })

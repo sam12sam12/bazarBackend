@@ -22,6 +22,12 @@ export type ReviewReaction = 'like' | 'dislike'
 
 export type ListingStatus = 'draft' | 'active' | 'sold' | 'expired' | 'removed'
 export type ProductCondition = 'new' | 'like_new' | 'used' | 'refurbished'
+export const PRODUCT_CONDITION_VALUES: ProductCondition[] = [
+	'new',
+	'like_new',
+	'used',
+	'refurbished',
+]
 
 export type ProductSort =
 	| 'relevance'
@@ -56,6 +62,7 @@ export type PublicRequestSort = 'newest' | 'budget_asc' | 'budget_desc'
 export interface PublicRequestFilters {
 	categoryIds?: number[]
 	provinceIds?: number[]
+	conditions?: ProductCondition[]
 	minBudget?: string
 	maxBudget?: string
 	search?: string

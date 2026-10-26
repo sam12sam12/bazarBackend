@@ -127,6 +127,9 @@ export const productRequestService = {
 		const provinceFilter = filters?.provinceIds?.length
 			? inArray(productRequests.province_id, filters.provinceIds)
 			: undefined
+		const conditionFilter = filters?.conditions?.length
+			? inArray(productRequests.condition, filters.conditions)
+			: undefined
 		// Both bounds compare against the request's own ceiling (budget_max) —
 		// the amount the buyer is actually willing to pay, and the figure a
 		// seller browsing requests cares about. Comparing minBudget against
@@ -156,6 +159,7 @@ export const productRequestService = {
 				statusFilter,
 				categoryFilter,
 				provinceFilter,
+				conditionFilter,
 				minBudgetFilter,
 				maxBudgetFilter,
 				searchFilter,
@@ -192,6 +196,7 @@ export const productRequestService = {
 			statusFilter,
 			categoryFilter,
 			provinceFilter,
+			conditionFilter,
 			minBudgetFilter,
 			maxBudgetFilter,
 			searchFilter,
