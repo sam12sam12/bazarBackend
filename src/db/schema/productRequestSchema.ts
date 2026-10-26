@@ -42,20 +42,14 @@ export const productRequests = pgTable(
 		budget_max: numeric('budget_max', { precision: 14, scale: 2 }),
 		currency: currencyEnum('currency').default('AFN').notNull(),
 
-		// An array, unlike products' own single `condition` — a buyer can
-		// accept more than one condition ("New or Like New is fine"), not just
-		// pick one. Required at the app level (validation.ts enforces at
-		// least one entry) rather than via a DB constraint, same as every
-		// other "required" business rule in this schema; the UI's "All"
-		// option isn't a stored sentinel — picking it just fills the array
-		// with every real enum value. Same enum as `products.condition`, just
-		// expressing what the requester will accept instead of what's for
-		// sale. `default('{}')` only backfills pre-existing rows from before
-		// this was an array — every new row goes through validation.ts first.
-		condition: productConditionEnum('condition')
-			.array()
-			.notNull()
-			.default(sql`'{}'::product_condition[]`),
+		// Nullable, unlike products' own `condition` — the picker's "All
+		// Conditions" row (RequestForm) is a real, explicit choice, not a
+		// placeholder for leaving the field blank, but it still isn't a
+		// stored enum value of its own: picking it sends no `condition` at
+		// all, same as never having picked one. Same enum as
+		// `products.condition`, just expressing what the requester will
+		// accept instead of what's for sale.
+		condition: productConditionEnum('condition'),
 
 		// ── Reference images (same shape as products) ──
 		// Format: [{ url: string, sort_order: number, is_primary: boolean }, ...]

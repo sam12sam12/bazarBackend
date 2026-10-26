@@ -503,11 +503,6 @@ const baseProductRequestSchema = createInsertSchema(productRequests, {
 	// there's no image upload endpoint yet, so images stays optional and
 	// falls back to the column's own '[]' default
 	images: productImagesArraySchema.optional(),
-	// Required — at least one accepted condition. The UI's "All" option
-	// isn't a separate value; picking it just sends every real enum value.
-	condition: z
-		.array(z.enum(['new', 'like_new', 'used', 'refurbished']))
-		.min(1, 'Select at least one condition'),
 })
 	.omit({ user_id: true, status: true })
 	.strict()
