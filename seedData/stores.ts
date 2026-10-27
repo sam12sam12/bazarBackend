@@ -2,21 +2,28 @@ import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { stores } from '../src/db/schema'
 import type { InsertStore } from '../src/db/validation'
-import { getLeafCategories, getProvinceIds, getUserIds } from '.'
+import {
+	getLeafCategories,
+	getProvinces,
+	getUserIds,
+	type ProvinceRow,
+} from '.'
+import { afghanStoreName, afghanStreetAddress } from './afghanData'
 import { afghanMobile } from './users'
 
 export function createRandomStore(params: {
 	ownerIds: string[]
-	leafCategories: { id: number; path: string }[]
-	provinceIds: number[]
+	leafCategories: { id: number; path: string; name: { en: string } }[]
+	provinces: ProvinceRow[]
 }): InsertStore {
 	const owner_id = faker.helpers.arrayElement(params.ownerIds)
 	// `path` mirrors whichever category a store belongs to — same rule
 	// storeService.create applies on a real create, so the seed needs to
 	// copy it from the actually-picked category instead of inventing one.
 	const category = faker.helpers.arrayElement(params.leafCategories)
-	const provinceId = faker.helpers.arrayElement(params.provinceIds)
-	const name = faker.company.name()
+	const province = faker.helpers.arrayElement(params.provinces)
+	const provinceId = province.id
+	const name = afghanStoreName(category.name.en)
 
 	const lat = faker.number.float({ min: 29.0, max: 38.5, fractionDigits: 7 })
 	const lon = faker.number.float({ min: 60.5, max: 74.0, fractionDigits: 7 })
@@ -37,12 +44,12 @@ export function createRandomStore(params: {
 		owner_id,
 		category_id: category.id,
 		path: category.path,
-		description: faker.company.catchPhrase(),
+		description: `Trusted ${category.name.en.toLowerCase()} seller based in ${province.nameEn}, Afghanistan.`,
 		is_active: true,
 		// real estate/vehicles don't ship — matches the products side's own
 		// delivery_available roll, not every store should offer it.
 		delivery_available: faker.datatype.boolean({ probability: 0.7 }),
-		address: `${faker.location.streetAddress()}, ${faker.location.city()}, Afghanistan`,
+		address: `${afghanStreetAddress(province.code, province.nameEn)}, Afghanistan`,
 		province_id: provinceId,
 		latitude: lat,
 		longitude: lon,
@@ -68,14 +75,14 @@ export function createRandomStore(params: {
 export async function generateStoresFakerData(count = 10) {
 	const userIds = await getUserIds()
 	const leafCategories = await getLeafCategories()
-	const provinceIds = await getProvinceIds()
+	const provinces = await getProvinces()
 
 	const storesFakerData: InsertStore[] = faker.helpers.multiple(
 		() =>
 			createRandomStore({
 				ownerIds: userIds,
 				leafCategories,
-				provinceIds,
+				provinces,
 			}),
 		{
 			count,

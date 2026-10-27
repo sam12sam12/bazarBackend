@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { users } from '../src/db/schema'
 import type { InsertUser } from '../src/db/validation'
+import { afghanNameParts } from './afghanData'
 
 // E.164: `+` then 7-15 digits, no leading 0 — see backend CLAUDE.md. `93` is
 // Afghanistan's country code, `7` the real leading digit of an Afghan
@@ -12,8 +13,7 @@ export function afghanMobile() {
 }
 
 function createRandomUser(): InsertUser {
-	const firstName = faker.person.firstName()
-	const lastName = faker.person.lastName()
+	const { first: firstName, last: lastName } = afghanNameParts()
 	const uniqueSuffix = faker.string.alphanumeric(8)
 	const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${uniqueSuffix}@gmail.com`
 

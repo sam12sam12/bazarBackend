@@ -3,17 +3,18 @@ import { eq } from 'drizzle-orm'
 import { db } from '../src/db/db'
 import { addresses } from '../src/db/schema'
 import type { InsertAddress } from '../src/db/validation'
-import { getProvinceIds, getUserIds } from './index'
+import { afghanFullName, afghanStreetAddress } from './afghanData'
+import { getProvinces, getUserIds, type ProvinceRow } from './index'
 import { afghanMobile } from './users'
 
 export function createRandomAddress(params: {
 	userId: string
-	provinceIds: number[]
+	provinces: ProvinceRow[]
 	isDefault: boolean
 }): InsertAddress {
-	const province_id = faker.helpers.arrayElement(params.provinceIds)
+	const province = faker.helpers.arrayElement(params.provinces)
 	const district = `District ${faker.number.int({ min: 1, max: 22 })}`
-	const address_line = `${faker.location.streetAddress()}, ${faker.location.city()}`
+	const address_line = afghanStreetAddress(province.code, province.nameEn)
 	const lat = faker.number
 		.float({ min: 29.0, max: 38.5, fractionDigits: 6 })
 		.toString()
@@ -23,10 +24,10 @@ export function createRandomAddress(params: {
 
 	return {
 		user_id: params.userId,
-		province_id,
+		province_id: province.id,
 		district,
 		address_line,
-		recipient_name: faker.person.fullName(),
+		recipient_name: afghanFullName(),
 		phone: afghanMobile(),
 		type: faker.helpers.arrayElement(['home', 'work', 'other']),
 		is_default: params.isDefault,
@@ -37,7 +38,7 @@ export function createRandomAddress(params: {
 
 export async function generateAddressesFakerData(count?: number) {
 	const userIds = await getUserIds()
-	const provinceIds = await getProvinceIds()
+	const provinces = await getProvinces()
 
 	if (userIds.length === 0) {
 		return
@@ -71,7 +72,7 @@ export async function generateAddressesFakerData(count?: number) {
 			addressesFakerData.push(
 				createRandomAddress({
 					userId,
-					provinceIds,
+					provinces,
 					isDefault,
 				}),
 			)
@@ -88,7 +89,7 @@ export async function generateAddressesFakerData(count?: number) {
 				addressesFakerData.push(
 					createRandomAddress({
 						userId,
-						provinceIds,
+						provinces,
 						isDefault,
 					}),
 				)

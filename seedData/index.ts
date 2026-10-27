@@ -50,6 +50,20 @@ export async function getProvinceIds(): Promise<number[]> {
 	return provinceIds
 }
 
+export type ProvinceRow = { id: number; code: string; nameEn: string }
+
+/** Full province rows (id + code + English name) — for callers that need
+ * to generate Afghanistan-appropriate address text (see
+ * seedData/afghanData.ts's `afghanStreetAddress`), not just an id to store. */
+export async function getProvinces(): Promise<ProvinceRow[]> {
+	const rows = await db
+		.select({ id: provinces.id, code: provinces.code, name: provinces.name })
+		.from(provinces)
+		.orderBy(sql`random()`)
+
+	return rows.map((p) => ({ id: p.id, code: p.code, nameEn: p.name.en }))
+}
+
 export type LeafCategory = {
 	id: number
 	path: string

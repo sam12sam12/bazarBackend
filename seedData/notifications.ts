@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { notifications } from '../src/db/schema'
 import type { InsertNotification } from '../src/db/validation'
+import { afghanFullName } from './afghanData'
 import { getProductIds, getUserIds } from './index'
 
 export function createRandomNotification(params: {
@@ -40,7 +41,7 @@ export function createRandomNotification(params: {
 			'Order Status Update',
 		]),
 		subtitle: faker.hacker.phrase(),
-		actor_name: faker.person.fullName(),
+		actor_name: afghanFullName(),
 	}
 
 	return {

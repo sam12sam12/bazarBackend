@@ -12,6 +12,7 @@
 		"seed": "bun run seed.ts",
 		"sweep-images": "bun run src/scripts/sweepOrphanedImages.ts",
 		"notification": "bun run src/scripts/sendTestNotification.ts",
+		"sync-meta-edits": "bun run src/scripts/syncLocalMetaEdits.ts",
 		"test": "bun test",
 		"lint": "biome check .",
 		"format": "biome format --write ."
