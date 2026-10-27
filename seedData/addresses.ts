@@ -3,7 +3,11 @@ import { eq } from 'drizzle-orm'
 import { db } from '../src/db/db'
 import { addresses } from '../src/db/schema'
 import type { InsertAddress } from '../src/db/validation'
-import { afghanFullName, afghanStreetAddress } from './afghanData'
+import {
+	afghanDistrict,
+	afghanFullName,
+	afghanStreetAddress,
+} from './afghanData'
 import { getProvinces, getUserIds, type ProvinceRow } from './index'
 import { afghanMobile } from './users'
 
@@ -13,8 +17,8 @@ export function createRandomAddress(params: {
 	isDefault: boolean
 }): InsertAddress {
 	const province = faker.helpers.arrayElement(params.provinces)
-	const district = `District ${faker.number.int({ min: 1, max: 22 })}`
-	const address_line = afghanStreetAddress(province.code, province.nameEn)
+	const district = afghanDistrict()
+	const address_line = afghanStreetAddress(province.code, province.namePs)
 	const lat = faker.number
 		.float({ min: 29.0, max: 38.5, fractionDigits: 6 })
 		.toString()

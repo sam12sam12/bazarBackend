@@ -13,13 +13,15 @@ export function afghanMobile() {
 }
 
 function createRandomUser(): InsertUser {
-	const { first: firstName, last: lastName } = afghanNameParts()
+	const { first, last } = afghanNameParts()
 	const uniqueSuffix = faker.string.alphanumeric(8)
-	const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${uniqueSuffix}@gmail.com`
+	// Email needs ASCII, so the Latin slug does the work here — the `name`
+	// column itself stays the real Pashto/Dari script form below.
+	const email = `${first.latin}.${last.latin}.${uniqueSuffix}@gmail.com`
 
 	return {
 		id: faker.string.uuid(),
-		name: `${firstName} ${lastName}`,
+		name: `${first.script} ${last.script}`,
 		email,
 		phone: afghanMobile(),
 		avatar_url: faker.image.avatar(),

@@ -1,262 +1,289 @@
 import { faker } from '@faker-js/faker'
 
-// Curated so the seed data actually reads as Afghan instead of generic
-// faker.js output (Western names/cities/company names) with ", Afghanistan"
-// tacked onto the end. Transliterations follow common English/Dari/Pashto
-// usage (news wires, diaspora naming conventions), not a single strict
-// romanization scheme — same inconsistency real Afghan name spellings have.
+// Curated so the seed data actually reads as Afghan — native Pashto/Dari
+// script throughout (names, store names/descriptions, addresses), not
+// generic faker.js output transliterated into Latin with ", Afghanistan"
+// tacked on. The only place Latin survives is the `latin` slug paired with
+// each name, needed to build a valid ASCII email local-part — the display
+// `name` column itself is always the script form.
 
-const AFGHAN_MALE_FIRST_NAMES = [
-	'Ahmad',
-	'Mohammad',
-	'Hamid',
-	'Rashid',
-	'Fawad',
-	'Najib',
-	'Farhad',
-	'Zalmai',
-	'Rohullah',
-	'Bashir',
-	'Naqib',
-	'Obaidullah',
-	'Hekmat',
-	'Qudratullah',
-	'Shafiq',
-	'Walid',
-	'Jawid',
-	'Mirwais',
-	'Khalid',
-	'Yama',
-	'Sayed',
-	'Esmatullah',
-	'Haroon',
-	'Naveed',
-	'Omid',
-	'Zabihullah',
-	'Ehsanullah',
-	'Fahim',
-	'Jamshid',
-	'Qais',
-]
-
-const AFGHAN_FEMALE_FIRST_NAMES = [
-	'Freshta',
-	'Zahra',
-	'Marwa',
-	'Laila',
-	'Sadia',
-	'Shabnam',
-	'Wazhma',
-	'Benazir',
-	'Roya',
-	'Parisa',
-	'Nadia',
-	'Shukria',
-	'Malalai',
-	'Farida',
-	'Homa',
-	'Sima',
-	'Zarghona',
-	'Maryam',
-	'Mursal',
-	'Spogmai',
-	'Palwasha',
-	'Hila',
-	'Tooba',
-	'Gulalai',
-	'Nilofar',
-	'Soraya',
-	'Latifa',
-	'Rahima',
-	'Khatera',
-	'Masooma',
-]
-
-const AFGHAN_LAST_NAMES = [
-	'Noori',
-	'Popal',
-	'Karimi',
-	'Rahimi',
-	'Sadiqi',
-	'Haidari',
-	'Omari',
-	'Wardak',
-	'Panjshiri',
-	'Hotak',
-	'Barakzai',
-	'Ahmadi',
-	'Yousafzai',
-	'Sherzai',
-	'Mohmand',
-	'Ghilzai',
-	'Faizi',
-	'Sultani',
-	'Nazari',
-	'Qaderi',
-	'Stanikzai',
-	'Niazi',
-	'Durrani',
-	'Jalali',
-	'Hashimi',
-	'Mangal',
-	'Kakar',
-	'Andar',
-	'Yaqoubi',
-	'Rasouli',
-]
-
-/** A plausible Afghan full name — independent 50/50 gender roll on the
- * first name, paired with a random surname (Afghan surnames aren't
- * gendered the way the given names are). */
-export function afghanFullName(): string {
-	const first = faker.helpers.arrayElement(
-		faker.datatype.boolean()
-			? AFGHAN_MALE_FIRST_NAMES
-			: AFGHAN_FEMALE_FIRST_NAMES,
-	)
-	const last = faker.helpers.arrayElement(AFGHAN_LAST_NAMES)
-	return `${first} ${last}`
+interface NamePart {
+	script: string
+	latin: string
 }
 
-/** Afghan name pair, split — for callers (users.ts) that need the parts
- * separately, e.g. to build an email local-part. */
-export function afghanNameParts(): { first: string; last: string } {
-	const first = faker.helpers.arrayElement(
+const AFGHAN_MALE_FIRST_NAMES: NamePart[] = [
+	{ script: 'احمد', latin: 'ahmad' },
+	{ script: 'محمد', latin: 'mohammad' },
+	{ script: 'حامد', latin: 'hamid' },
+	{ script: 'رشید', latin: 'rashid' },
+	{ script: 'فواد', latin: 'fawad' },
+	{ script: 'نجیب', latin: 'najib' },
+	{ script: 'فرهاد', latin: 'farhad' },
+	{ script: 'زلمی', latin: 'zalmai' },
+	{ script: 'روح‌الله', latin: 'rohullah' },
+	{ script: 'بشیر', latin: 'bashir' },
+	{ script: 'نقیب', latin: 'naqib' },
+	{ script: 'عبیدالله', latin: 'obaidullah' },
+	{ script: 'حکمت', latin: 'hekmat' },
+	{ script: 'قدرت‌الله', latin: 'qudratullah' },
+	{ script: 'شفیق', latin: 'shafiq' },
+	{ script: 'ولید', latin: 'walid' },
+	{ script: 'جاوید', latin: 'jawid' },
+	{ script: 'میرویس', latin: 'mirwais' },
+	{ script: 'خالد', latin: 'khalid' },
+	{ script: 'یما', latin: 'yama' },
+	{ script: 'سید', latin: 'sayed' },
+	{ script: 'عصمت‌الله', latin: 'esmatullah' },
+	{ script: 'هارون', latin: 'haroon' },
+	{ script: 'نوید', latin: 'naveed' },
+	{ script: 'امید', latin: 'omid' },
+	{ script: 'ذبیح‌الله', latin: 'zabihullah' },
+	{ script: 'احسان‌الله', latin: 'ehsanullah' },
+	{ script: 'فهیم', latin: 'fahim' },
+	{ script: 'جمشید', latin: 'jamshid' },
+	{ script: 'قیس', latin: 'qais' },
+]
+
+const AFGHAN_FEMALE_FIRST_NAMES: NamePart[] = [
+	{ script: 'فرشته', latin: 'freshta' },
+	{ script: 'زهرا', latin: 'zahra' },
+	{ script: 'مروا', latin: 'marwa' },
+	{ script: 'لیلا', latin: 'laila' },
+	{ script: 'سعدیه', latin: 'sadia' },
+	{ script: 'شبنم', latin: 'shabnam' },
+	{ script: 'وږمه', latin: 'wazhma' },
+	{ script: 'بې‌نظیر', latin: 'benazir' },
+	{ script: 'رویا', latin: 'roya' },
+	{ script: 'پریسا', latin: 'parisa' },
+	{ script: 'نادیه', latin: 'nadia' },
+	{ script: 'شکریه', latin: 'shukria' },
+	{ script: 'ملالۍ', latin: 'malalai' },
+	{ script: 'فریده', latin: 'farida' },
+	{ script: 'هما', latin: 'homa' },
+	{ script: 'سیما', latin: 'sima' },
+	{ script: 'زرغونه', latin: 'zarghona' },
+	{ script: 'مریم', latin: 'maryam' },
+	{ script: 'مرسل', latin: 'mursal' },
+	{ script: 'سپوږمۍ', latin: 'spogmai' },
+	{ script: 'پلوشه', latin: 'palwasha' },
+	{ script: 'هیله', latin: 'hila' },
+	{ script: 'توبه', latin: 'tooba' },
+	{ script: 'ګلالۍ', latin: 'gulalai' },
+	{ script: 'نیلوفر', latin: 'nilofar' },
+	{ script: 'ثریا', latin: 'soraya' },
+	{ script: 'لطیفه', latin: 'latifa' },
+	{ script: 'رحیمه', latin: 'rahima' },
+	{ script: 'خاطره', latin: 'khatera' },
+	{ script: 'معصومه', latin: 'masooma' },
+]
+
+const AFGHAN_LAST_NAMES: NamePart[] = [
+	{ script: 'نوري', latin: 'noori' },
+	{ script: 'پوپل', latin: 'popal' },
+	{ script: 'کریمي', latin: 'karimi' },
+	{ script: 'رحیمي', latin: 'rahimi' },
+	{ script: 'صدیقي', latin: 'sadiqi' },
+	{ script: 'حیدري', latin: 'haidari' },
+	{ script: 'عمري', latin: 'omari' },
+	{ script: 'وردک', latin: 'wardak' },
+	{ script: 'پنجشیري', latin: 'panjshiri' },
+	{ script: 'هوتک', latin: 'hotak' },
+	{ script: 'بارکزی', latin: 'barakzai' },
+	{ script: 'احمدي', latin: 'ahmadi' },
+	{ script: 'یوسفزی', latin: 'yousafzai' },
+	{ script: 'شیرزی', latin: 'sherzai' },
+	{ script: 'مومند', latin: 'mohmand' },
+	{ script: 'غلزی', latin: 'ghilzai' },
+	{ script: 'فیضي', latin: 'faizi' },
+	{ script: 'سلطاني', latin: 'sultani' },
+	{ script: 'نظري', latin: 'nazari' },
+	{ script: 'قادري', latin: 'qaderi' },
+	{ script: 'ستانکزی', latin: 'stanikzai' },
+	{ script: 'نیازي', latin: 'niazi' },
+	{ script: 'دراني', latin: 'durrani' },
+	{ script: 'جلالي', latin: 'jalali' },
+	{ script: 'هاشمي', latin: 'hashimi' },
+	{ script: 'منگل', latin: 'mangal' },
+	{ script: 'کاکړ', latin: 'kakar' },
+	{ script: 'اندړ', latin: 'andar' },
+	{ script: 'یعقوبي', latin: 'yaqoubi' },
+	{ script: 'رسولي', latin: 'rasouli' },
+]
+
+function randomNamePart(): NamePart {
+	return faker.helpers.arrayElement(
 		faker.datatype.boolean()
 			? AFGHAN_MALE_FIRST_NAMES
 			: AFGHAN_FEMALE_FIRST_NAMES,
 	)
+}
+
+/** A plausible Afghan full name in native script — e.g. "احمد نوري" — for any
+ * display-only text field (notification actor_name, address recipient_name). */
+export function afghanFullName(): string {
+	const first = randomNamePart()
+	const last = faker.helpers.arrayElement(AFGHAN_LAST_NAMES)
+	return `${first.script} ${last.script}`
+}
+
+/** Afghan name pair, script + Latin slug — for users.ts, which needs the
+ * script form for the `name` column and the Latin form to build a valid
+ * ASCII email local-part. */
+export function afghanNameParts(): { first: NamePart; last: NamePart } {
+	const first = randomNamePart()
 	const last = faker.helpers.arrayElement(AFGHAN_LAST_NAMES)
 	return { first, last }
 }
 
-// Each province's actual provincial capital — most share the province's own
-// name (Herat → Herat, Kandahar → Kandahar), but a handful famously don't
-// (Balkh → Mazar-e-Sharif, Nangarhar → Jalalabad, ...); keyed by the same
-// `code` used in seedData/provinces.ts.
-export const PROVINCE_CAPITALS: Record<string, string> = {
-	kbl: 'Kabul',
-	knd: 'Kandahar',
-	hrt: 'Herat',
-	blk: 'Mazar-e-Sharif',
-	ngr: 'Jalalabad',
-	bdn: 'Faizabad',
-	bdg: 'Qala-e-Naw',
-	bag: 'Pul-e-Khumri',
-	bam: 'Bamyan',
-	day: 'Nili',
-	fah: 'Farah',
-	far: 'Maimana',
-	gha: 'Ghazni',
-	gho: 'Chaghcharan',
-	hel: 'Lashkar Gah',
-	jow: 'Sheberghan',
-	kap: 'Mahmud-i-Raqi',
-	kho: 'Khost',
-	kun: 'Asadabad',
-	kdz: 'Kunduz',
-	lag: 'Mihtarlam',
-	log: 'Pul-e-Alam',
-	nim: 'Zaranj',
-	nur: 'Parun',
-	pka: 'Gardez',
-	pki: 'Sharana',
-	pan: 'Bazarak',
-	par: 'Charikar',
-	sam: 'Aybak',
-	sar: 'Sar-e Pol',
-	tak: 'Taloqan',
-	uru: 'Tarinkot',
-	war: 'Maidan Shar',
-	zab: 'Qalat',
+// Each province's actual provincial capital, in Pashto script — most share
+// the province's own name (هرات → هرات, کندهار → کندهار), but a handful
+// famously don't (بلخ → مزار شریف, ننګرهار → جلال‌آباد, ...); keyed by the
+// same `code` used in seedData/provinces.ts.
+export const PROVINCE_CAPITALS_PS: Record<string, string> = {
+	kbl: 'کابل',
+	knd: 'کندهار',
+	hrt: 'هرات',
+	blk: 'مزار شریف',
+	ngr: 'جلال‌آباد',
+	bdn: 'فیض‌آباد',
+	bdg: 'قلعه نو',
+	bag: 'پل خمري',
+	bam: 'بامیان',
+	day: 'نیلي',
+	fah: 'فراه',
+	far: 'میمنه',
+	gha: 'غزني',
+	gho: 'چاغچران',
+	hel: 'لښکرګاه',
+	jow: 'شبرغان',
+	kap: 'محمودراقي',
+	kho: 'خوست',
+	kun: 'اسدآباد',
+	kdz: 'کندز',
+	lag: 'مهترلام',
+	log: 'پل علم',
+	nim: 'زرنج',
+	nur: 'پارون',
+	pka: 'ګردیز',
+	pki: 'شرنه',
+	pan: 'بازارک',
+	par: 'چاریکار',
+	sam: 'ایبک',
+	sar: 'سرپل',
+	tak: 'تالقان',
+	uru: 'ترینکوټ',
+	war: 'میدان شهر',
+	zab: 'قلات',
 }
 
-// Real, well-known Kabul neighborhoods — Kabul alone gets this treatment
-// (rather than every province) since it's realistically where the bulk of
-// a classifieds app's seeded addresses would cluster, same as real usage.
+// Real, well-known Kabul neighborhoods in Pashto script — Kabul alone gets
+// this treatment (rather than every province) since it's realistically
+// where the bulk of a classifieds app's seeded addresses would cluster,
+// same as real usage.
 const KABUL_AREAS = [
-	'Shahr-e-Naw',
-	'Wazir Akbar Khan',
-	'Karte Se',
-	'Karte Char',
-	'Taimani',
-	'Khair Khana',
-	'Qala-e-Fatehullah',
-	'Dasht-e-Barchi',
-	'Khoshal Khan',
-	'Shar-e-Naw',
-	'Qala-e-Shada',
-	'Kart-e-Parwan',
-	'Chahar Qala',
-	'Deh Afghanan',
-	'Pul-e-Sorkh',
+	'شهر نو',
+	'وزیر اکبر خان',
+	'کارته سه',
+	'کارته چهار',
+	'تایمني',
+	'خیرخانه',
+	'قلعه فتح‌الله',
+	'دشت برچي',
+	'خوشحال خان',
+	'قلعه شاده',
+	'کارته پروان',
+	'چهارقلعه',
+	'ده افغانان',
+	'پل سرخ',
 ]
 
+const EASTERN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+
+/** Western digits → Eastern Arabic-Indic digits (۱۲۳...) — matches how
+ * numbers actually appear in Pashto/Dari text, including elsewhere in this
+ * app (see localMetaData.ts's own placeholder examples, e.g. "مثلاً ۳"). */
+function toEasternDigits(n: number): string {
+	return String(n)
+		.split('')
+		.map((d) => EASTERN_DIGITS[Number(d)] ?? d)
+		.join('')
+}
+
 /** City/town text for an address — Kabul picks a real neighborhood (more
- * realistic than just "Kabul" for every single Kabul row); every other
+ * realistic than just "کابل" for every single Kabul row); every other
  * province resolves to its actual provincial capital. */
 function afghanLocality(provinceCode: string): string {
 	if (provinceCode === 'kbl') return faker.helpers.arrayElement(KABUL_AREAS)
-	return PROVINCE_CAPITALS[provinceCode] ?? provinceCode
+	return PROVINCE_CAPITALS_PS[provinceCode] ?? provinceCode
 }
 
-/** Full street-level address text, e.g. "House #14, Street 3, Shahr-e-Naw,
- * Kabul" or "House #7, Lashkar Gah, Helmand" — `provinceName` is the
- * province's own `name.en` (already available to every caller from its own
- * province row, no extra lookup needed). */
+/** Full street-level address text in Pashto, e.g. "کور نمبر ۱۴، سړک ۳، شهر
+ * نو، کابل" or "کور نمبر ۷، لښکرګاه، هلمند" — `provinceNamePs` is the
+ * province's own `name.ps` (already available to every caller from its own
+ * province row, no extra lookup needed). `ناحیه`/`کور نمبر`/`سړک` are the
+ * real administrative terms Afghan addresses actually use (Kabul's 22
+ * districts are officially "ناحیه" — see afghanDistrict below). */
 export function afghanStreetAddress(
 	provinceCode: string,
-	provinceName: string,
+	provinceNamePs: string,
 ): string {
-	const house = faker.number.int({ min: 1, max: 999 })
+	const house = toEasternDigits(faker.number.int({ min: 1, max: 999 }))
 	const locality = afghanLocality(provinceCode)
 	if (provinceCode === 'kbl') {
-		const street = faker.number.int({ min: 1, max: 15 })
-		return `House #${house}, Street ${street}, ${locality}, Kabul`
+		const street = toEasternDigits(faker.number.int({ min: 1, max: 15 }))
+		return `کور نمبر ${house}، سړک ${street}، ${locality}، کابل`
 	}
-	if (locality === provinceName) return `House #${house}, ${locality}`
-	return `House #${house}, ${locality}, ${provinceName}`
+	if (locality === provinceNamePs) return `کور نمبر ${house}، ${locality}`
+	return `کور نمبر ${house}، ${locality}، ${provinceNamePs}`
 }
 
-const STORE_WORDS = [
-	'Ariana',
-	'Khorasan',
-	'Bakhtar',
-	'Baran',
-	'Sapphire',
-	'Noor',
-]
-const STORE_SUFFIXES = [
-	'Store',
-	'Shop',
-	'Mart',
-	'Center',
-	'House',
-	'Gallery',
-	'Traders',
-]
+/** "ناحیه ۷" — the real official term for Kabul's (and, informally, other
+ * cities') numbered administrative districts, replacing the old plain
+ * "District N" placeholder. */
+export function afghanDistrict(): string {
+	return `ناحیه ${toEasternDigits(faker.number.int({ min: 1, max: 22 }))}`
+}
 
-/** A store name that reads like a real Afghan shop sign — usually an owner
- * surname or an evocative Afghan brand word, plus the category and a
- * business-type suffix (how most urban Afghan shop signage is actually
- * worded — English/Dari mixed, category-first-or-last varies). */
-export function afghanStoreName(categoryNameEn: string): string {
+const STORE_WORDS = ['آریانا', 'خراسان', 'باختر', 'افغان', 'نور', 'ستاره']
+const STORE_SUFFIXES = [
+	'سټور',
+	'دوکان',
+	'مارکیټ',
+	'مرکز',
+	'ګالري',
+	'پلازا',
+	'سوپر مارکیټ',
+]
+const STORE_LOCALITIES = ['کابل', 'هرات', 'کندهار', 'مزار شریف']
+
+/** A store name that reads like a real Afghan shop sign in Pashto — usually
+ * an owner surname or an evocative Afghan brand word, plus the category and
+ * a business-type suffix (how most urban Afghan shop signage is actually
+ * worded — e.g. "افغان موبایلونه سوپر مارکیټ"). `categoryNamePs` is the
+ * category's own `name.ps`. */
+export function afghanStoreName(categoryNamePs: string): string {
 	const pattern = faker.number.int({ min: 0, max: 2 })
 	const suffix = faker.helpers.arrayElement(STORE_SUFFIXES)
 
 	if (pattern === 0) {
 		const surname = faker.helpers.arrayElement(AFGHAN_LAST_NAMES)
-		return `${surname} ${categoryNameEn} ${suffix}`
+		return `${surname.script} ${categoryNamePs} ${suffix}`
 	}
 	if (pattern === 1) {
 		const word = faker.helpers.arrayElement(STORE_WORDS)
-		return `${word} ${categoryNameEn} ${suffix}`
+		return `${word} ${categoryNamePs} ${suffix}`
 	}
-	const locality = faker.helpers.arrayElement([
-		'Kabul',
-		'Herat',
-		'Kandahar',
-		'Mazar',
-	])
-	return `${locality} ${categoryNameEn} ${suffix}`
+	const locality = faker.helpers.arrayElement(STORE_LOCALITIES)
+	return `${locality} ${categoryNamePs} ${suffix}`
+}
+
+/** A short Pashto store description anchored to the real category + real
+ * province — e.g. "زموږ دوکان په کابل کې د موبایلونو غوره ډولونه وړاندې
+ * کوي." — instead of a disconnected English corporate catchphrase. */
+export function afghanStoreDescription(
+	categoryNamePs: string,
+	provinceNamePs: string,
+): string {
+	return `زموږ دوکان په ${provinceNamePs} کې د ${categoryNamePs} غوره ډولونه وړاندې کوي.`
 }

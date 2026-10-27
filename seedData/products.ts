@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { db } from '../src/db/db'
 import { products } from '../src/db/schema'
+import { randomProductImageUrls } from './categoryImages'
 import {
 	type CategoryAttributeRow,
 	getCategoryAttributesByCategory,
@@ -131,7 +132,8 @@ function buildTitle(
 	}
 
 	if (REAL_ESTATE_LEAVES.has(category.id)) {
-		const bedrooms = typeof specs.bedrooms === 'string' ? specs.bedrooms : undefined
+		const bedrooms =
+			typeof specs.bedrooms === 'string' ? specs.bedrooms : undefined
 		const purpose = labelOf(attributes, 'purpose', specs)
 		return [
 			bedrooms ? `${bedrooms}-Bedroom` : undefined,
@@ -163,7 +165,10 @@ function buildTitle(
 function buildDescription(category: LeafCategory, specs: Specs): string {
 	const highlights = Object.entries(specs)
 		.slice(0, 3)
-		.map(([code, value]) => `${code}: ${Array.isArray(value) ? value.join('/') : value}`)
+		.map(
+			([code, value]) =>
+				`${code}: ${Array.isArray(value) ? value.join('/') : value}`,
+		)
 		.join(', ')
 
 	const base = faker.commerce.productDescription()
@@ -253,8 +258,13 @@ export function createRandomProduct(params: {
 	const favorite_count = faker.number.int({ min: 0, max: 100 })
 
 	const imageCount = faker.number.int({ min: 1, max: 5 })
-	const images = Array.from({ length: imageCount }, (_, i) => ({
-		url: faker.image.urlPicsumPhotos(),
+	const imageUrls = randomProductImageUrls(
+		category.id,
+		category.icon_url,
+		imageCount,
+	)
+	const images = imageUrls.map((url, i) => ({
+		url,
 		sort_order: i,
 		is_primary: i === 0,
 	}))

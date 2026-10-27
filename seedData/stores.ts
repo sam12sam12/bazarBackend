@@ -8,12 +8,22 @@ import {
 	getUserIds,
 	type ProvinceRow,
 } from '.'
-import { afghanStoreName, afghanStreetAddress } from './afghanData'
+import {
+	afghanStoreDescription,
+	afghanStoreName,
+	afghanStreetAddress,
+} from './afghanData'
+import { randomProductImageUrls } from './categoryImages'
 import { afghanMobile } from './users'
 
 export function createRandomStore(params: {
 	ownerIds: string[]
-	leafCategories: { id: number; path: string; name: { en: string } }[]
+	leafCategories: {
+		id: number
+		path: string
+		name: { ps: string }
+		icon_url: string | null
+	}[]
 	provinces: ProvinceRow[]
 }): InsertStore {
 	const owner_id = faker.helpers.arrayElement(params.ownerIds)
@@ -23,7 +33,7 @@ export function createRandomStore(params: {
 	const category = faker.helpers.arrayElement(params.leafCategories)
 	const province = faker.helpers.arrayElement(params.provinces)
 	const provinceId = province.id
-	const name = afghanStoreName(category.name.en)
+	const name = afghanStoreName(category.name.ps)
 
 	const lat = faker.number.float({ min: 29.0, max: 38.5, fractionDigits: 7 })
 	const lon = faker.number.float({ min: 60.5, max: 74.0, fractionDigits: 7 })
@@ -38,23 +48,28 @@ export function createRandomStore(params: {
 		approval === 'approved' ? faker.date.recent({ days: 60 }) : null
 
 	const productCount = faker.number.int({ min: 0, max: 200 })
+	const [logoUrl, bannerUrl] = randomProductImageUrls(
+		category.id,
+		category.icon_url,
+		2,
+	)
 
 	return {
 		name,
 		owner_id,
 		category_id: category.id,
 		path: category.path,
-		description: `Trusted ${category.name.en.toLowerCase()} seller based in ${province.nameEn}, Afghanistan.`,
+		description: afghanStoreDescription(category.name.ps, province.namePs),
 		is_active: true,
 		// real estate/vehicles don't ship — matches the products side's own
 		// delivery_available roll, not every store should offer it.
 		delivery_available: faker.datatype.boolean({ probability: 0.7 }),
-		address: `${afghanStreetAddress(province.code, province.nameEn)}, Afghanistan`,
+		address: `${afghanStreetAddress(province.code, province.namePs)}، افغانستان`,
 		province_id: provinceId,
 		latitude: lat,
 		longitude: lon,
-		logo_url: faker.image.urlPicsumPhotos({ width: 200, height: 200 }),
-		banner_url: faker.image.urlPicsumPhotos({ width: 800, height: 250 }),
+		logo_url: logoUrl ?? null,
+		banner_url: bannerUrl ?? null,
 		contact_phone: afghanMobile(),
 		secondary_phone: faker.datatype.boolean({ probability: 0.3 })
 			? afghanMobile()

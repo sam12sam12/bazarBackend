@@ -50,10 +50,10 @@ export async function getProvinceIds(): Promise<number[]> {
 	return provinceIds
 }
 
-export type ProvinceRow = { id: number; code: string; nameEn: string }
+export type ProvinceRow = { id: number; code: string; namePs: string }
 
-/** Full province rows (id + code + English name) — for callers that need
- * to generate Afghanistan-appropriate address text (see
+/** Full province rows (id + code + Pashto name) — for callers that need to
+ * generate Afghanistan-appropriate native-script address text (see
  * seedData/afghanData.ts's `afghanStreetAddress`), not just an id to store. */
 export async function getProvinces(): Promise<ProvinceRow[]> {
 	const rows = await db
@@ -61,7 +61,7 @@ export async function getProvinces(): Promise<ProvinceRow[]> {
 		.from(provinces)
 		.orderBy(sql`random()`)
 
-	return rows.map((p) => ({ id: p.id, code: p.code, nameEn: p.name.en }))
+	return rows.map((p) => ({ id: p.id, code: p.code, namePs: p.name.ps }))
 }
 
 export type LeafCategory = {
@@ -72,6 +72,10 @@ export type LeafCategory = {
 	// (false for real estate, vehicles, ...) — see productSchema's own
 	// delivery_available comment.
 	delivery: boolean
+	// real, already-correctly-matched photo for this category — the
+	// fallback `randomProductImageUrls` (seedData/categoryImages.ts) reuses
+	// when a category has no curated multi-photo pool of its own.
+	icon_url: string | null
 }
 
 // Leaf categories only (`parent_id` set) — a product or store should never
@@ -92,6 +96,7 @@ export async function getLeafCategories(): Promise<LeafCategory[]> {
 			path: categories.path,
 			name: categories.name,
 			delivery: categories.delivery,
+			icon_url: categories.icon_url,
 		})
 		.from(categories)
 		.where(sql`${categories.parent_id} is not null`)
