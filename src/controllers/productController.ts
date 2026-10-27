@@ -7,7 +7,7 @@ import { ApiError } from '../utils/ApiError.ts'
 import { parseCursor, parseId } from '../utils/pagination.ts'
 import type { ProductFilters, ProductSort } from '../utils/types.ts'
 
-const LTREE_LABEL = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/
+const LTREE_LABEL = /^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$/
 const SORT_VALUES: ProductSort[] = [
 	'relevance',
 	'price_asc',
@@ -54,7 +54,8 @@ export const productController = {
 		const parsedCursor = parseCursor(query.cursor)
 		const limit = 12
 
-		// accept a valid ltree path only (labels of [A-Za-z0-9_] joined by dots)
+		// accept a valid ltree path only (labels of [A-Za-z0-9_-] joined by dots —
+		// real category slugs like "real-estate" do contain hyphens)
 		const categoryPath =
 			query.category_path && LTREE_LABEL.test(query.category_path)
 				? query.category_path

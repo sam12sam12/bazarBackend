@@ -7,7 +7,7 @@ import { ApiError } from '../utils/ApiError.ts'
 import { parseCursor, parseId } from '../utils/pagination.ts'
 import type { StoreSort } from '../utils/types.ts'
 
-const LTREE_LABEL = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/
+const LTREE_LABEL = /^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$/
 const SORT_VALUES: StoreSort[] = [
 	'relevance',
 	'rating_desc',
