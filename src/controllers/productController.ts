@@ -114,13 +114,20 @@ export const productController = {
 		return c.json({ success: true, data: result })
 	},
 
-	// General product feed across all categories (currently newest-first).
+	// General product feed across all categories (currently newest-first) —
+	// optionally scoped to the Home screen's province switcher.
 	async getFeed(c: Context) {
 		const user = c.get('user')
 		const limit = 12
 		const cursor = parseCursor(c.req.query('cursor'))
+		const provinceIds = parseIdList(c.req.query('province_ids'))
 
-		const result = await productService.getFeed(limit, cursor, user?.id)
+		const result = await productService.getFeed(
+			limit,
+			cursor,
+			user?.id,
+			provinceIds,
+		)
 		return c.json({ success: true, data: result })
 	},
 

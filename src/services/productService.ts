@@ -282,14 +282,22 @@ export const productService = {
 		)
 	},
 
-	// General product feed across all categories (currently newest-first).
-	async getFeed(limit: number, cursor?: CursorData, currentUserId?: string) {
-		return listProducts(
-			eq(products.is_active, true),
-			limit,
-			cursor,
-			currentUserId,
-		)
+	// General product feed across all categories (currently newest-first) —
+	// optionally scoped to one or more provinces (Home screen's own province
+	// switcher; "whole Afghanistan" is `undefined`/empty, no filter applied).
+	async getFeed(
+		limit: number,
+		cursor?: CursorData,
+		currentUserId?: string,
+		provinceIds?: number[],
+	) {
+		const baseFilter = provinceIds?.length
+			? and(
+					eq(products.is_active, true),
+					inArray(products.province_id, provinceIds),
+				)
+			: eq(products.is_active, true)
+		return listProducts(baseFilter, limit, cursor, currentUserId)
 	},
 
 	async getGlobal(limit: number, cursor?: CursorData, currentUserId?: string) {
