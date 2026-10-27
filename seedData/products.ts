@@ -257,12 +257,7 @@ export function createRandomProduct(params: {
 	const view_count = faker.number.int({ min: 0, max: 1000 })
 	const favorite_count = faker.number.int({ min: 0, max: 100 })
 
-	const imageCount = faker.number.int({ min: 1, max: 5 })
-	const imageUrls = randomProductImageUrls(
-		category.id,
-		category.icon_url,
-		imageCount,
-	)
+	const imageUrls = randomProductImageUrls(category.id, category.icon_url, 1)
 	const images = imageUrls.map((url, i) => ({
 		url,
 		sort_order: i,
