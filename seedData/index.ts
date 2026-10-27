@@ -30,6 +30,21 @@ export async function getStoreIds(): Promise<number[]> {
 	return storeIds
 }
 
+export type StoreWithProvince = { id: number; province_id: number }
+
+/** Store id + its own province_id — for seeding products, which must carry
+ * their selling store's province (never an independently-rolled one; see
+ * productController.create/update's own `province_id: store.province_id`
+ * — a listing's province is always derived from its store there too). */
+export async function getStoresWithProvince(): Promise<StoreWithProvince[]> {
+	const rows = await db
+		.select({ id: stores.id, province_id: stores.province_id })
+		.from(stores)
+		.orderBy(sql`random()`)
+
+	return rows.map((s) => ({ id: s.id, province_id: s.province_id }))
+}
+
 export async function getCategoryIds(): Promise<number[]> {
 	const getCategoryIdsDaa = await db
 		.select({ id: categories.id })

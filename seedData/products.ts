@@ -6,9 +6,9 @@ import {
 	type CategoryAttributeRow,
 	getCategoryAttributesByCategory,
 	getLeafCategories,
-	getProvinceIds,
-	getStoreIds,
+	getStoresWithProvince,
 	type LeafCategory,
+	type StoreWithProvince,
 } from './index'
 
 type InsertProductRow = typeof products.$inferInsert
@@ -176,15 +176,18 @@ function buildDescription(category: LeafCategory, specs: Specs): string {
 }
 
 export function createRandomProduct(params: {
-	storeIds: number[]
+	stores: StoreWithProvince[]
 	leafCategories: LeafCategory[]
-	provinceIds: number[]
 	attributesByCategory: Map<number, CategoryAttributeRow[]>
 	created_at?: Date
 }): InsertProductRow {
-	const store_id = faker.helpers.arrayElement(params.storeIds)
+	// A listing's province is always its selling store's province — never
+	// independently rolled — matching productController.create/update's own
+	// `province_id: store.province_id`.
+	const store = faker.helpers.arrayElement(params.stores)
+	const store_id = store.id
+	const province_id = store.province_id
 	const category = faker.helpers.arrayElement(params.leafCategories)
-	const province_id = faker.helpers.arrayElement(params.provinceIds)
 	const attributes = params.attributesByCategory.get(category.id) ?? []
 	const specifications = buildSpecifications(attributes)
 
@@ -298,9 +301,8 @@ export function createRandomProduct(params: {
 const INSERT_BATCH_SIZE = 1000
 
 export async function generateProductsFakerData(count = 10) {
-	const storeIds = await getStoreIds()
+	const stores = await getStoresWithProvince()
 	const leafCategories = await getLeafCategories()
-	const provinceIds = await getProvinceIds()
 	const attributesByCategory = await getCategoryAttributesByCategory()
 
 	let inserted = 0
@@ -309,9 +311,8 @@ export async function generateProductsFakerData(count = 10) {
 		const batch: InsertProductRow[] = faker.helpers.multiple(
 			() =>
 				createRandomProduct({
-					storeIds,
+					stores,
 					leafCategories,
-					provinceIds,
 					attributesByCategory,
 				}),
 			{ count: batchSize },
