@@ -337,29 +337,49 @@ export const productService = {
 	},
 
 	// ── Single product with relations ──
+	// Carries `average_rating` so the details screen can show it without a
+	// second round-trip — the dedicated summary endpoint
+	// (productReviewService.getSummary) still exists separately for the full
+	// reviews screen, which also needs the review count and per-star
+	// breakdown this doesn't.
 	async getById(id: number) {
-		return db.query.products.findFirst({
-			where: eq(products.id, id),
-			with: {
-				store: {
-					columns: {
-						id: true,
-						name: true,
-						logo_url: true,
-						owner_id: true,
-						contact_phone: true,
-					},
-					with: {
-						province: {
-							columns: { name: true },
+		const [product, reviewSummary] = await Promise.all([
+			db.query.products.findFirst({
+				where: eq(products.id, id),
+				with: {
+					store: {
+						columns: {
+							id: true,
+							name: true,
+							logo_url: true,
+							owner_id: true,
+							contact_phone: true,
+						},
+						with: {
+							province: {
+								columns: { name: true },
+							},
 						},
 					},
+					category: {
+						columns: { id: true, name: true },
+					},
 				},
-				category: {
-					columns: { id: true, name: true },
-				},
-			},
-		})
+			}),
+			db
+				.select({
+					average_rating: sql<number>`COALESCE(ROUND(AVG(rating)::numeric, 2), 0)`,
+				})
+				.from(productReviews)
+				.where(eq(productReviews.product_id, id))
+				.then((rows) => rows[0]),
+		])
+		if (!product) return product
+
+		return {
+			...product,
+			average_rating: Number(reviewSummary?.average_rating ?? 0),
+		}
 	},
 
 	// ── Related products (same category, excluding this product) ──
