@@ -62,6 +62,44 @@ export function isOwnerColumn(currentUserId?: string) {
 		: sql<boolean>`false`
 }
 
+// A `specifications` value is stored either as a bare JSON string (a
+// single-answer attribute, e.g. Brand) or a JSON array (a `multiple`
+// attribute, e.g. RAM/Color) — see ProductSpecsStep's own `Record<string,
+// string | string[]>` shape. A filter facet always ORs against whichever
+// form is actually there: `?|` (jsonb "any of these array elements") for
+// the array case, `->>` text equality for the scalar case. `code` and
+// `values` are both bound as parameters (not raw SQL), so this is safe
+// regardless of what a caller passes.
+function specMenuCondition(code: string, values: string[]): SQL {
+	const bound = sql.join(
+		values.map((v) => sql`${v}`),
+		sql`, `,
+	)
+	return sql`(
+		(jsonb_typeof(${products.specifications}->${code}) = 'array' AND ${products.specifications}->${code} ?| ARRAY[${bound}]::text[])
+		OR (${products.specifications}->>${code} = ANY(ARRAY[${bound}]))
+	)`
+}
+
+// Number-type attributes (year, mileage, bedrooms, ...) are still stored as
+// plain strings (every "number" spec is, per ProductSpecsStep) — cast for
+// the comparison rather than keeping a parallel numeric column.
+function specRangeConditions(
+	code: string,
+	range: { min?: number; max?: number },
+): SQL[] {
+	const conditions: SQL[] = []
+	if (range.min != null)
+		conditions.push(
+			sql`(${products.specifications}->>${code})::numeric >= ${range.min}`,
+		)
+	if (range.max != null)
+		conditions.push(
+			sql`(${products.specifications}->>${code})::numeric <= ${range.max}`,
+		)
+	return conditions
+}
+
 // Buffer view increments and flush in a single UPDATE every 30 s.
 const viewBuffer = new Map<number, number>()
 
@@ -189,6 +227,12 @@ export const productService = {
 			conditions.push(gte(products.off_percentage, filters.min_discount))
 		if (filters?.featured !== undefined)
 			conditions.push(eq(products.featured, filters.featured))
+		for (const [code, values] of Object.entries(filters?.specs ?? {})) {
+			if (values.length > 0) conditions.push(specMenuCondition(code, values))
+		}
+		for (const [code, range] of Object.entries(filters?.spec_ranges ?? {})) {
+			conditions.push(...specRangeConditions(code, range))
+		}
 
 		// Hybrid tsvector+trigram match — see buildFuzzySearch's own comment
 		// for why this replaced a strict AND-every-word `plainto_tsquery`

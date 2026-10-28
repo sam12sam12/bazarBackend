@@ -14,6 +14,9 @@ const SORT_VALUES: ProductSort[] = [
 	'price_desc',
 	'rating_desc',
 ]
+// category_attribute.code's own convention (varchar(80), always lowercase
+// slug-like — "ram", "brand", "screen_size").
+const ATTRIBUTE_CODE = /^[a-z0-9_]{1,80}$/
 
 // "1,2,3" -> [1, 2, 3]; drops non-positive/NaN entries; undefined for empty/missing.
 function parseIdList(raw: string | undefined): number[] | undefined {
@@ -23,6 +26,66 @@ function parseIdList(raw: string | undefined): number[] | undefined {
 		.map((part) => Number(part.trim()))
 		.filter((id) => Number.isFinite(id) && id > 0)
 	return ids.length > 0 ? ids : undefined
+}
+
+// `?specs=` is a JSON-encoded `{ code: string[] }` object (same
+// JSON-in-a-query-param convention `cursor` already uses) — malformed JSON,
+// a non-object, or anything that isn't a non-empty string[] per key is
+// silently dropped rather than erroring the whole request, same spirit as
+// every other best-effort query param here.
+function parseSpecFilters(
+	raw: string | undefined,
+): Record<string, string[]> | undefined {
+	if (!raw) return undefined
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(raw)
+	} catch {
+		return undefined
+	}
+	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+		return undefined
+	}
+	const result: Record<string, string[]> = {}
+	for (const [code, values] of Object.entries(
+		parsed as Record<string, unknown>,
+	)) {
+		if (!ATTRIBUTE_CODE.test(code)) continue
+		if (!Array.isArray(values)) continue
+		const strings = values.filter((v): v is string => typeof v === 'string')
+		if (strings.length > 0) result[code] = strings
+	}
+	return Object.keys(result).length > 0 ? result : undefined
+}
+
+// `?spec_ranges=` is a JSON-encoded `{ code: { min?, max? } }` object —
+// same malformed-input handling as parseSpecFilters above.
+function parseSpecRangeFilters(
+	raw: string | undefined,
+): Record<string, { min?: number; max?: number }> | undefined {
+	if (!raw) return undefined
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(raw)
+	} catch {
+		return undefined
+	}
+	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+		return undefined
+	}
+	const result: Record<string, { min?: number; max?: number }> = {}
+	for (const [code, value] of Object.entries(
+		parsed as Record<string, unknown>,
+	)) {
+		if (!ATTRIBUTE_CODE.test(code)) continue
+		if (typeof value !== 'object' || value === null) continue
+		const { min, max } = value as { min?: unknown; max?: unknown }
+		const range: { min?: number; max?: number } = {}
+		if (typeof min === 'number' && Number.isFinite(min)) range.min = min
+		if (typeof max === 'number' && Number.isFinite(max)) range.max = max
+		if (range.min !== undefined || range.max !== undefined) result[code] = range
+	}
+	return Object.keys(result).length > 0 ? result : undefined
 }
 
 async function assertProductOwner(
@@ -72,6 +135,9 @@ export const productController = {
 			? (query.sort as ProductSort)
 			: undefined
 
+		const specs = parseSpecFilters(query.specs)
+		const specRanges = parseSpecRangeFilters(query.spec_ranges)
+
 		const filters = {
 			store_id: query.store_id ? Number(query.store_id) : undefined,
 			category_id: query.category_id ? Number(query.category_id) : undefined,
@@ -90,6 +156,8 @@ export const productController = {
 			sort,
 			limit,
 			cursor: parsedCursor,
+			specs,
+			spec_ranges: specRanges,
 		} as ProductFilters
 		const result = await productService.getAll(filters, user?.id)
 		return c.json({ success: true, data: result })

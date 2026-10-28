@@ -55,6 +55,17 @@ export interface ProductFilters {
 	sort?: ProductSort
 	limit?: number
 	cursor?: CursorData
+	/** category-attribute facets, keyed by `category_attribute.code` (e.g.
+	 * "ram", "brand") — each value array is OR'd against whatever's stored
+	 * in `products.specifications->code`, regardless of whether that
+	 * attribute is itself `multiple` on create (a buyer picking "RAM: 6GB,
+	 * 8GB" wants either, not a literal match of a two-value set). Only
+	 * meaningful for `type: "menu"` attributes. */
+	specs?: Record<string, string[]>
+	/** category-attribute numeric ranges, same keying as `specs` — for
+	 * `type: "number"` attributes (year, mileage, bedrooms, ...). Either
+	 * bound may be omitted for an open-ended range. */
+	spec_ranges?: Record<string, { min?: number; max?: number }>
 }
 
 export type PublicRequestSort = 'newest' | 'budget_asc' | 'budget_desc'
