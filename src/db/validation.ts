@@ -608,6 +608,7 @@ export const orderStatusValues = [
 	'processing',
 	'shipped',
 	'delivered',
+	'completed',
 	'cancelled',
 	'returned',
 ] as const

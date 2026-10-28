@@ -22,16 +22,21 @@ type OrderStatus =
 	| 'processing'
 	| 'shipped'
 	| 'delivered'
+	| 'completed'
 	| 'cancelled'
 	| 'returned'
 
 // Allowed status transitions (state machine). Empty array = terminal.
+// `delivered` means the seller/courier says it arrived; `completed` is the
+// buyer's own confirmation of receipt (see updateStatus's authorization
+// branch below) — kept strictly terminal, not reachable from/to `returned`.
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 	pending: ['confirmed', 'cancelled'],
 	confirmed: ['processing', 'cancelled'],
 	processing: ['shipped', 'cancelled'],
 	shipped: ['delivered'],
-	delivered: ['returned'],
+	delivered: ['completed', 'returned'],
+	completed: [],
 	cancelled: [],
 	returned: [],
 }
@@ -41,6 +46,7 @@ const STATUS_TIMESTAMP: Partial<Record<OrderStatus, string>> = {
 	confirmed: 'confirmed_at',
 	shipped: 'shipped_at',
 	delivered: 'delivered_at',
+	completed: 'completed_at',
 	cancelled: 'cancelled_at',
 }
 
@@ -154,6 +160,10 @@ export const ordersService = {
 					currency: products.currency,
 					is_active: products.is_active,
 					images: products.images,
+					province_id: products.province_id,
+					delivery_available: products.delivery_available,
+					intra_city_fee: products.intra_city_fee,
+					inter_province_fee: products.inter_province_fee,
 				})
 				.from(products)
 				.where(inArray(products.id, productIds))
@@ -198,6 +208,7 @@ export const ordersService = {
 				store_id: number
 				currency: 'AFN' | 'USD' | 'PKR'
 				subtotal: string
+				shipping_fee: string
 				total: string
 				item_count: number
 			}> = []
@@ -229,7 +240,27 @@ export const ordersService = {
 					}
 				})
 
-				const totalNum = subtotalNum // + shipping - discount (0 for now)
+				// One shipment per store-order regardless of how many lines/products
+				// are in it — take the max of each line's own fee rather than
+				// summing (summing would overcharge a multi-item cart for what's
+				// physically one delivery run) or requiring every line to agree
+				// (which would fail checkout for a perfectly normal mixed-product
+				// cart). Compares each line's own product.province_id (not the
+				// store's) against the shipping address's province — delivery fees
+				// are configured per-listing, and a store can list items located in
+				// a different province from the store's own. `0` for any line with
+				// delivery_available false or a null fee column.
+				const shippingFeeNum = storeLines.reduce((max, line) => {
+					if (!line.product.delivery_available) return max
+					const isIntraCity = line.product.province_id === address.province_id
+					const fee = Number(
+						(isIntraCity
+							? line.product.intra_city_fee
+							: line.product.inter_province_fee) ?? 0,
+					)
+					return Math.max(max, fee)
+				}, 0)
+				const totalNum = round2(subtotalNum + shippingFeeNum)
 
 				const [order] = await tx
 					.insert(orders)
@@ -241,6 +272,7 @@ export const ordersService = {
 						payment_method: payment_method ?? 'cash_on_delivery',
 						currency,
 						subtotal: subtotalNum.toFixed(2),
+						shipping_fee: shippingFeeNum.toFixed(2),
 						total: totalNum.toFixed(2),
 						item_count: itemCount,
 						shipping_address_id,
@@ -263,6 +295,7 @@ export const ordersService = {
 					store_id,
 					currency,
 					subtotal: subtotalNum.toFixed(2),
+					shipping_fee: shippingFeeNum.toFixed(2),
 					total: totalNum.toFixed(2),
 					item_count: itemCount,
 				})
@@ -492,6 +525,7 @@ export const ordersService = {
 			processing: 0,
 			shipped: 0,
 			delivered: 0,
+			completed: 0,
 			cancelled: 0,
 			returned: 0,
 		}
@@ -568,7 +602,8 @@ export const ordersService = {
 
 	// ==================== MUTATIONS ====================
 
-	// ── Seller updates order status (state machine) ──
+	// ── Seller updates order status (state machine) — except `completed`,
+	// which is the buyer's own "mark as received" confirmation. ──
 	async updateStatus(orderId: number, actorId: string, newStatus: OrderStatus) {
 		const order = await db.query.orders.findFirst({
 			where: eq(orders.id, orderId),
@@ -578,8 +613,15 @@ export const ordersService = {
 		})
 		if (!order) throw ApiError.notFound('Order not found')
 
-		// Authorize: only the store owner may change status.
-		if (order.store.owner_id !== actorId) {
+		// Authorize: every transition is seller-only except the one that isn't
+		// theirs to make — only the buyer can confirm they received the order.
+		if (newStatus === 'completed') {
+			if (order.buyer_id !== actorId) {
+				throw ApiError.forbidden(
+					'Only the buyer can mark this order as received',
+				)
+			}
+		} else if (order.store.owner_id !== actorId) {
 			throw ApiError.forbidden('You do not own this order')
 		}
 

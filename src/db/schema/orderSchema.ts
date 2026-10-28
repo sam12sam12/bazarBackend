@@ -78,6 +78,9 @@ export const orders = pgTable(
 		confirmed_at: timestamp('confirmed_at', { withTimezone: true }),
 		shipped_at: timestamp('shipped_at', { withTimezone: true }),
 		delivered_at: timestamp('delivered_at', { withTimezone: true }),
+		// Set only by the buyer's own "Mark as Received" confirmation — never
+		// the seller. See ordersService's `updateStatus` authorization branch.
+		completed_at: timestamp('completed_at', { withTimezone: true }),
 		cancelled_at: timestamp('cancelled_at', { withTimezone: true }),
 
 		...timestamps,
@@ -164,7 +167,10 @@ export const orderItems = pgTable(
 		// choices of the same product are two lines, not one with quantity 2),
 		// so this is what lets checkout preserve that distinction instead of
 		// collapsing every line of the same product into one row.
-		selected_options: jsonb('selected_options').$type<Record<string, string> | null>(),
+		selected_options: jsonb('selected_options').$type<Record<
+			string,
+			string
+		> | null>(),
 
 		...timestamps,
 	},
