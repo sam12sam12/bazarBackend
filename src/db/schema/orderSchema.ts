@@ -26,8 +26,9 @@ import { stores } from './storeSchema'
 import { users } from './userSchema'
 
 // ==================== ORDERS TABLE ====================
-// One order per store. A single checkout that spans multiple stores produces
-// several orders that share the same `checkout_group_id`.
+// One order = exactly one product, one quantity, one currency — there is no
+// cart and no multi-item checkout; "Order It" on a product's details page is
+// the only way to create an order.
 export const orders = pgTable(
 	'orders',
 	{
@@ -36,11 +37,25 @@ export const orders = pgTable(
 		// Human-readable, app-generated, unique reference (e.g. ORD-LXY3-9F2A)
 		order_number: varchar('order_number', { length: 30 }).notNull(),
 
-		// Ties together the per-store orders created from one checkout
-		checkout_group_id: uuid('checkout_group_id').notNull(),
-
 		buyer_id: uuid('buyer_id').notNull(),
 		store_id: bigint('store_id', { mode: 'number' }).notNull(),
+
+		// ── The one product being ordered — snapshotted at checkout time so
+		// order history survives the product's own price/title/image changing
+		// later (or the product being deleted entirely, hence the nullable FK). ──
+		product_id: bigint('product_id', { mode: 'number' }),
+		title: varchar('title', { length: 255 }).notNull(),
+		image: text('image'),
+		unit_price: numeric('unit_price', { precision: 14, scale: 2 }).notNull(),
+		quantity: integer('quantity').notNull(),
+		// The buyer's picked value per variant attribute at checkout time (e.g.
+		// { color: "navy", ram: "8GB" }), same code/value shape as
+		// products.specifications — null when the product has no variant
+		// attributes.
+		selected_options: jsonb('selected_options').$type<Record<
+			string,
+			string
+		> | null>(),
 
 		// ── Lifecycle ──
 		status: orderStatusEnum('status').default('pending').notNull(),
@@ -63,7 +78,6 @@ export const orders = pgTable(
 			.default('0')
 			.notNull(),
 		total: numeric('total', { precision: 14, scale: 2 }).notNull(),
-		item_count: integer('item_count').notNull(),
 
 		// ── Shipping address: reference + immutable snapshot ──
 		shipping_address_id: bigint('shipping_address_id', { mode: 'number' }),
@@ -103,6 +117,14 @@ export const orders = pgTable(
 			.onUpdate('cascade'),
 
 		foreignKey({
+			columns: [table.product_id],
+			foreignColumns: [products.id],
+			name: 'orders_product_id_fkey',
+		})
+			.onDelete('set null')
+			.onUpdate('cascade'),
+
+		foreignKey({
 			columns: [table.shipping_address_id],
 			foreignColumns: [addresses.id],
 			name: 'orders_shipping_address_id_fkey',
@@ -134,64 +156,5 @@ export const orders = pgTable(
 			table.created_at.desc(),
 			table.id.desc(),
 		),
-
-		// Fetch a whole checkout group
-		index('orders_checkout_group_idx').on(table.checkout_group_id),
-	],
-)
-
-// ==================== ORDER ITEMS TABLE ====================
-export const orderItems = pgTable(
-	'order_items',
-	{
-		id: bigserial('id', { mode: 'number' }).primaryKey(),
-		order_id: bigint('order_id', { mode: 'number' }).notNull(),
-
-		// Nullable: order history survives product deletion thanks to the snapshot.
-		product_id: bigint('product_id', { mode: 'number' }),
-
-		// ── Snapshot at purchase time ──
-		title: varchar('title', { length: 255 }).notNull(),
-		image: text('image'),
-		unit_price: numeric('unit_price', { precision: 14, scale: 2 }).notNull(),
-		currency: currencyEnum('currency').notNull(),
-
-		quantity: integer('quantity').notNull(),
-		subtotal: numeric('subtotal', { precision: 14, scale: 2 }).notNull(),
-
-		// The buyer's picked value per variant attribute at checkout time (e.g.
-		// { color: "navy", ram: "8GB" }), same code/value shape as
-		// products.specifications — null when the product has no variant
-		// attributes. A product+selected_options combination is what the
-		// frontend cart treats as one distinct line (two different RAM
-		// choices of the same product are two lines, not one with quantity 2),
-		// so this is what lets checkout preserve that distinction instead of
-		// collapsing every line of the same product into one row.
-		selected_options: jsonb('selected_options').$type<Record<
-			string,
-			string
-		> | null>(),
-
-		...timestamps,
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.order_id],
-			foreignColumns: [orders.id],
-			name: 'order_items_order_id_fkey',
-		})
-			.onDelete('cascade')
-			.onUpdate('cascade'),
-
-		foreignKey({
-			columns: [table.product_id],
-			foreignColumns: [products.id],
-			name: 'order_items_product_id_fkey',
-		})
-			.onDelete('set null')
-			.onUpdate('cascade'),
-
-		index('order_items_order_id_idx').on(table.order_id),
-		index('order_items_product_id_idx').on(table.product_id),
 	],
 )

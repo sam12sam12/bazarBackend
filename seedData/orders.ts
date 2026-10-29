@@ -1,14 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { eq } from 'drizzle-orm'
 import { db } from '../src/db/db'
-import {
-	addresses,
-	orderItems,
-	orders,
-	products,
-	provinces,
-	users,
-} from '../src/db/schema'
+import { addresses, orders, products, provinces, users } from '../src/db/schema'
 import type { ProductImage } from '../src/utils/types'
 
 type OrderStatus =
@@ -21,7 +14,6 @@ type OrderStatus =
 	| 'returned'
 
 type OrderInsert = typeof orders.$inferInsert
-type OrderItemInsert = typeof orderItems.$inferInsert
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
 
@@ -50,6 +42,8 @@ function pickStatus(): OrderStatus {
 	])
 }
 
+// One order = exactly one product (matches the real checkout flow — there's
+// no cart, "Order It" on a single listing is the only way an order is made).
 export async function generateOrdersFakerData(count = 30) {
 	// Real rows so the snapshots and FKs are valid.
 	const productRows = await db
@@ -85,55 +79,16 @@ export async function generateOrdersFakerData(count = 30) {
 		return []
 	}
 
-	// Group products by store so each order stays within a single store.
-	const productsByStore = new Map<number, typeof productRows>()
-	for (const p of productRows) {
-		const arr = productsByStore.get(p.store_id) ?? []
-		arr.push(p)
-		productsByStore.set(p.store_id, arr)
-	}
-	const storeIds = [...productsByStore.keys()]
-
 	const orderValues: OrderInsert[] = []
-	// Items are kept in lock-step with orderValues; order_id is filled after insert.
-	const itemsPerOrder: Omit<OrderItemInsert, 'order_id'>[][] = []
 
 	for (let i = 0; i < count; i++) {
-		const storeId = faker.helpers.arrayElement(storeIds)
-		const storeProducts = productsByStore.get(storeId) ?? []
-		if (storeProducts.length === 0) continue
-
-		// Keep a single currency per order (matches the checkout rule).
-		const currency = faker.helpers.arrayElement(storeProducts).currency
-		const candidates = storeProducts.filter((p) => p.currency === currency)
-
-		const lineCount = faker.number.int({
-			min: 1,
-			max: Math.min(4, candidates.length),
-		})
-		const chosen = faker.helpers.arrayElements(candidates, lineCount)
-
-		let subtotal = 0
-		let itemCount = 0
-		const items: Omit<OrderItemInsert, 'order_id'>[] = chosen.map((p) => {
-			const qty = faker.number.int({ min: 1, max: 3 })
-			const line = round2(Number(p.price) * qty)
-			subtotal = round2(subtotal + line)
-			itemCount += qty
-			return {
-				product_id: p.id,
-				title: p.title,
-				image: firstImageUrl(p.images),
-				unit_price: p.price,
-				currency: p.currency,
-				quantity: qty,
-				subtotal: line.toFixed(2),
-			}
-		})
-
+		const product = faker.helpers.arrayElement(productRows)
 		const address = faker.helpers.arrayElement(addressRows)
 		const status = pickStatus()
 		const createdAt = faker.date.recent({ days: 60 })
+
+		const quantity = faker.number.int({ min: 1, max: 3 })
+		const subtotal = round2(Number(product.price) * quantity)
 
 		// Derive lifecycle timestamps + payment status from the order status.
 		const reached = (...s: OrderStatus[]) => s.includes(status)
@@ -163,19 +118,22 @@ export async function generateOrdersFakerData(count = 30) {
 
 		orderValues.push({
 			order_number: genOrderNumber(i),
-			checkout_group_id: faker.string.uuid(),
 			buyer_id: address.user_id,
-			store_id: storeId,
+			store_id: product.store_id,
+			product_id: product.id,
+			title: product.title,
+			image: firstImageUrl(product.images),
+			unit_price: product.price,
+			quantity,
 			status,
 			payment_method: faker.helpers.weightedArrayElement([
 				{ value: 'cash_on_delivery', weight: 85 },
 				{ value: 'bank_transfer', weight: 15 },
 			]),
 			payment_status: paymentStatus,
-			currency,
+			currency: product.currency,
 			subtotal: subtotal.toFixed(2),
 			total: subtotal.toFixed(2),
-			item_count: itemCount,
 			shipping_address_id: address.id,
 			shipping_address: {
 				name: address.buyer_name,
@@ -199,27 +157,15 @@ export async function generateOrdersFakerData(count = 30) {
 			updated_at:
 				deliveredAt ?? shippedAt ?? confirmedAt ?? cancelledAt ?? createdAt,
 		})
-		itemsPerOrder.push(items)
 	}
 
 	if (orderValues.length === 0) return []
 
-	// Insert orders, then attach their items by aligned index.
 	const inserted = await db
 		.insert(orders)
 		.values(orderValues)
 		.returning({ id: orders.id })
 
-	const allItems: OrderItemInsert[] = []
-	inserted.forEach((row, idx) => {
-		for (const item of itemsPerOrder[idx] ?? []) {
-			allItems.push({ ...item, order_id: row.id })
-		}
-	})
-	if (allItems.length > 0) await db.insert(orderItems).values(allItems)
-
-	console.log(
-		`📦 Seeded ${inserted.length} orders with ${allItems.length} items.`,
-	)
+	console.log(`📦 Seeded ${inserted.length} orders.`)
 	return inserted
 }

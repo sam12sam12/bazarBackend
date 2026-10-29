@@ -42,7 +42,7 @@ import type { favoriteRequests } from './favoriteRequestSchema'
 import type { favoriteStores } from './favoriteStoreSchema'
 import type { notificationPreferences } from './notificationPreferenceSchema'
 import type { notifications } from './notificationSchema'
-import type { orderItems, orders } from './orderSchema'
+import type { orders } from './orderSchema'
 import type { productRequests } from './productRequestSchema'
 import type { products } from './productSchema'
 import type { productViews } from './productViewSchema'
@@ -65,7 +65,6 @@ export type ProductRequest = typeof productRequests.$inferSelect
 export type Address = typeof addresses.$inferSelect
 export type Notification = typeof notifications.$inferSelect
 export type Order = typeof orders.$inferSelect
-export type OrderItem = typeof orderItems.$inferSelect
 export type ProductReview = typeof productReviews.$inferSelect
 export type StoreReview = typeof storeReviews.$inferSelect
 export type Report = typeof reports.$inferSelect

@@ -13,7 +13,7 @@ import { favoriteRequests } from './favoriteRequestSchema'
 import { favoriteStores } from './favoriteStoreSchema'
 import { notificationPreferences } from './notificationPreferenceSchema'
 import { notifications } from './notificationSchema'
-import { orderItems, orders } from './orderSchema'
+import { orders } from './orderSchema'
 import { productRequests } from './productRequestSchema'
 import { products } from './productSchema'
 import { productViews } from './productViewSchema'
@@ -149,7 +149,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 	}),
 	reviews: many(productReviews),
 	reports: many(reports),
-	orderItems: many(orderItems),
+	orders: many(orders),
 	views: many(productViews),
 	favoritedBy: many(favoriteProducts),
 }))
@@ -453,7 +453,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }))
 
 // ==================== ORDER RELATIONS ====================
-export const ordersRelations = relations(orders, ({ one, many }) => ({
+export const ordersRelations = relations(orders, ({ one }) => ({
 	buyer: one(users, {
 		fields: [orders.buyer_id],
 		references: [users.id],
@@ -462,21 +462,12 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
 		fields: [orders.store_id],
 		references: [stores.id],
 	}),
+	product: one(products, {
+		fields: [orders.product_id],
+		references: [products.id],
+	}),
 	shippingAddress: one(addresses, {
 		fields: [orders.shipping_address_id],
 		references: [addresses.id],
-	}),
-	items: many(orderItems),
-}))
-
-// ==================== ORDER ITEM RELATIONS ====================
-export const orderItemsRelations = relations(orderItems, ({ one }) => ({
-	order: one(orders, {
-		fields: [orderItems.order_id],
-		references: [orders.id],
-	}),
-	product: one(products, {
-		fields: [orderItems.product_id],
-		references: [products.id],
 	}),
 }))

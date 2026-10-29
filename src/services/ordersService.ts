@@ -1,13 +1,6 @@
-import { and, desc, eq, inArray, lt, or, type SQL, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, or, type SQL, sql } from 'drizzle-orm'
 import { db } from '../db/db'
-import {
-	addresses,
-	orderItems,
-	orders,
-	products,
-	stores,
-	users,
-} from '../db/schema'
+import { addresses, orders, products, stores, users } from '../db/schema'
 import type { Checkout } from '../db/validation'
 import { ApiError } from '../utils/ApiError'
 import type { CursorData } from '../utils/pagination'
@@ -70,52 +63,19 @@ function genOrderNumber(): string {
 
 export const ordersService = {
 	// ==================== CHECKOUT ====================
+	// One order = exactly one product — there's no cart, so checkout never
+	// needs to group lines by store or dedupe variants; it's always exactly
+	// one row.
 	async checkout(buyerId: string, input: Checkout) {
-		const { shipping_address_id, payment_method, buyer_note, items } = input
+		const {
+			shipping_address_id,
+			payment_method,
+			buyer_note,
+			product_id,
+			quantity,
+			selected_options,
+		} = input
 		const buyer_id = buyerId
-
-		// Merge duplicate (product_id + selected_options) lines into one
-		// quantity per distinct variant — two lines for the same product with
-		// different selected_options (e.g. two RAM choices) stay two separate
-		// order items; the exact same product+variant submitted twice merges
-		// into one. qtyByProduct separately collapses every line back down to
-		// the unique set of product ids involved (for the lock/availability
-		// check below — there's no per-product quantity to total anymore).
-		const lineKey = (
-			productId: number,
-			selectedOptions?: Record<string, string>,
-		) =>
-			`${productId}::${JSON.stringify(Object.entries(selectedOptions ?? {}).sort())}`
-
-		const linesByKey = new Map<
-			string,
-			{
-				product_id: number
-				quantity: number
-				selected_options: Record<string, string> | null
-			}
-		>()
-		for (const item of items) {
-			const key = lineKey(item.product_id, item.selected_options)
-			const existing = linesByKey.get(key)
-			if (existing) existing.quantity += item.quantity
-			else
-				linesByKey.set(key, {
-					product_id: item.product_id,
-					quantity: item.quantity,
-					selected_options: item.selected_options ?? null,
-				})
-		}
-		const lines = [...linesByKey.values()]
-
-		const qtyByProduct = new Map<number, number>()
-		for (const line of lines) {
-			qtyByProduct.set(
-				line.product_id,
-				(qtyByProduct.get(line.product_id) ?? 0) + line.quantity,
-			)
-		}
-		const productIds = [...qtyByProduct.keys()]
 
 		// 1. Shipping address and buyer can be fetched outside the tx (read-only, non-critical).
 		const address = await db.query.addresses.findFirst({
@@ -144,14 +104,12 @@ export const ordersService = {
 			longitude: address.longitude,
 		}
 
-		const checkout_group_id = crypto.randomUUID()
-
-		// 2. Atomic: single FOR UPDATE fetches all product data, verifies
-		//    availability, then creates orders. No stock/quantity tracking —
-		//    a listing stays orderable indefinitely; "available" is just
-		//    whether the seller still has it active.
-		const created = await db.transaction(async (tx) => {
-			const locked = await tx
+		// 2. Atomic: lock the product row, verify availability, create the
+		//    order. No stock/quantity tracking — a listing stays orderable
+		//    indefinitely; "available" is just whether the seller still has
+		//    it active.
+		const order = await db.transaction(async (tx) => {
+			const [product] = await tx
 				.select({
 					id: products.id,
 					store_id: products.store_id,
@@ -166,221 +124,126 @@ export const ordersService = {
 					inter_province_fee: products.inter_province_fee,
 				})
 				.from(products)
-				.where(inArray(products.id, productIds))
+				.where(eq(products.id, product_id))
 				.for('update')
 
-			if (locked.length !== productIds.length) {
-				throw ApiError.badRequest('One or more products do not exist')
+			if (!product) throw ApiError.badRequest('Product does not exist')
+			if (!product.is_active) {
+				throw ApiError.conflict(
+					`Product "${product.title}" is no longer available`,
+				)
 			}
 
-			// Validate availability under lock. Listings are reorderable — no
-			// "sold" concept here, a buyer can check out the same product as
-			// many times as they want. Only an inactive (paused/removed)
-			// listing blocks checkout.
-			for (const row of locked) {
-				if (!row.is_active) {
-					throw ApiError.conflict(
-						`Product "${row.title}" is no longer available`,
-					)
-				}
-			}
+			const subtotalNum = round2(Number(product.price) * quantity)
 
-			const productById = new Map(locked.map((p) => [p.id, p]))
-
-			// Group *lines* (not products) by store — a line's store comes from
-			// its product, so two variant lines of the same product always land
-			// in the same group together.
-			const groups = new Map<
-				number,
-				Array<(typeof lines)[number] & { product: (typeof locked)[number] }>
-			>()
-			for (const line of lines) {
-				const product = productById.get(line.product_id)
-				if (!product) continue // unreachable — every product_id above came from these same lines
-				const arr = groups.get(product.store_id) ?? []
-				arr.push({ ...line, product })
-				groups.set(product.store_id, arr)
-			}
-
-			const ordersOut: Array<{
-				id: number
-				order_number: string
-				store_id: number
-				currency: 'AFN' | 'USD' | 'PKR'
-				subtotal: string
-				shipping_fee: string
-				total: string
-				item_count: number
-			}> = []
-
-			for (const [store_id, storeLines] of groups) {
-				const currency = storeLines[0]?.product.currency
-				if (!currency) continue
-				if (storeLines.some((l) => l.product.currency !== currency)) {
-					throw ApiError.badRequest(
-						'Mixed currencies within a single store order are not supported',
-					)
-				}
-
-				let subtotalNum = 0
-				let itemCount = 0
-				const itemValues = storeLines.map((line) => {
-					const lineTotal = round2(Number(line.product.price) * line.quantity)
-					subtotalNum = round2(subtotalNum + lineTotal)
-					itemCount += line.quantity
-					return {
-						product_id: line.product.id,
-						title: line.product.title,
-						image: firstImageUrl(line.product.images),
-						unit_price: line.product.price,
-						currency: line.product.currency,
-						quantity: line.quantity,
-						subtotal: lineTotal.toFixed(2),
-						selected_options: line.selected_options,
-					}
-				})
-
-				// One shipment per store-order regardless of how many lines/products
-				// are in it — take the max of each line's own fee rather than
-				// summing (summing would overcharge a multi-item cart for what's
-				// physically one delivery run) or requiring every line to agree
-				// (which would fail checkout for a perfectly normal mixed-product
-				// cart). Compares each line's own product.province_id (not the
-				// store's) against the shipping address's province — delivery fees
-				// are configured per-listing, and a store can list items located in
-				// a different province from the store's own. `0` for any line with
-				// delivery_available false or a null fee column.
-				const shippingFeeNum = storeLines.reduce((max, line) => {
-					if (!line.product.delivery_available) return max
-					const isIntraCity = line.product.province_id === address.province_id
-					const fee = Number(
+			// Compares the product's own province (not the store's — a store
+			// can list items located in a different province from its own) to
+			// the shipping address's province. `0` when delivery isn't offered
+			// or the matching fee column is null.
+			const isIntraCity = product.province_id === address.province_id
+			const shippingFeeNum = product.delivery_available
+				? Number(
 						(isIntraCity
-							? line.product.intra_city_fee
-							: line.product.inter_province_fee) ?? 0,
+							? product.intra_city_fee
+							: product.inter_province_fee) ?? 0,
 					)
-					return Math.max(max, fee)
-				}, 0)
-				const totalNum = round2(subtotalNum + shippingFeeNum)
+				: 0
+			const totalNum = round2(subtotalNum + shippingFeeNum)
 
-				const [order] = await tx
-					.insert(orders)
-					.values({
-						order_number: genOrderNumber(),
-						checkout_group_id,
-						buyer_id,
-						store_id,
-						payment_method: payment_method ?? 'cash_on_delivery',
-						currency,
-						subtotal: subtotalNum.toFixed(2),
-						shipping_fee: shippingFeeNum.toFixed(2),
-						total: totalNum.toFixed(2),
-						item_count: itemCount,
-						shipping_address_id,
-						shipping_address: shippingSnapshot,
-						buyer_note,
-					})
-					.returning({
-						id: orders.id,
-						order_number: orders.order_number,
-					})
-				if (!order) throw ApiError.internal('Failed to create order')
-
-				await tx
-					.insert(orderItems)
-					.values(itemValues.map((i) => ({ ...i, order_id: order.id })))
-
-				ordersOut.push({
-					id: order.id,
-					order_number: order.order_number,
-					store_id,
-					currency,
+			const [created] = await tx
+				.insert(orders)
+				.values({
+					order_number: genOrderNumber(),
+					buyer_id,
+					store_id: product.store_id,
+					product_id: product.id,
+					title: product.title,
+					image: firstImageUrl(product.images),
+					unit_price: product.price,
+					quantity,
+					selected_options: selected_options ?? null,
+					payment_method: payment_method ?? 'cash_on_delivery',
+					currency: product.currency,
 					subtotal: subtotalNum.toFixed(2),
 					shipping_fee: shippingFeeNum.toFixed(2),
 					total: totalNum.toFixed(2),
-					item_count: itemCount,
+					shipping_address_id,
+					shipping_address: shippingSnapshot,
+					buyer_note,
 				})
-			}
-
-			return ordersOut
+				.returning({
+					id: orders.id,
+					order_number: orders.order_number,
+					store_id: orders.store_id,
+					currency: orders.currency,
+					subtotal: orders.subtotal,
+					shipping_fee: orders.shipping_fee,
+					total: orders.total,
+					quantity: orders.quantity,
+				})
+			if (!created) throw ApiError.internal('Failed to create order')
+			return created
 		})
 
-		// 5. Notify each store owner and the buyer themselves (fire-and-forget;
+		// 3. Notify the store owner and the buyer themselves (fire-and-forget;
 		//    never block the response).
-		this.notifyStoreOwners(created, buyer_id, buyer.name).catch((err) =>
-			console.error('[orders] failed to notify store owners:', err),
+		this.notifyStoreOwner(order, buyer_id, buyer.name).catch((err) =>
+			console.error('[orders] failed to notify store owner:', err),
 		)
-		this.notifyBuyer(created, buyer_id).catch((err) =>
+		this.notifyBuyer(order, buyer_id).catch((err) =>
 			console.error('[orders] failed to notify buyer:', err),
 		)
 
-		return { checkout_group_id, orders: created }
+		return order
 	},
 
-	// ── Background: notify store owners of new orders ──
-	async notifyStoreOwners(
-		created: Array<{ id: number; store_id: number; order_number: string }>,
+	// ── Background: notify the store owner of a new order ──
+	async notifyStoreOwner(
+		order: { id: number; store_id: number; order_number: string },
 		buyerId: string,
 		buyerName: string,
 	) {
-		const storeIds = created.map((o) => o.store_id)
-		const owners = await db
-			.select({ id: stores.id, owner_id: stores.owner_id, name: stores.name })
-			.from(stores)
-			.where(inArray(stores.id, storeIds))
-		const ownerByStore = new Map(owners.map((o) => [o.id, o]))
+		const store = await db.query.stores.findFirst({
+			where: eq(stores.id, order.store_id),
+			columns: { owner_id: true },
+		})
+		if (!store || store.owner_id === buyerId) return
 
-		await Promise.all(
-			created.map((o) => {
-				const store = ownerByStore.get(o.store_id)
-				if (!store || store.owner_id === buyerId) return undefined
-				const body = `${buyerName} placed an order #${o.order_number}`
-				return notificationDispatchService.notifyUsers({
-					type: 'new_order',
-					recipients: [store.owner_id],
-					actorId: buyerId,
-					data: {
-						title: 'New Order',
-						body,
-						order_role: 'seller',
-						order_id: o.id,
-						order_number: o.order_number,
-						buyer_name: buyerName,
-					},
-					push: { title: 'New Order', body },
-				})
-			}),
-		)
+		const body = `${buyerName} placed an order #${order.order_number}`
+		await notificationDispatchService.notifyUsers({
+			type: 'new_order',
+			recipients: [store.owner_id],
+			actorId: buyerId,
+			data: {
+				title: 'New Order',
+				body,
+				order_role: 'seller',
+				order_id: order.id,
+				order_number: order.order_number,
+				buyer_name: buyerName,
+			},
+			push: { title: 'New Order', body },
+		})
 	},
 
-	// ── Background: confirm to the buyer that their own order(s) went
-	//    through — one consolidated notification per checkout, not one per
-	//    store order (a buyer who ordered from 3 stores at once shouldn't get
-	//    3 separate "order placed" rows). In-app only, same as the store
-	//    owner's own new_order notification above. ──
+	// ── Background: confirm to the buyer their order went through. In-app
+	//    only, same as the store owner's own new_order notification above. ──
 	async notifyBuyer(
-		created: Array<{ id: number; order_number: string }>,
+		order: { id: number; order_number: string },
 		buyerId: string,
 	) {
-		if (created.length === 0) return
-		const body =
-			created.length === 1
-				? `Order #${created[0]?.order_number} has been placed`
-				: `${created.length} orders have been placed`
+		const body = `Order #${order.order_number} has been placed`
 		await notificationDispatchService.notifyUsers({
 			type: 'new_order',
 			recipients: [buyerId],
 			actorId: buyerId,
-			// `order_id` only when there's exactly one — a multi-store checkout
-			// has no single order to deep-link to, so the frontend falls back
-			// to the orders list for that case (see notificationRouting.ts).
 			data: {
 				title: 'Order Placed',
 				body,
 				order_role: 'buyer',
-				...(created.length === 1 ? { order_id: created[0]?.id } : {}),
-				order_ids: created.map((o) => o.id),
+				order_id: order.id,
+				order_number: order.order_number,
 			},
-			// In-app only, matching notifyStoreOwners above.
 		})
 	},
 
@@ -409,7 +272,9 @@ export const ordersService = {
 			where: and(...conditions),
 			with: {
 				store: { columns: { id: true, name: true, logo_url: true } },
-				items: true,
+				product: {
+					columns: { id: true, title: true, images: true, category_id: true },
+				},
 			},
 			orderBy: [desc(orders.created_at), desc(orders.id)],
 			limit: opts.limit + 1,
@@ -441,7 +306,9 @@ export const ordersService = {
 			where: and(...conditions),
 			with: {
 				buyer: { columns: { id: true, name: true, avatar_url: true } },
-				items: true,
+				product: {
+					columns: { id: true, title: true, images: true, category_id: true },
+				},
 			},
 			orderBy: [desc(orders.created_at), desc(orders.id)],
 			limit: opts.limit + 1,
@@ -501,16 +368,12 @@ export const ordersService = {
 					where: eq(orders.store_id, storeId),
 					with: {
 						buyer: { columns: { id: true, name: true, avatar_url: true } },
-						items: {
-							with: {
-								product: {
-									columns: {
-										id: true,
-										title: true,
-										images: true,
-										category_id: true,
-									},
-								},
+						product: {
+							columns: {
+								id: true,
+								title: true,
+								images: true,
+								category_id: true,
 							},
 						},
 					},
@@ -584,17 +447,8 @@ export const ordersService = {
 				buyer: {
 					columns: { id: true, name: true, phone: true, avatar_url: true },
 				},
-				items: {
-					with: {
-						product: {
-							columns: {
-								id: true,
-								title: true,
-								images: true,
-								category_id: true,
-							},
-						},
-					},
+				product: {
+					columns: { id: true, title: true, images: true, category_id: true },
 				},
 			},
 		})

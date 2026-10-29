@@ -614,30 +614,23 @@ export const orderStatusValues = [
 ] as const
 
 /**
- * Checkout payload. The server is authoritative for pricing — it re-fetches
- * products and computes totals; only the product id, requested quantity, and
- * which variant was picked are accepted from the client. buyer_id is derived
- * from the authenticated session.
+ * Checkout payload. One order = one product — there's no cart, "Order It" on
+ * a product's details page is the only way to check out. The server is
+ * authoritative for pricing — it re-fetches the product and computes totals;
+ * only the product id, requested quantity, and which variant was picked are
+ * accepted from the client. buyer_id is derived from the authenticated session.
  */
 export const checkoutSchema = z
 	.object({
 		shipping_address_id: z.number().int().positive(),
 		payment_method: z.enum(['cash_on_delivery', 'bank_transfer']).optional(),
 		buyer_note: z.string().max(500).optional(),
-		items: z
-			.array(
-				z.object({
-					product_id: z.number().int().positive(),
-					quantity: z.number().int().positive(),
-					// Which value the buyer picked per variant attribute (e.g.
-					// { color: "navy" }) — two lines for the same product_id with
-					// different selected_options are kept as two separate order
-					// items, not merged into one with a combined quantity (see
-					// ordersService.checkout's line-keying).
-					selected_options: z.record(z.string(), z.string()).optional(),
-				}),
-			)
-			.min(1, 'At least one item is required'),
+		product_id: z.number().int().positive(),
+		quantity: z.number().int().positive(),
+		// Which value the buyer picked per variant attribute (e.g.
+		// { color: "navy" }) — snapshotted onto the order so it survives the
+		// product's own specs changing later.
+		selected_options: z.record(z.string(), z.string()).optional(),
 	})
 	.strict()
 

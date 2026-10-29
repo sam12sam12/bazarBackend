@@ -13,7 +13,7 @@ const router = new Hono()
 // Every order endpoint is scoped to the signed-in user.
 router.use('*', authMiddleware)
 
-// ── Checkout (creates one order per store) ──
+// ── Checkout (always creates exactly one order — one product per order) ──
 router.post('/checkout', validate(checkoutSchema), ordersController.checkout)
 
 // ── Lists ──
