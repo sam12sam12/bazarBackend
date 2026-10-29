@@ -74,7 +74,7 @@ async function resetDatabase() {
       "session", "account", "verification",
       "users", "provinces", "categories", "category_attribute",
       "stores", "products", "addresses",
-      "orders", "order_items",
+      "orders",
       "product_views", "store_views", "product_requests",
       "notifications", "product_reviews", "store_reviews",
       "banners", "reports", "trending_searches"
@@ -122,8 +122,7 @@ async function main() {
     generateProductRequestsFakerData(600)
   );
 
-  // 6. Orders depend on products + addresses; the generator inserts orders
-  // and their items itself (parent/child), so it isn't wrapped in db.insert().
+  // 6. Orders depend on products + addresses (one order = one product).
   await runStep("orders", orders, () => generateOrdersFakerData(2_000));
 
   await runStep("notifications", notifications, () =>
