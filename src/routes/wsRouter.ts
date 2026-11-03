@@ -609,9 +609,24 @@ router.get(
 						}
 
 						case 'presence:heartbeat': {
-							await refreshConnection(user.id)
+							const justCameOnline = await refreshConnection(user.id)
 							if (activeConversationId != null) {
 								await refreshActiveConversation(user.id)
+							}
+							// Self-heal path only (see presence.ts's refreshConnection) —
+							// this connection's earlier `registerConnection` call never
+							// went through, so no one was ever told it's online. Same
+							// broadcast as onOpen's `justCameOnline` branch.
+							if (justCameOnline) {
+								const contacts = await contactsFor(conversationIds, user.id)
+								const payload = JSON.stringify({
+									type: 'presence',
+									user_id: user.id,
+									online: true,
+								})
+								for (const contactId of contacts)
+									fanoutBroadcast(userTopic(contactId), payload)
+								fanoutBroadcast(presenceTopic(user.id), payload)
 							}
 							return
 						}

@@ -72,12 +72,28 @@ export async function registerConnection(userId: string): Promise<boolean> {
 // soft like everything else here: a missed refresh under a Redis blip just
 // means the key expires a little early, which only ever self-corrects
 // *toward* "offline," never produces a false "online."
-export async function refreshConnection(userId: string): Promise<void> {
+//
+// `EXPIRE` on a key that doesn't exist is a silent no-op, not an error — so
+// if this connection's own `registerConnection` call failed earlier (e.g. a
+// Redis blip at connect time), every subsequent heartbeat would otherwise
+// refresh a key that was never created, leaving this connection invisible
+// to presence for its entire remaining lifetime even though the socket
+// itself is fine and chat works normally. Returns `true` in that case,
+// after re-incrementing to recreate it, so the caller can treat it exactly
+// like `registerConnection`'s "just came online" and broadcast accordingly
+// — from every other contact's point of view, this connection *is* only
+// now becoming visible.
+export async function refreshConnection(userId: string): Promise<boolean> {
 	try {
-		await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
+		const refreshed = await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
 		loggedRedisFailure = false
+		if (refreshed === 1) return false
+		const count = await publisher.incr(presenceKey(userId))
+		await publisher.expire(presenceKey(userId), PRESENCE_TTL_SECONDS)
+		return count === 1
 	} catch (error) {
 		logRedisFailureOnce('refreshConnection', error)
+		return false
 	}
 }
 

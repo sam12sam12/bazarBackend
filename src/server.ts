@@ -174,11 +174,16 @@ app.route("/ws", wsRouter);
 // resulting server to `lib/fanout.ts`, which needs a standing reference to
 // call `.publish()` from outside any request (e.g. a presence change fired
 // from `onClose`). `idleTimeout` bounds how stale presence can get if a
-// connection dies without a clean close (e.g. the device loses signal).
+// connection dies without a clean close (e.g. the device loses signal) —
+// kept just above presence.ts's PRESENCE_TTL_SECONDS (45s) rather than
+// Bun's much larger default, so Bun force-closes (and `onClose` broadcasts
+// "offline") around the same time the Redis presence key would silently
+// expire anyway, instead of leaving already-connected peers looking at a
+// stale "online" dot for up to a couple of minutes longer.
 const server = Bun.serve({
   port: Number(PORT),
   fetch: app.fetch,
-  websocket: { ...websocket, idleTimeout: 120 },
+  websocket: { ...websocket, idleTimeout: 50 },
 });
 setLocalServer(server);
 
