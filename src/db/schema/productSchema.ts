@@ -14,6 +14,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import {
 	currencyEnum,
+	deliveryDurationUnitEnum,
 	listingStatusEnum,
 	productConditionEnum,
 	timestamps,
@@ -54,16 +55,29 @@ export const products = pgTable(
 
 		// ── Delivery & Location (critical for real estate & vehicles) ──
 		delivery_available: boolean('delivery_available').default(false).notNull(),
-		// Only meaningful when `delivery_available` is true — same-city vs.
-		// other-province fee/timeframe, same split CreateProductScreen's
-		// delivery step collects (see ProductDeliveryStep.tsx).
+		// Two fully independent delivery options — same-province vs.
+		// other-provinces, same split CreateProductScreen's delivery step
+		// collects (see ProductDeliveryStep.tsx). Each is "offered" exactly
+		// when its own fee column is non-null; there's no separate boolean —
+		// `delivery_available` above is just "at least one of these two is
+		// set." Each also carries its *own* currency and duration unit
+		// (a seller can quote the in-province fee in AFN and the other-
+		// provinces one in USD, "same day" vs "1 month", etc.) — all four
+		// sibling columns per option are null together whenever that option
+		// isn't offered, non-null together whenever it is.
 		intra_city_fee: numeric('intra_city_fee', { precision: 12, scale: 2 }),
+		intra_city_fee_currency: currencyEnum('intra_city_fee_currency'),
 		intra_city_days: varchar('intra_city_days', { length: 50 }),
+		intra_city_duration_unit: deliveryDurationUnitEnum('intra_city_duration_unit'),
 		inter_province_fee: numeric('inter_province_fee', {
 			precision: 12,
 			scale: 2,
 		}),
+		inter_province_fee_currency: currencyEnum('inter_province_fee_currency'),
 		inter_province_days: varchar('inter_province_days', { length: 50 }),
+		inter_province_duration_unit: deliveryDurationUnitEnum(
+			'inter_province_duration_unit',
+		),
 		latitude: numeric('latitude', { precision: 10, scale: 7 }),
 		longitude: numeric('longitude', { precision: 10, scale: 7 }),
 		is_global: boolean('is_global').default(false).notNull(),

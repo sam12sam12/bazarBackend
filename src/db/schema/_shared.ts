@@ -38,6 +38,17 @@ export const listingStatusEnum = pgEnum('listing_status', [
 
 export const currencyEnum = pgEnum('currency', ['AFN', 'USD', 'PKR'] as const)
 
+// A product's two delivery options (in-province / other-provinces) each
+// carry their own fee *and* their own duration unit — a seller quoting
+// "same day" vs "2 days" vs "1 month" for the same listing isn't unusual
+// (see productSchema.ts's intra/inter columns), so this can't be a single
+// shared assumption the way the fee's numeric value already isn't.
+export const deliveryDurationUnitEnum = pgEnum('delivery_duration_unit', [
+	'hours',
+	'days',
+	'months',
+] as const)
+
 export const addressTypeEnum = pgEnum('address_type', [
 	'home',
 	'work',
