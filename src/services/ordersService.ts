@@ -496,28 +496,39 @@ export const ordersService = {
 
 		await db.update(orders).set(patch).where(eq(orders.id, orderId))
 
-		// Notify the buyer (fire-and-forget).
-		notificationDispatchService
-			.notifyUsers({
-				type: 'order_status_changed',
-				recipients: [order.buyer_id],
-				actorId,
-				data: {
-					title: 'Order Update',
-					body: `Order #${order.order_number} is now ${newStatus}`,
-					order_role: 'buyer',
-					order_id: orderId,
-					order_number: order.order_number,
-					status: newStatus,
-				},
-				push: {
-					title: 'Order Update',
-					body: `Order #${order.order_number} is now ${newStatus}`,
-				},
-			})
-			.catch((err) =>
-				console.error('[orders] failed to notify buyer of status change:', err),
-			)
+		// Notify whichever side didn't just perform this transition (fire-
+		// and-forget) — every other status change here is seller-initiated,
+		// so the buyer is notified; `completed` is the one exception (it's
+		// the buyer's own "mark as received" confirmation, authorized above),
+		// so the store owner is notified instead. Same "notify the other
+		// party" rule `cancelByBuyer` below already follows.
+		const isCompleted = newStatus === 'completed'
+		const recipientId = isCompleted ? order.store.owner_id : order.buyer_id
+		const title = isCompleted ? 'Order Completed' : 'Order Update'
+		const body = isCompleted
+			? `Your customer confirmed they received order #${order.order_number}`
+			: `Order #${order.order_number} is now ${newStatus}`
+
+		if (recipientId !== actorId) {
+			notificationDispatchService
+				.notifyUsers({
+					type: 'order_status_changed',
+					recipients: [recipientId],
+					actorId,
+					data: {
+						title,
+						body,
+						order_role: isCompleted ? 'seller' : 'buyer',
+						order_id: orderId,
+						order_number: order.order_number,
+						status: newStatus,
+					},
+					push: { title, body },
+				})
+				.catch((err) =>
+					console.error('[orders] failed to notify of status change:', err),
+				)
+		}
 
 		return { id: orderId, status: newStatus }
 	},
