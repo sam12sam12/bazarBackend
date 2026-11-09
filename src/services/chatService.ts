@@ -7,6 +7,7 @@ import {
 	messages,
 	productRequests,
 	products,
+	users,
 } from '../db/schema'
 import type { SendMessage } from '../db/validation'
 import { ApiError } from '../utils/ApiError'
@@ -16,9 +17,22 @@ import {
 	cursorOrderBy,
 	paginateResults,
 } from '../utils/pagination'
+import { buildFuzzySearch } from '../utils/search'
 import { keyFromPublicUrl } from '../utils/storage/client'
 import { storage } from '../utils/storage/instance'
 import type { UserId } from '../utils/types'
+
+// The single similarity/tsvector column (name only — see
+// `users_name_fts_idx`/`users_name_trgm_idx`) — same hybrid-search shape
+// `productFuzzySearchTarget`/`storeFuzzySearchTarget` build for their own
+// entities, just this one's single `name` column (no description to
+// concatenate in).
+function userFuzzySearchTarget() {
+	return {
+		textColumns: [sql`coalesce(${users.name}, '')`],
+		similarityColumn: sql`${users.name}`,
+	}
+}
 
 // Canonical, order-independent key for a 1:1 chat — lets "find or create
 // the conversation between these two users" be an atomic
@@ -399,15 +413,57 @@ export const chatService = {
 		})
 	},
 
-	async listConversations(userId: UserId, limit: number, cursor?: CursorData) {
+	async listConversations(
+		userId: UserId,
+		limit: number,
+		cursor?: CursorData,
+		search?: string,
+	) {
 		const myConversationRows = await db
 			.select({ conversation_id: conversation_participants.conversation_id })
 			.from(conversation_participants)
 			.where(eq(conversation_participants.user_id, userId))
-		const myConversationIds = myConversationRows.map((r) => r.conversation_id)
+		let myConversationIds = myConversationRows.map((r) => r.conversation_id)
 
 		if (myConversationIds.length === 0) {
 			return { conversations: [], nextCursor: null, hasMore: false }
+		}
+
+		// Narrows to conversations whose *other* participant's name matches —
+		// the same hybrid tsvector+trigram match every other entity's search
+		// uses (`buildFuzzySearch`), just scoped to this user's own
+		// conversation ids first so a match can never reach outside
+		// conversations they actually participate in. No relevance ranking
+		// here the way products/stores' `sortBy: 'relevance'` has — chat has
+		// no sort selector, so the existing recency order (`last_message_at`
+		// desc) stays exactly as-is; this only ever narrows *which*
+		// conversations qualify, never reorders them.
+		const searchTerm = search?.trim() ?? ''
+		if (searchTerm.length >= 1) {
+			const { condition } = buildFuzzySearch(
+				searchTerm,
+				userFuzzySearchTarget(),
+			)
+			const matchingRows = await db
+				.select({
+					conversation_id: conversation_participants.conversation_id,
+				})
+				.from(conversation_participants)
+				.innerJoin(users, eq(users.id, conversation_participants.user_id))
+				.where(
+					and(
+						inArray(
+							conversation_participants.conversation_id,
+							myConversationIds,
+						),
+						sql`${conversation_participants.user_id} <> ${userId}`,
+						condition,
+					),
+				)
+			myConversationIds = matchingRows.map((r) => r.conversation_id)
+			if (myConversationIds.length === 0) {
+				return { conversations: [], nextCursor: null, hasMore: false }
+			}
 		}
 
 		const baseFilter = inArray(conversations.id, myConversationIds)

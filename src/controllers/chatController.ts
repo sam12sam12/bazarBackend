@@ -7,9 +7,10 @@ export const chatController = {
 		const user = c.get('user')
 		const limit = 20
 		const cursor = parseCursor(c.req.query('cursor'))
+		const search = c.req.query('search')
 
 		const { conversations, nextCursor, hasMore } =
-			await chatService.listConversations(user.id, limit, cursor)
+			await chatService.listConversations(user.id, limit, cursor, search)
 		return c.json({
 			success: true,
 			data: { conversations, nextCursor, hasMore },

@@ -45,5 +45,24 @@ export const users = pgTable(
 		index('users_active_created_at_id_idx')
 			.on(table.created_at.desc(), table.id.desc())
 			.where(sql`${table.is_active} = true`),
+
+		// Hybrid tsvector+trigram search (chatService's `buildFuzzySearch`,
+		// via `userFuzzySearchTarget`) — same shape as `stores_name_fts_idx`/
+		// `stores_name_trgm_idx`, just this entity's single `name` column
+		// (no description to concatenate in). Backs conversation search:
+		// "find the conversation with this contact by name."
+		index('users_name_fts_idx').using(
+			'gin',
+			sql`to_tsvector('simple', coalesce(${table.name}, ''))`,
+		),
+
+		// Trigram index backing `lower(name) % lower(search)` — the
+		// typo-tolerant half; needs `pg_trgm` already enabled on this
+		// database (see storeSchema.ts's identical note — products/stores
+		// already depend on it, so it's already there).
+		index('users_name_trgm_idx').using(
+			'gin',
+			sql`lower(${table.name}) gin_trgm_ops`,
+		),
 	],
 )
