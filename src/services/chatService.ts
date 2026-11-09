@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { db } from '../db/db'
 import {
 	conversation_participants,
@@ -445,46 +445,51 @@ export const chatService = {
 		)
 
 		const conversationIds = list.map((c) => c.id)
-		const myParticipantRows = conversationIds.length
+
+		// One grouped query across every conversation on this page, joined
+		// against *this* user's own `conversation_participants` row to get
+		// each conversation's `last_read_at` threshold inline — replaces what
+		// used to be a separate `COUNT(*)` round-trip per conversation
+		// (`Promise.all` over `list`, up to `limit + 1` queries per page load).
+		// The join's `ON` clause already pins `user_id` to the caller, so the
+		// `WHERE` only needs the cross-conversation filters.
+		const unreadRows = conversationIds.length
 			? await db
 					.select({
-						conversation_id: conversation_participants.conversation_id,
-						last_read_at: conversation_participants.last_read_at,
+						conversation_id: messages.conversation_id,
+						count: sql<number>`count(*)::int`,
 					})
-					.from(conversation_participants)
-					.where(
+					.from(messages)
+					.innerJoin(
+						conversation_participants,
 						and(
-							inArray(
+							eq(
 								conversation_participants.conversation_id,
-								conversationIds,
+								messages.conversation_id,
 							),
 							eq(conversation_participants.user_id, userId),
 						),
 					)
-			: []
-		const myLastRead = new Map(
-			myParticipantRows.map((r) => [r.conversation_id, r.last_read_at]),
-		)
-
-		const unreadCounts = await Promise.all(
-			list.map(async (c) => {
-				const lastRead = myLastRead.get(c.id)
-				const [result] = await db
-					.select({ count: sql<number>`count(*)::int` })
-					.from(messages)
 					.where(
 						and(
-							eq(messages.conversation_id, c.id),
+							inArray(messages.conversation_id, conversationIds),
 							sql`${messages.sender_id} <> ${userId}`,
-							lastRead ? gt(messages.created_at, lastRead) : sql`true`,
+							sql`(${conversation_participants.last_read_at} is null or ${messages.created_at} > ${conversation_participants.last_read_at})`,
 						),
 					)
-				return result?.count ?? 0
-			}),
+					.groupBy(messages.conversation_id)
+			: []
+		const unreadCountByConversation = new Map(
+			unreadRows.map((r) => [r.conversation_id, r.count]),
 		)
 
-		const conversationList = list.map((c, i) => {
-			const other = c.participants.find((p) => p.user.id !== userId)?.user
+		const conversationList = list.map((c) => {
+			// The `with: { participants: { with: { user: ... } } }` query above
+			// already pulled every column of this row (no `columns` restriction
+			// on `participants` itself, only on the nested `user`) — so the other
+			// participant's `last_read_at`/`last_delivered_at` are already in
+			// hand here, no extra query needed to surface them below.
+			const otherParticipant = c.participants.find((p) => p.user.id !== userId)
 			return {
 				id: c.id,
 				last_message_preview: c.last_message_preview,
@@ -496,8 +501,25 @@ export const chatService = {
 				// `last_message_sender_id` to their own id client-side.
 				is_mine: c.last_message_sender_id === userId,
 				created_at: c.last_message_at,
-				other_user: other ?? { id: '', name: 'Unknown', avatar_url: null },
-				unread_count: unreadCounts[i] ?? 0,
+				other_user: otherParticipant?.user ?? {
+					id: '',
+					name: 'Unknown',
+					avatar_url: null,
+				},
+				unread_count: unreadCountByConversation.get(c.id) ?? 0,
+				// High-water marks for the other participant's read/delivered
+				// state — same columns `getMessages` already exposes per-thread
+				// (see `getOtherParticipantLastReadAt`/`getOtherParticipantLastDeliveredAt`
+				// below), surfaced here too so the *list* row's status tick isn't
+				// solely dependent on live WebSocket events received since the
+				// current session started. Without this, ChatUserCard showed a
+				// message as merely "sent" after a cold start (or any session
+				// reset) until either that specific thread was opened or a brand
+				// new delivered/read event happened to arrive — even though the
+				// other participant genuinely already delivered/read it, per
+				// these exact columns.
+				other_last_read_at: otherParticipant?.last_read_at ?? null,
+				other_last_delivered_at: otherParticipant?.last_delivered_at ?? null,
 			}
 		})
 
